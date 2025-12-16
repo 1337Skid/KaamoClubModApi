@@ -77,10 +77,9 @@ fn initialize() {
         consoleapi::AllocConsole();
         println!("[*] Loading KaamoClubModAPI...");
 
-        let payload_name = "kaamoclubmodapi.dll"; 
-        let payload_path = CString::new(payload_name).unwrap();
+        let payload_path = CString::new("kaamoclubmodapi.dll").unwrap();
         
-        println!("[*] Loading core modapi dll: {}", payload_name);
+        println!("[*] Loading core modapi dll...");
         
         let coremodapi = LoadLibraryA(payload_path.as_ptr());
 

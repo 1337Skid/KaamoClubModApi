@@ -1,0 +1,36 @@
+#include <windows.h>
+#include <iostream>
+#include <cstdint>
+#include <cstdio>
+#include <filesystem>
+#include <tlhelp32.h>
+#include <vector>
+#include <sol/sol.hpp>
+#include <map>
+#include <string>
+#include "modapi_utils.h"
+#include "luamanager.h"
+#include "memoryutils.h"
+#include "eventmanager.h"
+#include <Game/player.h>
+#include <Game/system.h>
+#include <Game/station.h>
+#include <Game/mission.h>
+#include <Game/asset.h>
+
+void Asset::init()
+{
+    assetfilepath = MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AE68;
+}
+
+std::string Asset::getassetfilepath(unsigned int offset)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(assetfilepath, {0x148, offset, 0xC, 0x0, 0x0});
+    return MemoryUtils::ReadString(finaladdr);
+}
+
+void Asset::setassetfilepath(unsigned int offset, const std::string value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(assetfilepath, {0x148, offset, 0xC, 0x0, 0x0});
+    MemoryUtils::WriteString(finaladdr, value);
+}

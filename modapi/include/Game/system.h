@@ -1,5 +1,5 @@
-#ifndef LUAMANAGER_H
-#define LUAMANAGER_H
+#ifndef SYSTEM_H
+#define SYSTEM_H
 #include <windows.h>
 #include <iostream>
 #include <cstdint>
@@ -20,12 +20,13 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-class LuaManager {
+class System {
     private:
-        sol::state lua_state;
+        static inline uintptr_t systemid = 0;
     public:
-        void init(void);
-        void bind_api(void);
-        void execute_script(const std::string& filepath);
+        static void init(void);
+        static int getsystemid(void);
+        static void setsystemid(int value);
 };
+
 #endif

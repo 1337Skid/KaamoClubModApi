@@ -1,5 +1,3 @@
-#ifndef LUAMANAGER_H
-#define LUAMANAGER_H
 #include <windows.h>
 #include <iostream>
 #include <cstdint>
@@ -20,12 +18,19 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-class LuaManager {
-    private:
-        sol::state lua_state;
-    public:
-        void init(void);
-        void bind_api(void);
-        void execute_script(const std::string& filepath);
-};
-#endif
+void System::init()
+{
+    systemid = MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AD6C;
+}
+
+int System::getsystemid()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(systemid, {0x168, 0x14});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void System::setsystemid(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(systemid, {0x168, 0x14});
+    MemoryUtils::Write<int>(finaladdr, value);
+}

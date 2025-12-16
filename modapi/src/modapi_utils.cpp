@@ -6,11 +6,17 @@
 #include <tlhelp32.h>
 #include <vector>
 #include <sol/sol.hpp>
+#include <map>
 #include <string>
 #include "modapi_utils.h"
 #include "luamanager.h"
 #include "memoryutils.h"
+#include "eventmanager.h"
 #include <Game/player.h>
+#include <Game/system.h>
+#include <Game/station.h>
+#include <Game/mission.h>
+#include <Game/asset.h>
 
 DWORD ModApiUtils::getmainthreadid() 
 {
@@ -70,6 +76,7 @@ void ModApiUtils::load_mods(LuaManager *luamanager)
 {
     std::string mods_folder = "mods";
     
+    // TODO: make a folder lol
     if (!std::filesystem::exists(mods_folder) || !std::filesystem::is_directory(mods_folder)) {
         std::cout << "[-] Mods folder not found: " << mods_folder << std::endl;
         return;

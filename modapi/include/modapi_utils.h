@@ -8,11 +8,17 @@
 #include <tlhelp32.h>
 #include <vector>
 #include <sol/sol.hpp>
+#include <map>
 #include <string>
 #include "modapi_utils.h"
 #include "luamanager.h"
 #include "memoryutils.h"
+#include "eventmanager.h"
 #include <Game/player.h>
+#include <Game/system.h>
+#include <Game/station.h>
+#include <Game/mission.h>
+#include <Game/asset.h>
 
 class ModApiUtils {
     private:

@@ -1,5 +1,5 @@
-#ifndef LUAMANAGER_H
-#define LUAMANAGER_H
+#ifndef STATION_H
+#define STATION_H
 #include <windows.h>
 #include <iostream>
 #include <cstdint>
@@ -20,12 +20,15 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-class LuaManager {
+class Station {
     private:
-        sol::state lua_state;
+        static inline uintptr_t stationname = 0;
+        static inline uintptr_t stationtechlevel = 0;
     public:
-        void init(void);
-        void bind_api(void);
-        void execute_script(const std::string& filepath);
+        static void init(void);
+        static std::string getstationname(void);
+        static void setstationname(const std::string value);
+        static int getstationtechlevel(void);
+        static void setstationtechlevel(int value);
 };
 #endif

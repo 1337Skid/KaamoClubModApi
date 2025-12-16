@@ -1,5 +1,5 @@
-#ifndef LUAMANAGER_H
-#define LUAMANAGER_H
+#ifndef MISSION_H
+#define MISSION_H
 #include <windows.h>
 #include <iostream>
 #include <cstdint>
@@ -20,12 +20,12 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-class LuaManager {
+class Mission {
     private:
-        sol::state lua_state;
+        static inline uintptr_t missionid = 0;
     public:
-        void init(void);
-        void bind_api(void);
-        void execute_script(const std::string& filepath);
+        static void init(void);
+        static int getmissionid(void);
+        static void setmissionid(int value);
 };
 #endif
