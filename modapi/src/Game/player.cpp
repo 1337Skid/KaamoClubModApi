@@ -77,3 +77,75 @@ bool Player::hasshiparmor()
         return true;
     return false;
 }
+
+int Player::getmaxshiphealth()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x154, 0x4});
+    return MemoryUtils::Read<int>(finaladdr); 
+}
+
+void Player::setmaxshiphealth(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x154, 0x4});
+    MemoryUtils::Write<int>(finaladdr, value);
+}
+
+int Player::getenemieskilled()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x188});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void Player::setenemieskilled(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x188});
+    MemoryUtils::Write<int>(finaladdr, value);
+}
+
+int Player::getlevel()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x190});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void Player::setlevel(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x190});
+    MemoryUtils::Write<int>(finaladdr, value);
+}
+
+int Player::getvisitedstations()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x198});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void Player::setvisitedstations(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x198});
+    MemoryUtils::Write<int>(finaladdr, value);
+}
+
+int Player::getjumpgateusedcount()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x198});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void Player::setjumpgateusedcount(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x198});
+    MemoryUtils::Write<int>(finaladdr, value);
+}
+
+int Player::getcargotookcount()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x1A8});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void Player::setcargotookcount(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(player, {0x1A8});
+    MemoryUtils::Write<int>(finaladdr, value);
+}

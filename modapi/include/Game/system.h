@@ -27,6 +27,18 @@ class System {
         static void init(void);
         static int getsystemid(void);
         static void setsystemid(int value);
+        static int getsystemrisklevel(void);
+        static void setsystemrisklevel(int value);
+        static int getsystemfaction(void);
+        static void setsystemfaction(int value);
+        static int getsystemjumpgatestationid(void);
+        static void setsystemjumpgatestationid(int value);
+        static int getsystemmapcoordinatex(void);
+        static void setsystemmapcoordinatex(int value);
+        static int getsystemmapcoordinatey(void);
+        static void setsystemmapcoordinatey(int value);
+        static int getsystemmapcoordinatez(void);
+        static void setsystemmapcoordinatez(int value);
 };
 
 #endif

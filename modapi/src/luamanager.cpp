@@ -39,6 +39,12 @@ void LuaManager::bind_api()
         "cargo", sol::property(&Player::getcargo, &Player::setcargo),
         "maxcargo", sol::property(&Player::getmaxcargo, &Player::setmaxcargo),
         "armor", sol::property(&Player::getshiparmor, &Player::setshiparmor),
+        "maxhealth", sol::property(&Player::getmaxshiphealth, &Player::setmaxshiphealth),
+        "enemieskilled", sol::property(&Player::getenemieskilled, &Player::setenemieskilled),
+        "level", sol::property(&Player::getlevel, &Player::setlevel),
+        "visitedstations", sol::property(&Player::getvisitedstations, &Player::setvisitedstations),
+        "jumpgateusedcount", sol::property(&Player::getjumpgateusedcount, &Player::setjumpgateusedcount),
+        "cargotookcount", sol::property(&Player::getcargotookcount, &Player::setcargotookcount),
         "HasShipArmor", [](Player& self) -> bool {
             return Player::hasshiparmor();
         }
@@ -46,7 +52,13 @@ void LuaManager::bind_api()
 
     lua_state.new_usertype<System>("System",
         sol::no_constructor,
-        "id", sol::property(&System::getsystemid, &System::setsystemid)
+        "id", sol::property(&System::getsystemid, &System::setsystemid),
+        "risk", sol::property(&System::getsystemrisklevel, &System::setsystemrisklevel),
+        "faction", sol::property(&System::getsystemfaction, &System::setsystemfaction),
+        "jumpgatestationid", sol::property(&System::getsystemjumpgatestationid, &System::setsystemjumpgatestationid),
+        "mapcoordinate_x", sol::property(&System::getsystemmapcoordinatex, &System::setsystemmapcoordinatex),
+        "mapcoordinate_y", sol::property(&System::getsystemmapcoordinatey, &System::setsystemmapcoordinatey),
+        "mapcoordinate_z", sol::property(&System::getsystemmapcoordinatez, &System::setsystemmapcoordinatez)
     );
 
     lua_state.new_usertype<Mission>("Mission",
@@ -57,6 +69,7 @@ void LuaManager::bind_api()
 
     lua_state.new_usertype<Station>("Station",
         sol::no_constructor,
+        "id", sol::property(&Station::getstationid, &Station::setstationid),
         "name", sol::property(&Station::getstationname, &Station::setstationname),
         "level", sol::property(&Station::getstationtechlevel, &Station::setstationtechlevel)
     );

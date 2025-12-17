@@ -46,3 +46,15 @@ void Station::setstationtechlevel(int value)
     uintptr_t finaladdr = MemoryUtils::GetPointerAddress(station, {0x160, 0x1C});
     MemoryUtils::Write<int>(finaladdr, value);
 }
+
+int Station::getstationid()
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(station, {0x160, 0x8});
+    return MemoryUtils::Read<int>(finaladdr);
+}
+
+void Station::setstationid(int value)
+{
+    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(station, {0x160, 0x8});
+    MemoryUtils::Write<int>(finaladdr, value);
+}

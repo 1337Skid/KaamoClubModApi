@@ -29,5 +29,7 @@ class Station {
         static void setstationname(const std::string value);
         static int getstationtechlevel(void);
         static void setstationtechlevel(int value);
+        static int getstationid(void);
+        static void setstationid(int value);
 };
 #endif
