@@ -13,6 +13,16 @@ RegisterEvent("IsInGame", function()
 	isingame = true
 end)
 
+RegisterEvent("OnEnemieKilled", function(count)
+	if not isingame then return end
+	print("wow congrats you killed " .. count .. " enemies!!!")
+end)
+
+RegisterEvent("OnCargoChanged", function(count)
+	if not isingame then return end
+	print("Current cargo : " .. count)
+end)
+
 RegisterEvent("OnStationChanged", function(id)
 	if not isingame then return end
 	if station:IsVoid() then
@@ -20,6 +30,10 @@ RegisterEvent("OnStationChanged", function(id)
 		return
 	end
 	print("New station ! : " .. id)
+end)
+
+RegisterEvent("OnStationDocked", function()
+	print("Docked on this station: " .. station.name)
 end)
 
 RegisterEvent("IsInMainMenu", function()
@@ -60,6 +74,9 @@ RegisterEvent("OnSystemChanged", function(id)
 	print("Cargo took count : " .. player.cargotookcount)
 	if player:HasShipArmor() then
 		print("The ship has an armor")
+	end
+	if player:IsDocked() then
+		print("player is docked in a station")
 	end
 	print("GOF2 Interface AEI : " .. asset:GetAssetFilePath(0x2008)) -- 0x2008 is the offset of the interface
 end)

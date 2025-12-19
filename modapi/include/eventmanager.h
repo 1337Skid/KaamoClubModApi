@@ -43,6 +43,9 @@ class EventManager {
         static void ingame_event(void);
         static void mainmenu_event(void);
         static void stationchanged_event(void);
+        static void stationdocked_event(void);
+        static void enemiekilled_event(void);
+        static void cargochanged_event(void);
     public:
         static void addlistener(std::string eventname, sol::protected_function callback);
         static void trigger_events(void);

@@ -18,6 +18,8 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
+// TODO: Check if we are in the game for most of the events
+
 std::map<std::string, std::vector<sol::protected_function>> EventManager::listeners;
 
 void EventManager::addlistener(std::string eventname, sol::protected_function callback)
@@ -34,6 +36,7 @@ void EventManager::ingame_event()
 {
     // <1000 because when the game init the pointer it has some random values so the in game event gets triggered
     // TODO: Do a better ingame event impl because if we go in game and then go back to the main menu the pointer still has the mission id value
+    // Might now use the appmanager module to check if we are ingame like the ondock event
     if (Mission::getid() > 0 && Mission::getid() < 1000)
         trigger("IsInGame");
 }
@@ -77,6 +80,44 @@ void EventManager::moneychanged_event()
     }
 }
 
+void EventManager::enemiekilled_event()
+{
+    // TODO: Fix the event being triggered one time when we get out of a station
+    // why is it doing that? bcz the game init killed at 0 and static int old is at 0
+    static int old = Player::getenemieskilled();
+    int current = Player::getenemieskilled();
+
+    if (current != old) {
+        if (Player::isdocked())
+            return;
+        trigger("OnEnemieKilled", current);
+        old = current;
+    }
+}
+
+void EventManager::cargochanged_event()
+{
+    static int old = Player::getcargo();
+    int current = Player::getcargo();
+
+    if (current != old) {
+        trigger("OnCargoChanged", current);
+        old = current;
+    }
+}
+
+void EventManager::stationdocked_event()
+{
+    static bool isdocked = false;
+
+    if (Player::isdocked() && !isdocked) {
+        trigger("OnStationDocked");
+        isdocked = true;
+    }
+    if (!Player::isdocked() && isdocked)
+        isdocked = false;
+}
+
 void EventManager::update_event()
 {
     trigger("OnUpdate");
@@ -90,4 +131,7 @@ void EventManager::trigger_events()
     mainmenu_event();
     ingame_event();
     stationchanged_event();
+    stationdocked_event();
+    enemiekilled_event();
+    cargochanged_event();
 }

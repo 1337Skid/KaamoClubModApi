@@ -22,7 +22,7 @@
 
 class Mission {
     private:
-        static inline uintptr_t mission = 0;
+        static inline uintptr_t global_status = 0;
     public:
         static void init(void);
         static int getid(void);

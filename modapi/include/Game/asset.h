@@ -22,7 +22,7 @@
 
 class Asset {
     private:
-        static inline uintptr_t asset = 0;
+        static inline uintptr_t globals_canvas = 0;
     public:
         static void init(void);
         static std::string getassetfilepath(unsigned int offset);

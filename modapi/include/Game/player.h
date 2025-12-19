@@ -22,7 +22,8 @@
 
 class Player {
     private:
-        static inline uintptr_t player = 0;
+        static inline uintptr_t globals_status = 0;
+        static inline uintptr_t globals_appmanager = 0;
     public:
         static void init(void);
         static int getmoney(void);
@@ -47,5 +48,6 @@ class Player {
         static void setcargotookcount(int value);
 
         static bool hasshiparmor(void);
+        static bool isdocked(void);
 };
 #endif

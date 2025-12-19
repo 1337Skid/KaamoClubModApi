@@ -44,6 +44,9 @@ void LuaManager::bind_api()
         "cargotookcount", sol::property(&Player::getcargotookcount, &Player::setcargotookcount),
         "HasShipArmor", [](Player& self) -> bool {
             return Player::hasshiparmor();
+        },
+        "IsDocked", [](Player& self) -> bool {
+            return Player::isdocked();
         }
     );
 

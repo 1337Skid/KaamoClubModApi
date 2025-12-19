@@ -22,7 +22,7 @@
 
 class Station {
     private:
-        static inline uintptr_t station = 0;
+        static inline uintptr_t globals_status = 0;
     public:
         static void init(void);
         static int getid(void);
