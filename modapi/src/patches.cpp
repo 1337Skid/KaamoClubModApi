@@ -28,7 +28,7 @@ void Patches::patchstarmap(uint8_t new_limit)
     DWORD old;
 
     VirtualProtect((LPVOID)0x004CE771, 2, PAGE_EXECUTE_READWRITE, &old);
-    *(uint8_t*)(0x004CE771 + 1) = new_limit;
+    *(uint8_t*)(0x004CE771 + 1) = new_limit; // push 27 asm
     VirtualProtect((LPVOID)0x004CE771, 2, old, &old);
 }
 

@@ -1,3 +1,6 @@
+#ifndef ABYSSENGINE_H
+#define ABYSSENGINE_H
+
 #include <Game/structs.h>
 
 class AbyssEngine {
@@ -21,3 +24,5 @@ class AbyssEngine {
             return a;
         }
 };
+
+#endif

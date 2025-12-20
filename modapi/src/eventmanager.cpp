@@ -41,6 +41,12 @@ void EventManager::ingame_event()
         trigger("IsInGame");
 }
 
+void EventManager::earlyinit_event()
+{
+    trigger("EarlyInit");
+    isearlyinit_finished = true;
+}
+
 void EventManager::mainmenu_event()
 {
     if (Mission::getid() == 0)

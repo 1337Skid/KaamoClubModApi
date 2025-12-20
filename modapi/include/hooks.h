@@ -1,3 +1,6 @@
+#ifndef HOOKS_H
+#define HOOKS_H
+
 class Hooks {
     private:
         static constexpr uintptr_t GLOBALS_INIT_ADDR = 0x0044B20C;
@@ -11,3 +14,5 @@ class Hooks {
     public:
         static void init(void);
 };
+
+#endif

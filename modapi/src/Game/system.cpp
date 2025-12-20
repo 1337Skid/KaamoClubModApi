@@ -1,17 +1,5 @@
-#include <windows.h>
-#include <iostream>
-#include <cstdint>
-#include <cstdio>
-#include <filesystem>
-#include <tlhelp32.h>
-#include <vector>
-#include <sol/sol.hpp>
-#include <map>
-#include <string>
-#include "modapi_utils.h"
-#include "luamanager.h"
 #include "memoryutils.h"
-#include "eventmanager.h"
+#include "abyssengine.h"
 #include <Game/player.h>
 #include <Game/system.h>
 #include <Game/station.h>
@@ -121,4 +109,29 @@ void System::setname(std::string value)
     uintptr_t strptr = MemoryUtils::Read<uintptr_t>(finaladdr);
 
     MemoryUtils::WriteWideString(strptr, value);
+}
+
+void System::create(const std::string& str, int x, int y, int z)
+{
+    if (EventManager::isearlyinit_finished) {
+        std::cout << "[-] Failed to call system:Create(), you can only call it in the EarlyInit event" << std::endl;
+        return;
+    }
+
+    SingleSystem s;
+
+    // utf8 to utf16 bruh I hate this game (sol2 can't pass a wchar directly -_-)
+    int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+    std::wstring out(len, L'\0');
+    MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, out.data(), len);
+
+    s.name = AbyssEngine::newstring(out.c_str());
+    s.pos  = { x, y, z };
+    s.id = 0;
+    s.jumpgate_station_id = 30;
+    s.starts_unlocked = true;
+    s.linked_system_ids = nullptr;
+    s.station_ids = nullptr;
+
+    created_systems.push_back(s);
 }

@@ -17,10 +17,11 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include <Game/structs.h>
 
 void LuaManager::init()
 {
-    lua_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math);
+    lua_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::os);
 }
 
 void LuaManager::bind_api()
@@ -59,7 +60,10 @@ void LuaManager::bind_api()
         "jumpgatestationid", sol::property(&System::getjumpgatestationid, &System::setjumpgatestationid),
         "mapcoordinate_x", sol::property(&System::getmapcoordinatex, &System::setmapcoordinatex),
         "mapcoordinate_y", sol::property(&System::getmapcoordinatey, &System::setmapcoordinatey),
-        "mapcoordinate_z", sol::property(&System::getmapcoordinatez, &System::setmapcoordinatez)
+        "mapcoordinate_z", sol::property(&System::getmapcoordinatez, &System::setmapcoordinatez),
+        "Create", [](System& self, const std::string& str, int x, int y, int z) {
+            System::create(str, x, y, z);
+        }
     );
 
     lua_state.new_usertype<Mission>("Mission",

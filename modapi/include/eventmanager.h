@@ -47,7 +47,10 @@ class EventManager {
         static void enemiekilled_event(void);
         static void cargochanged_event(void);
     public:
+        static inline bool isearlyinit_finished = false;
+
         static void addlistener(std::string eventname, sol::protected_function callback);
+        static void earlyinit_event(void);
         static void trigger_events(void);
         static void clearlisteners(void);
 };

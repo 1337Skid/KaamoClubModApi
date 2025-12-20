@@ -1,3 +1,5 @@
+#ifndef PATCHES_H
+#define PATCHES_H
 #include <windows.h>
 #include <iostream>
 #include <cstdint>
@@ -26,3 +28,5 @@ class Patches {
         static void patchstarmap(uint8_t new_limit);
         static void patchloadstations(uint8_t new_limit);
 };
+
+#endif

@@ -1,28 +1,10 @@
-#include <windows.h>
-#include <iostream>
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-#include <cwchar>
-#include <MinHook.h>
-#include <filesystem>
-#include <tlhelp32.h>
-#include <vector>
-#include <sol/sol.hpp>
-#include <map>
-#include <string>
 #include "modapi_utils.h"
 #include "luamanager.h"
 #include "memoryutils.h"
 #include "eventmanager.h"
 #include "patches.h"
-#include "abyssengine.h"
 #include "hooks.h"
-#include <Game/player.h>
 #include <Game/system.h>
-#include <Game/station.h>
-#include <Game/mission.h>
-#include <Game/asset.h>
 
 DWORD WINAPI MainThread(LPVOID lpParam) {
     // TODO: CLEAN THE GOD DAMN HEADERS!!!!!!!!!!!!!
@@ -32,7 +14,6 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     freopen_s(&dummyfile, "CONOUT$", "w", stderr);
     
     std::cout << "[+] KaamoClubModAPI Loaded! | Version: dev-alpha" << std::endl;
-    Hooks::init();
     Player::init();
     System::init();
     Station::init();
@@ -41,7 +22,10 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     luamanager->init();
     luamanager->bind_api();
     ModApiUtils::load_mods(luamanager);
-    
+    //System::create(L"test", 80, 30, 47);
+    //System::create(L"test blabla", 80, 50, 50);
+    EventManager::earlyinit_event();
+    Hooks::init();
     while (true)
         EventManager::trigger_events();
 

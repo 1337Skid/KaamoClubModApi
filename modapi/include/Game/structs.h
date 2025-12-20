@@ -1,3 +1,6 @@
+#ifndef STRUCTS_H
+#define STRUCTS_H
+
 struct AEString {
     wchar_t* text; 
     uint32_t size; 
@@ -19,7 +22,9 @@ struct Vector3Int {
 struct SingleSystem {
     uint8_t unk0[0xC];
     AEString name;
-    uint32_t id, risk, faction;
+    uint32_t id;
+    uint32_t risk;
+    uint32_t faction;
     Vector3Int pos;
     uint32_t jumpgate_station_id;
     uint32_t texture_id;
@@ -33,3 +38,5 @@ struct Galaxy {
     uint8_t* stations;
     AEArray<SingleSystem*>* systems;
 };
+
+#endif
