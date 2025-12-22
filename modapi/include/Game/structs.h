@@ -34,6 +34,17 @@ struct SingleSystem {
     bool starts_unlocked;
 };
 
+struct SingleStation {
+    AEString name;
+    size_t id;
+    size_t systemid;
+    size_t unk0;
+    size_t textureid;
+    size_t unk1;
+    size_t techlevel;
+    std::array<uint8_t, 16> unk2;
+};
+
 struct Galaxy {
     uint8_t* stations;
     AEArray<SingleSystem*>* systems;

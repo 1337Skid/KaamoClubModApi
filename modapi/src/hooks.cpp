@@ -5,6 +5,7 @@
 
 Hooks::globals_init Hooks::oldglobals_init = nullptr;
 Hooks::fileread_loadstationbinaryfromid Hooks::old_filereadloadstationbinaryfromid = nullptr;
+Hooks::fileread_loadstationbinary Hooks::old_filereadloadstationbinary = nullptr;
 
 void Hooks::injectsystems()
 {
@@ -92,14 +93,33 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinaryfromid_hook(const uint16_t*
     //uint16_t newval = 108;
     //auto old = old_filereadloadstationbinaryfromid(&newval);
     auto old = old_filereadloadstationbinaryfromid(a);
+    //std::cout << "called" << std::endl;
+    //std::cout << *a << std::endl;
     if (a && *a > 108) {
         std::cout << "[*] Should teleport to our custom station" << std::endl;
+        Sleep(13000);
         // TODO: return the array of our custom station with the specific id
     }
     //std::cout << "[*] FileRead::loadStationBinaryFromId ptr = " << a << std::endl;
     //std::cout << "[*] FileRead::loadStationBinaryFromId id = " << *a << std::endl;
-
     return old;
+}
+
+uintptr_t __stdcall Hooks::fileread_loadstationbinary_hook(SingleSystem* system)
+{
+    auto* old_array = reinterpret_cast<AEArray<SingleStation*>*>(old_filereadloadstationbinary(system));
+
+    if (system->id != 27)
+        return reinterpret_cast<uintptr_t>(old_array);
+
+    std::cout << "[*] System id: " << system->id << std::endl;
+    SingleStation* first_station = old_array->data[0];
+    if (!first_station)
+        return reinterpret_cast<uintptr_t>(old_array);
+
+    std::cout << first_station << std::endl;
+
+    return reinterpret_cast<uintptr_t>(old_array);
 }
 
 void Hooks::init()
@@ -108,6 +128,8 @@ void Hooks::init()
     MH_Initialize();
     MH_CreateHook((LPVOID)GLOBALS_INIT_ADDR, &globals_init_hook, (LPVOID*)&oldglobals_init);
     MH_CreateHook((LPVOID)FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
+    MH_CreateHook((LPVOID)FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
     MH_EnableHook((LPVOID)GLOBALS_INIT_ADDR);
     MH_EnableHook((LPVOID)FILEREAD_LOADSTATIONBINARYFROMID);
+    MH_EnableHook((LPVOID)FILEREAD_LOADSTATIONBIRARY);
 }
