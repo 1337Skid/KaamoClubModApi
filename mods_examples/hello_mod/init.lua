@@ -84,6 +84,7 @@ RegisterEvent("OnSystemChanged", function(id)
 	print("Player Completed side missions : " .. mission.completedsidemissions)
 	print("Player Cargo salvaged count : " .. player.cargosalvagedcount)
 	print("Player Asteroids destroyed count : " .. player.asteroidsdestroyedcount)
+	print("Player current mission : " .. mission.id)
 	if player:HasShipArmor() then
 		print("The ship has an armor")
 	end

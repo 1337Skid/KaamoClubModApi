@@ -234,7 +234,7 @@ struct Globals_status {
     int field_180;
     int field_184;
     int m_nEnemiesKilled;
-    int field_18C;
+    int m_nCompletedSideMissions;
     int m_nPlayerLevel;
     int field_194;
     int m_nVisitedStations;
