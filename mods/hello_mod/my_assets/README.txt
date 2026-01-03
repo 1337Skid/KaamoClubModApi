@@ -1,1 +1,0 @@
-all rights goes to fishlabs for the gof2 interface asset - tell me if you want me to take it down
