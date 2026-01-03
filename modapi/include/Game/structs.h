@@ -144,7 +144,7 @@ struct Globals_status {
     int field_18;
     int field_1C;
     int field_20;
-    AEArray<unsigned int>* m_pSystemMapLinesInfo;
+    AEArray<unsigned int>* m_pSystemVisibilities;
     int* field_28;
     int* field_2C;
     int* field_30;
@@ -225,7 +225,7 @@ struct Globals_status {
     int* field_15C;
     int* m_pStationInfo;
     int field_164;
-    int* m_pCurrentPlayerSystemInfo;
+    SingleSystem* m_pCurrentSystem;
     int field_16C;
     int field_170;
     int m_nMoney;

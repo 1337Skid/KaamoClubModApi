@@ -8,105 +8,89 @@
 
 void System::init()
 {
-    globals_status = MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AD6C; // Gloabals::status
+    while (globals_status == 0) globals_status = *reinterpret_cast<Globals_status**>(MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AD6C); // Globals::status
 }
 
 int System::getid()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x14});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->id;
 }
 
 void System::setid(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x14});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->id = value;
 }
 
 int System::getrisklevel()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x18});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->risk;
 }
 
 void System::setrisklevel(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x18});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->risk = value;
 }
 
 int System::getfaction(void)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x1C});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->faction;
 }
 
 void System::setfaction(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x1C});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->faction = value;
 }
 
 int System::getjumpgatestationid(void)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x2C});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->jumpgate_station_id;
 }
 
 void System::setjumpgatestationid(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x2C});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->jumpgate_station_id = value;
 }
 
 int System::getmapcoordinatex(void)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x20});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->pos.x;
 }
 
 void System::setmapcoordinatex(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x20});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->pos.x = value;
 }
 
 int System::getmapcoordinatey(void)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x24});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->pos.y;
 }
 
 void System::setmapcoordinatey(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x24});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->pos.y = value;
 }
 
 int System::getmapcoordinatez(void)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x28});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pCurrentSystem->pos.z;
 }
 
 void System::setmapcoordinatez(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0x28});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pCurrentSystem->pos.z = value;
 }
 
 std::string System::getname()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0xC});
-    uintptr_t strptr = MemoryUtils::Read<uintptr_t>(finaladdr);
+    uintptr_t strptr = reinterpret_cast<uintptr_t>(globals_status->m_pCurrentSystem->name.text);
 
     return MemoryUtils::ReadWideString(strptr);
 }
 
 void System::setname(std::string value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x168, 0xC});
-    uintptr_t strptr = MemoryUtils::Read<uintptr_t>(finaladdr);
+    uintptr_t strptr = reinterpret_cast<uintptr_t>(globals_status->m_pCurrentSystem->name.text);
 
     MemoryUtils::WriteWideString(strptr, value);
 }
@@ -142,19 +126,11 @@ int System::create(const std::string& str, int x, int y, int z, int faction, int
 
 bool System::isvisible(int systemid)
 {
-    uintptr_t arrayptr = MemoryUtils::GetPointerAddress(globals_status, {0x24, 0x4});
-    uintptr_t array = MemoryUtils::Read<uintptr_t>(arrayptr);
-    uintptr_t finaladdr = array + (uintptr_t)(systemid);
-    uint8_t value = MemoryUtils::Read<uint8_t>(finaladdr);
-
-    return value == 1;
+    return globals_status->m_pSystemVisibilities->data[systemid] == 1;
 }
 
 void System::setvisible(int systemid, bool visible)
 {
-    uintptr_t arrayptr = MemoryUtils::GetPointerAddress(globals_status, {0x24, 0x4});
-    uintptr_t array = MemoryUtils::Read<uintptr_t>(arrayptr);
-    uintptr_t finaladdr = array + (uintptr_t)systemid;
-    
-    MemoryUtils::Write<uint8_t>(finaladdr, (uint8_t)visible);
+    uint8_t* data = reinterpret_cast<uint8_t*>(globals_status->m_pSystemVisibilities->data);    
+    data[systemid] = (uint8_t)visible;
 }

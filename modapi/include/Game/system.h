@@ -4,7 +4,7 @@
 
 class System {
     private:
-        static inline uintptr_t globals_status = 0;
+        static inline Globals_status* globals_status = 0;
     public:
         static inline std::vector<SingleSystem> created_systems;
         static void init(void);
