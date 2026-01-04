@@ -41,7 +41,6 @@ void LuaManager::bind_api()
         "enemieskilled", sol::property(&Player::getenemieskilled, &Player::setenemieskilled),
         "level", sol::property(&Player::getlevel, &Player::setlevel),
         "visitedstations", sol::property(&Player::getvisitedstations, &Player::setvisitedstations),
-        "jumpgateusedcount", sol::property(&Player::getjumpgateusedcount, &Player::setjumpgateusedcount),
         "cargosalvagedcount", sol::property(&Player::getcargosalvagedcount, &Player::setcargosalvagedcount),
         "asteroidsdestroyedcount", sol::property(&Player::getasteroidsdestroyedcount, &Player::setasteroidsdestroyedcount),
         "HasShipArmor", [](Player& self) -> bool {
@@ -76,7 +75,7 @@ void LuaManager::bind_api()
     lua_state.new_usertype<Mission>("Mission",
         sol::no_constructor,
         "id", sol::property(&Mission::getid, &Mission::setid),
-        "completedsidemissions", sol::property(&Mission::getcompletedsidemissions, &Mission::setcompletedsidemission)
+        "completedsidemissions", sol::property(&Mission::getcompletedsidemissions, &Mission::setcompletedsidemissions)
     );
 
     lua_state.new_usertype<Station>("Station",
@@ -86,6 +85,7 @@ void LuaManager::bind_api()
         "level", sol::property(&Station::gettechlevel, &Station::settechlevel),
         "angaritemscount", sol::property(&Station::getangaritemscount, &Station::setangaritemscount),
         "angarshipscount", sol::property(&Station::getangarshipscount, &Station::setangarshipscount),
+        "agentscount", sol::property(&Station::getagentscount, &Station::setagentscount),
         "IsVoid", [](Station& self) -> bool {
             return Station::isvoid();
         },

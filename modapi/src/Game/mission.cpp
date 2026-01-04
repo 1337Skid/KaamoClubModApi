@@ -4,32 +4,40 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include <thread>
+#include <chrono>
 
 void Mission::init()
 {
-    global_status = MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AD6C; // Globals::status
+    auto start = std::chrono::high_resolution_clock::now();
+    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
+    
+    while (globals_status == nullptr) {
+        globals_status = *reinterpret_cast<Globals_status**>(base + 0x20AD6C); // Globals::status
+        if (globals_status == nullptr)
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    printf("[+] Mission Initialization took: %lld ms\n", duration);
 }
 
 int Mission::getid()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(global_status, {0x1B0});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_nCurrentCampaignMission;
 }
 
 void Mission::setid(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(global_status, {0x1B0});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_nCurrentCampaignMission = value;
 }
 
 int Mission::getcompletedsidemissions()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(global_status, {0x18C});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_nCompletedSideMissions;
 }
 
-void Mission::setcompletedsidemission(int value)
+void Mission::setcompletedsidemissions(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(global_status, {0x18C});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_nCompletedSideMissions = value;
 }

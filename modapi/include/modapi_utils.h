@@ -22,9 +22,9 @@
 
 class ModApiUtils {
     private:
-        DWORD getmainthreadid(void);
+        static DWORD getmainthreadid(void);
     public:
-        void suspendgame(bool suspend);
+        static void suspendgame(bool suspend);
         static void load_mods(LuaManager *luamanager);
 };
 #endif

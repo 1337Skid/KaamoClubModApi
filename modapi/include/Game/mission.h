@@ -1,14 +1,15 @@
 #ifndef MISSION_H
 #define MISSION_H
+#include <Game/structs.h>
 
 class Mission {
     private:
-        static inline uintptr_t global_status = 0;
+        static inline Globals_status* globals_status = 0;
     public:
         static void init(void);
         static int getid(void);
         static void setid(int value);
         static int getcompletedsidemissions(void);
-        static void setcompletedsidemission(int value);
+        static void setcompletedsidemissions(int value);
 };
 #endif

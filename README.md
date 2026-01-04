@@ -12,3 +12,7 @@ You can always download the latest build artifacts from Github Actions if you ar
 
 # How to compile?
 get xmake on windows then type "xmake"
+
+# Contributors
+- Elcapor
+- RuslanchikX

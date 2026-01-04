@@ -1,10 +1,11 @@
 #ifndef PLAYER_H
 #define PLAYER_H
+#include <Game/structs.h>
 
 class Player {
     private:
-        static inline uintptr_t globals_status = 0;
-        static inline uintptr_t globals_appmanager = 0;
+        static inline Globals_status* globals_status = 0;
+        static inline Globals_appManager* globals_appmanager = 0;
     public:
         static void init(void);
         static int getmoney(void);
