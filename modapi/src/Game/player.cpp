@@ -4,11 +4,28 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include <thread>
+#include <chrono>
 
 void Player::init()
 {
-    while (globals_status == 0) globals_status = *reinterpret_cast<Globals_status**>(MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AD6C); // Globals::status
-    while (globals_appmanager == 0) globals_appmanager = *reinterpret_cast<Globals_appManager**>(MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AEFC); // Globals::appManager
+    auto start = std::chrono::high_resolution_clock::now();
+    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
+
+    while (globals_status == nullptr) {
+        globals_status = *reinterpret_cast<Globals_status**>(base + 0x20AD6C); // Globals::status
+        if (globals_status == nullptr) 
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    while (globals_appmanager == nullptr) {
+        globals_appmanager = *reinterpret_cast<Globals_appManager**>(base + 0x20AEFC); // Globals::appManager
+        if (globals_appmanager == nullptr)
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    printf("[+] Player Initialization took: %lld ms\n", duration);
 }
 
 int Player::getmoney()

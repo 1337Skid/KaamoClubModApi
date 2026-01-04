@@ -3,7 +3,7 @@
 
 class Station {
     private:
-        static inline uintptr_t globals_status = 0;
+        static inline Globals_status* globals_status = 0;
     public:
         static inline std::vector<SingleStation> created_stations;
         static void init(void);
@@ -17,6 +17,8 @@ class Station {
         static void setangaritemscount(int value);
         static int getangarshipscount(void);
         static void setangarshipscount(int value);
+        static int getagentscount();
+        static void setagentscount(int value);
 
         static bool isvoid(void);
         static void setangarshipid(int id, int value);

@@ -142,14 +142,16 @@ void EventManager::update_event()
 
 void EventManager::trigger_events()
 {
-    update_event();
-    systemchanged_event();
-    moneychanged_event();
-    mainmenu_event();
-    ingame_event();
-    stationchanged_event();
-    stationdocked_event();
-    enemiekilled_event();
-    cargochanged_event();
-    asteroiddestroyed_event();
+    if (isearlyinit_finished) {
+        update_event();
+        systemchanged_event();
+        moneychanged_event();
+        mainmenu_event();
+        ingame_event();
+        stationchanged_event();
+        stationdocked_event();
+        enemiekilled_event();
+        cargochanged_event();
+        asteroiddestroyed_event();
+    }
 }

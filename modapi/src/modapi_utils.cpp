@@ -54,7 +54,7 @@ DWORD ModApiUtils::getmainthreadid()
 
 void ModApiUtils::suspendgame(bool suspend)
 {
-    DWORD mainthreadid = this->getmainthreadid();
+    DWORD mainthreadid = getmainthreadid();
 
     if (mainthreadid == 0)
         return;

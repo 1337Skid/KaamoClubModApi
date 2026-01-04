@@ -19,6 +19,22 @@ struct Vector3Int {
     int32_t z; 
 };
 
+struct SingleItem {
+   int m_nID;
+   int m_nType;
+   int m_nSubType;
+   int m_nTechLevel;
+   int m_nLowestPriceSystemId;
+   int m_nHighestPriceSystemId;
+   int m_nPrice;
+   int m_nOccurance;
+   int m_nMinPrice;
+   int maxPrice;
+   int amount;
+   int stationAmount;
+   int blueprintAmount;
+};
+
 struct SingleSystem {
     uint8_t unk0[0xC];
     AEString name;
@@ -34,31 +50,23 @@ struct SingleSystem {
     bool starts_unlocked;
 };
 
-struct SingleStation {
-    AEString name;
-    size_t id;
-    size_t systemid;
-    size_t unk0;
-    size_t textureid;
-    size_t unk1;
-    size_t techlevel;
-    std::array<uint8_t, 16> unk2;
+struct SingleAgent {
+    int unk0;
 };
 
-struct SingleItem {
-   int m_nID;
-   int m_nType;
-   int m_nSubType;
-   int m_nTechLevel;
-   int m_nLowestPriceSystemId;
-   int m_nHighestPriceSystemId;
-   int m_nPrice;
-   int m_nOccurance;
-   int m_nMinPrice;
-   int maxPrice;
-   int amount;
-   int stationAmount;
-   int blueprintAmount;
+    
+struct SingleStation {
+    AEString name;
+    int id;
+    int systemid;
+    int unk0;
+    int textureid;
+    int unk1;
+    int techlevel;
+    int unk2;
+    AEArray<SingleItem>* m_pItemsInAngar;
+    AEArray<SingleItem>* m_pShipsInAngar;
+    AEArray<SingleAgent>* m_pAgents;
 };
 
 struct Galaxy {
@@ -223,9 +231,9 @@ struct Globals_status {
     ShipInfo* m_pShipInfo;
     int* field_158;
     int* field_15C;
-    int* m_pStationInfo;
+    SingleStation* m_pStationInfo;
     int field_164;
-    SingleSystem* m_pCurrentSystem;
+    SingleSystem* m_pSystemInfo;
     int field_16C;
     int field_170;
     int m_nMoney;

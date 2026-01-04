@@ -5,46 +5,52 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include <thread>
+#include <chrono>
 
 void Station::init()
 {
-    globals_status = MemoryUtils::GetModuleBase("GoF2.exe") + 0x20AD6C; // Globals::status
+    auto start = std::chrono::high_resolution_clock::now();
+    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
+    
+    while (globals_status == nullptr) {
+        globals_status = *reinterpret_cast<Globals_status**>(base + 0x20AD6C); // Globals::status
+        if (globals_status == nullptr)
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    printf("[+] Station Initialization took: %lld ms\n", duration);
 }
 
 int Station::getid()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x8});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pStationInfo->id;
 }
 
 void Station::setid(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x8});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pStationInfo->id = value;
 }
 
 std::string Station::getname()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x0, 0x0});
-    return MemoryUtils::ReadWideString(finaladdr);
+    return MemoryUtils::ReadWideString(reinterpret_cast<uintptr_t>(globals_status->m_pStationInfo->name.text));
 }
 
 void Station::setname(const std::string value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x0, 0x0});
-    MemoryUtils::WriteWideString(finaladdr, value);
+    MemoryUtils::WriteWideString(reinterpret_cast<uintptr_t>(globals_status->m_pStationInfo->name.text), value);
 }
 
 int Station::gettechlevel()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x1C});
-    return MemoryUtils::Read<int>(finaladdr);
+    return globals_status->m_pStationInfo->techlevel;
 }
 
 void Station::settechlevel(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x1C});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pStationInfo->techlevel = value;
 }
 
 bool Station::isvoid(void)
@@ -56,34 +62,52 @@ bool Station::isvoid(void)
 
 int Station::getangaritemscount()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x24, 0x0});
-    return MemoryUtils::Read<int>(finaladdr);
+    if (globals_status->m_pStationInfo->m_pItemsInAngar == nullptr)
+        return 0;
+    return globals_status->m_pStationInfo->m_pItemsInAngar->size;
 }
 
 void Station::setangaritemscount(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x24, 0x0});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pStationInfo->m_pItemsInAngar->size = value;
+    globals_status->m_pStationInfo->m_pItemsInAngar->size2 = value;
 }
 
 int Station::getangarshipscount()
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x28, 0x0});
-    return MemoryUtils::Read<int>(finaladdr);
+    if (globals_status->m_pStationInfo->m_pAgents == nullptr)
+        return 0;
+    return globals_status->m_pStationInfo->m_pShipsInAngar->size;
 }
 
 void Station::setangarshipscount(int value)
 {
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x28, 0x0});
-    MemoryUtils::Write<int>(finaladdr, value);
+    globals_status->m_pStationInfo->m_pShipsInAngar->size = value;
+    globals_status->m_pStationInfo->m_pShipsInAngar->size2 = value;
 }
 
 void Station::setangarshipid(int id, int value)
 {
     unsigned int offset = (id == 0) ? 0 : (1 << (id + 1));
+    auto* shipsarray = globals_status->m_pStationInfo->m_pShipsInAngar;
+    uint8_t* arraydata = reinterpret_cast<uint8_t*>(shipsarray->data);
+    SingleItem** ship_ptr = reinterpret_cast<SingleItem**>(arraydata + offset);
+    
+    if (*ship_ptr)
+        (*ship_ptr)->m_nID = value;
+}
 
-    uintptr_t finaladdr = MemoryUtils::GetPointerAddress(globals_status, {0x160, 0x28, 0x4, offset, 0x0});
-    MemoryUtils::Write<int>(finaladdr, value);
+int Station::getagentscount()
+{
+    if (globals_status->m_pStationInfo->m_pAgents == nullptr)
+        return 0;
+    return globals_status->m_pStationInfo->m_pAgents->size;
+}
+
+void Station::setagentscount(int value)
+{
+    globals_status->m_pStationInfo->m_pAgents->size = value;
+    globals_status->m_pStationInfo->m_pAgents->size2 = value;
 }
 
 int Station::create(const std::string& str, int techlevel, int textureid, int systemid)
@@ -106,7 +130,10 @@ int Station::create(const std::string& str, int techlevel, int textureid, int sy
     s.systemid = systemid;
     s.techlevel = techlevel;
     s.textureid = textureid;
-    s.unk0 = 0; s.unk1 = 0; s.unk2.fill(0);
+    s.unk0 = 0; s.unk1 = 0; s.unk2 = 0;
+    s.m_pShipsInAngar = 0;
+    s.m_pItemsInAngar = 0;
+    s.m_pAgents = 0;
 
     created_stations.push_back(s);
     return 108 + created_stations.size();

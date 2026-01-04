@@ -13,17 +13,17 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     freopen_s(&dummyfile, "CONOUT$", "w", stdout);
     freopen_s(&dummyfile, "CONOUT$", "w", stderr);
     
-    std::cout << "[+] KaamoClubModAPI Loaded! | Version: dev-alpha" << std::endl;
-    Player::init();
-    System::init();
-    Station::init();
-    Mission::init();
-    Asset::init();
+    std::cout << "[+] KaamoClubModAPI Loaded! | Version: dev-alpha" << std::endl;    
     luamanager->init();
     luamanager->bind_api();
     ModApiUtils::load_mods(luamanager);
     EventManager::earlyinit_event();
     Hooks::init();
+    Player::init();
+    System::init();
+    Station::init();
+    Mission::init();
+    Asset::init();
     while (true)
         EventManager::trigger_events();
 

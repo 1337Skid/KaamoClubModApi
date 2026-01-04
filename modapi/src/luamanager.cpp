@@ -85,6 +85,7 @@ void LuaManager::bind_api()
         "level", sol::property(&Station::gettechlevel, &Station::settechlevel),
         "angaritemscount", sol::property(&Station::getangaritemscount, &Station::setangaritemscount),
         "angarshipscount", sol::property(&Station::getangarshipscount, &Station::setangarshipscount),
+        "agentscount", sol::property(&Station::getagentscount, &Station::setagentscount),
         "IsVoid", [](Station& self) -> bool {
             return Station::isvoid();
         },
