@@ -30,6 +30,9 @@ jobs:
     - name: Build with xmake
       run: xmake -y -v
 
+    - name: Remove windows folder
+      run: Remove-Item -Recurse -Force build/windows
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
