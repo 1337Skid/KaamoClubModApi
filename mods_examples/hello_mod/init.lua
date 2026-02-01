@@ -22,6 +22,7 @@ end)
 
 RegisterEvent("OnAsteroidDestroyed", function(count)
 	print("New asteroid destroyed : " .. count)
+	level:CreateRadioMessage("Asteroid event", "asteroid destroyed " .. count)
 	--mission:NextCampaignMission()
 	--player:ToggleCloaking()
 	--player:SetPosition(10,10,10)

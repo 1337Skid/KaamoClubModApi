@@ -5,6 +5,7 @@
 #include "patches.h"
 #include "hooks.h"
 #include <Game/system.h>
+#include <Game/level.h>
 
 DWORD WINAPI MainThread(LPVOID lpParam) {
     // TODO: CLEAN THE GOD DAMN HEADERS!!!!!!!!!!!!!
@@ -28,6 +29,7 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     Mission::init();
     Asset::init();
     //Item::init();
+    Level::init();
     while (true)
         EventManager::trigger_events();
 

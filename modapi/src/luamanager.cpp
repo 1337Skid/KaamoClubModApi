@@ -17,6 +17,7 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include <Game/level.h>
 #include <Game/structs.h>
 
 void LuaManager::init()
@@ -120,6 +121,12 @@ void LuaManager::bind_api()
         },
         "CreateAgent", [](Station& self, const std::string& name, int factiontype, int terranwoman, int hair, int eyes, int mouth, int armor, sol::table agentinfo) {
             Station::createagent(name, factiontype, terranwoman, hair, eyes, mouth, armor, agentinfo);
+        },
+        "RemoveHangarItem", [](Station& self, int id) {
+            Station::removehangaritem(id);
+        },
+        "HasItemInHangar", [](Station& self, int id) -> bool {
+            return Station::hasiteminhangar(id);
         }
     );
 
@@ -143,6 +150,13 @@ void LuaManager::bind_api()
         }
     );
 
+    lua_state.new_usertype<Level>("Level",
+        sol::no_constructor,
+        "CreateRadioMessage", [](Level& self, const std::string& name, const std::string& content, sol::table imageinfo)  {
+            Level::createradiomessage(name, content, imageinfo);
+        }
+    );
+
     lua_state.set_function("RegisterEvent", [&](std::string name, sol::protected_function callback) {
         EventManager::addlistener(name, callback);
     });
@@ -153,6 +167,7 @@ void LuaManager::bind_api()
     lua_state["station"] = Station();
     lua_state["asset"] = Asset();
     lua_state["item"] = Item();
+    lua_state["level"] = Level();
 }
 
 void LuaManager::execute_script(const std::string& filepath)

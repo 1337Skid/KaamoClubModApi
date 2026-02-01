@@ -78,6 +78,59 @@ int Station::gethangaritemscount()
     return globals_status->m_pStationInfo->m_pItemsInHangar->size;
 }
 
+bool Station::hasiteminhangar(int id)
+{
+    Sleep(1); // TODO: hell no | sleep 1 bcz the eventmanager is goofy :skull:
+    if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)
+        return false;
+    AEArray<SingleItem*>* array = (AEArray<SingleItem*>*)globals_status->m_pStationInfo->m_pItemsInHangar;
+    for (uint32_t i = 0; i < array->size; i++) {
+        if (array->data[i] != nullptr && array->data[i]->m_nID == id) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Station::removehangaritem(int id)
+{
+    Sleep(1); // TODO: hell no | sleep 1 bcz the eventmanager is goofy :skull:
+    if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)
+        return;
+    AEArray<SingleItem*>* oldarray = (AEArray<SingleItem*>*)globals_status->m_pStationInfo->m_pItemsInHangar;
+    int finalid = -1;
+    for (uint32_t i = 0; i < oldarray->size; i++) {
+        if (oldarray->data[i] != nullptr && oldarray->data[i]->m_nID == id) {
+            finalid = (int)i;
+            break; 
+        }
+    }
+    if (finalid == -1) {
+        std::cout << "[-] Cannot find item pointer with id: " << id << std::endl;
+        return;
+    }
+    uint32_t newsize = oldarray->size - 1;
+    if (newsize == 0) {
+        AbyssEngine::memory_free(oldarray->data);
+        AbyssEngine::memory_free(oldarray);
+        globals_status->m_pStationInfo->m_pItemsInHangar = nullptr;
+        return;
+    }
+    AEArray<SingleItem*>* newarray = AbyssEngine::newarray<SingleItem*>(newsize);
+    if (!newarray)
+        return;
+    uint32_t currentNewIdx = 0;
+    for (uint32_t i = 0; i < oldarray->size; i++) {
+        if (i == (uint32_t)finalid)
+            continue; 
+        newarray->data[currentNewIdx] = oldarray->data[i];
+        currentNewIdx++;
+    }
+    AbyssEngine::memory_free(oldarray->data);
+    AbyssEngine::memory_free(oldarray);
+    globals_status->m_pStationInfo->m_pItemsInHangar = (AEArray<SingleItem>*)newarray;    
+}
+
 void Station::sethangaritemscount(int value)
 {
     if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)

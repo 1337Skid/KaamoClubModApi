@@ -199,6 +199,11 @@ int Item::create(const std::string& name, const std::string& description, sol::t
     m.item.m_nPrice = iteminfo["baseprice"] ? iteminfo["baseprice"] : 1;
     m.item.m_nMinPrice = iteminfo["minprice"] ? iteminfo["minprice"] : 1;
     m.item.m_nMaxPrice = iteminfo["maxprice"] ? iteminfo["maxprice"] : 1;
+    m.item.field_34 = 0;
+    m.item.field_38 = 0;
+    m.item.field_3C = 0;
+    m.item.field_40 = 0;
+    //m.item.m_bDisableSelling = 0; // not sure about this one
     if (m.item.m_nType == 0)
         create_gun_item(m, 
             iteminfo["damage"] ? iteminfo["damage"] : 1, 
@@ -220,11 +225,6 @@ int Item::create(const std::string& name, const std::string& description, sol::t
         );
     else if (m.item.m_nType == 4)
         create_commodity_item(m);
-    m.item.field_34 = 0;
-    m.item.field_38 = 0;
-    m.item.field_3C = 0;
-    m.item.field_40 = 0;
-    m.item.m_bDisableSelling = 0;
     return m.id;
 }
 

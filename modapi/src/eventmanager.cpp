@@ -17,6 +17,7 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include <Game/level.h>
 
 std::map<std::string, std::vector<sol::protected_function>> EventManager::listeners;
 
@@ -47,7 +48,7 @@ void EventManager::joingame_event()
 void EventManager::ingame_event()
 {
     static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
-    if ((*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0)
+    if (globals_appmanager && (*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0)
         trigger("IsInGame");
 }
 
@@ -80,6 +81,7 @@ void EventManager::systemchanged_event()
     int current = System::getid();
 
     if (current != old) {
+        Level::created_radiomessages.clear();
         trigger("OnSystemChanged", current);
         old = current;
     }
@@ -154,7 +156,7 @@ void EventManager::trigger_events()
     static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     update_event();
     ingame_event();
-    if ((*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0) {
+    if (globals_appmanager && (*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0) {
         systemchanged_event();
         moneychanged_event();
         stationchanged_event();

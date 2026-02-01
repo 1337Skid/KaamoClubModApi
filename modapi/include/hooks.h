@@ -14,6 +14,8 @@ class Hooks {
         static constexpr uintptr_t GAMETEXT_GETTEXT = 0x4F38B0;
         static constexpr uintptr_t RECORDHANDLER_RECORDSTOREWRITE = 0x4BF40C;
         static constexpr uintptr_t LEVEL_CREATEGUN = 0x4695CB;
+        static constexpr uintptr_t LEVEL_CREATESHIP = 0x474B42;
+        static constexpr uintptr_t IMAGEFACTORY_DRAWCHAR = 0x45F4C5;
 
         using globals_init = uintptr_t (__stdcall*)(uintptr_t, uintptr_t, uintptr_t);
         static globals_init oldglobals_init;
@@ -46,6 +48,14 @@ class Hooks {
         using level_creategun = int (__stdcall*)(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9);
         static level_creategun old_levelcreategun;
         static int __stdcall level_creategun_hook(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9);
+
+        using level_createship = int* (__stdcall*)(uintptr_t *a1, int a2, int a3, int a4, uintptr_t *a5, int a6);
+        static level_createship old_levelcreateship;
+        static int* __stdcall level_createship_hook(uintptr_t *a1, int a2, int a3, int a4, uintptr_t *a5, int a6);
+
+        using imagefactory_drawchar = void (__stdcall*)(int a2, int a3, int a4);
+        static imagefactory_drawchar old_imagefactorydrawchar;
+        static int __stdcall imagefactory_drawchar_hook(int a2, int a3, int a4);
 
         static void injectsystemsandstations(void);
         static void injectitems(void);

@@ -2,6 +2,7 @@
 #include "abyssengine.h"
 #include "hooks.h"
 #include <Game/system.h>
+#include <Game/level.h>
 #include <iostream>
 #include <vector>
 
@@ -13,6 +14,8 @@ Hooks::abyssengine_paintcanvas_setcolor Hooks::old_abyssenginepaintcanvassetcolo
 Hooks::gametext_gettext Hooks::old_gametextgettext = nullptr;
 Hooks::recordhandler_recordstorewrite Hooks::old_recordhandlerrecordstorewrite = nullptr;
 Hooks::level_creategun Hooks::old_levelcreategun = nullptr;
+Hooks::level_createship Hooks::old_levelcreateship = nullptr;
+Hooks::imagefactory_drawchar Hooks::old_imagefactorydrawchar = nullptr;
 
 void Hooks::injectitems()
 {
@@ -210,8 +213,32 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
         mov edx, [ebp + 4]
         mov returnaddr, edx
     }
+    // Custom radio messages texts
+    if ((uintptr_t)returnaddr == 0x4bcc59 && !Level::created_radiomessages.empty()) {
+        static AEString customstring;
+        if (Level::created_radiomessages.size() == 1) {
+            customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[0].name.c_str());
+            customstring.size = (uint32_t)Level::created_radiomessages[0].name.length();
+        } else {
+            customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[Level::created_radiomessages.size() - 1].name.c_str());
+            customstring.size = (uint32_t)Level::created_radiomessages[Level::created_radiomessages.size() - 1].name.length();
+        }
+        return &customstring;
+    }
+    if ((uintptr_t)returnaddr == 0x4bca93 && !Level::created_radiomessages.empty()) {
+        static AEString customstring;
+        if (Level::created_radiomessages.size() == 1) {
+            customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[0].content.c_str());
+            customstring.size = (uint32_t)Level::created_radiomessages[0].content.length();
+        } else {
+            customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[Level::created_radiomessages.size() - 1].content.c_str());
+            customstring.size = (uint32_t)Level::created_radiomessages[Level::created_radiomessages.size() - 1].content.length();
+        }
+        return &customstring;
+    }
     // The return addresses of every GameText::GetText() items name, useful to not overwrite in others strings
     // TODO: find in game npc cargo hold returnaddr
+    // Custom items texts
     if ((uintptr_t)returnaddr == 0x483331 || (uintptr_t)returnaddr == 0x454c4e || (uintptr_t)returnaddr == 0x44edae || (uintptr_t)returnaddr == 0x4c9725 || (uintptr_t)returnaddr == 0x4cc0bc || (uintptr_t)returnaddr == 0x48d8b1 || (uintptr_t)returnaddr == 0x458618 || (uintptr_t)returnaddr == 0x4585C1) {
         for (const auto& item : Item::created_items) {
             if (id == item.id + 1247) { // + 1247 bcz the game decided so don't ask my why
@@ -242,7 +269,7 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
 int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 {
     // This function is useful to prevent custom items being injected in the save resulting in a crash at load...
-    Globals_status** globals_status_ptr = (Globals_status**)0x0060AD6C;
+    Globals_status** globals_status_ptr = (Globals_status**)0x60AD6C;
     Globals_status* globals_status = *globals_status_ptr;
     int oldsize = 196;
 
@@ -317,6 +344,55 @@ int __stdcall Hooks::level_creategun_hook(int a1, int a2, int a3, int a4, int a5
     return old_levelcreategun(a1, a2, a3, a4, a5, a6, a7, a8, a9);
 }
 
+int* __stdcall Hooks::level_createship_hook(uintptr_t *a1, int a2, int a3, int a4, uintptr_t *a5, int a6)
+{
+    //std::cout << a1 << std::endl;
+    //std::cout << a2 << std::endl;
+    //std::cout << a3 << std::endl;
+    //std::cout << a4 << std::endl;
+    //std::cout << a5 << std::endl;
+    //std::cout << a6 << std::endl;
+    //std::cout << "-----" << std::endl;
+    // if not in a station then edit ships
+    //if (a5 != 0) {
+        //a2 = 6; // race
+        //a4 = 40; // ship model
+    //}
+    return old_levelcreateship(a1, a2, a3, a4, a5, a6);
+}
+
+int __stdcall Hooks::imagefactory_drawchar_hook(int a2, int a3, int a4)
+{
+    unsigned int* a1;
+    int returnvalue;
+    void* returnaddr = nullptr;
+
+    __asm {
+        mov a1, ebx
+        mov edx, [ebp + 4]
+        mov returnaddr, edx
+    }
+    //std::cout << a1 << std::endl;
+    //std::cout << a2 << std::endl;
+    //std::cout << a3 << std::endl;
+    //std::cout << a4 << std::endl;
+    //std::cout << returnaddr << std::endl;
+    //std::cout << "---------------" << std::endl;
+    AEArray<ImagePart*>* imageparts = reinterpret_cast<AEArray<ImagePart*>*>(a1);
+    //for (int i = 0; i < imageparts->size; i++)
+        //std::cout << imageparts->data[i]->id << std::endl;
+    __asm {
+        push a4 
+        push a3
+        push a2
+
+        mov ebx, a1
+        call old_imagefactorydrawchar
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -328,5 +404,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
     MH_CreateHook((LPVOID)RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
     MH_CreateHook((LPVOID)LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);
+    //MH_CreateHook((LPVOID)LEVEL_CREATESHIP, &level_createship_hook, (LPVOID*)&old_levelcreateship);
+    MH_CreateHook((LPVOID)IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
     MH_EnableHook(MH_ALL_HOOKS);
 }

@@ -19,6 +19,14 @@ struct Vector3Int {
     int32_t z; 
 };
 
+struct ImagePart { // TODO: is it really named imagepart in the game? I guess yeah..
+    int id;
+    int field_04;
+    int pos_y;
+    int scale_x;
+    int scale_y;
+};
+
 struct ItemInfo {
     int field_0;
     int m_nID;

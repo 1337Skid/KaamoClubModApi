@@ -56,7 +56,7 @@ void Player::togglecloaking()
 
 void Player::setposition(float x, float y, float z)
 {
-    uintptr_t address = 0x004AC590;
+    uintptr_t address = 0x4AC590;
     MGame* mgame = reinterpret_cast<MGame*>(globals_appmanager->m_pCurrentModule);
     PlayerEgo* playerego = mgame->m_pPlayerEgo;
 
