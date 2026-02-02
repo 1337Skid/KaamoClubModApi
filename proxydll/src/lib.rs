@@ -77,7 +77,11 @@ fn initialize() {
         consoleapi::AllocConsole();
         println!("[*] Loading KaamoClubModAPI...");
 
-        let payload_path = CString::new("kaamoclubmodapi.dll").unwrap();
+        let payload_path: CString;
+        match CString::new("kaamoclubmodapi.dll") {
+            Ok(o) => payload_path = o,
+            Err(_) => panic!("[-] CString creation failed")
+        }
         
         println!("[*] Loading core modapi dll...");
         
