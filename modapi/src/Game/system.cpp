@@ -183,5 +183,5 @@ void System::setvisible(int systemid, bool visible)
     if (globals_status->m_pSystemVisibilities == nullptr)
         return;
     uint8_t* data = reinterpret_cast<uint8_t*>(globals_status->m_pSystemVisibilities->data);    
-    data[systemid] = (uint8_t)visible;
+    data[systemid] = static_cast<uint8_t>(visible);
 }

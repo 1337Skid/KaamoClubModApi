@@ -101,7 +101,7 @@ void Station::removehangaritem(int id)
     int finalid = -1;
     for (uint32_t i = 0; i < oldarray->size; i++) {
         if (oldarray->data[i] != nullptr && oldarray->data[i]->m_nID == id) {
-            finalid = (int)i;
+            finalid = static_cast<int>(i);
             break; 
         }
     }
@@ -121,7 +121,7 @@ void Station::removehangaritem(int id)
         return;
     uint32_t currentNewIdx = 0;
     for (uint32_t i = 0; i < oldarray->size; i++) {
-        if (i == (uint32_t)finalid)
+        if (i == static_cast<uint32_t>(finalid))
             continue; 
         newarray->data[currentNewIdx] = oldarray->data[i];
         currentNewIdx++;
