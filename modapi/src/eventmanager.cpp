@@ -55,6 +55,7 @@ void EventManager::ingame_event()
 void EventManager::earlyinit_event()
 {
     trigger("EarlyInit");
+    globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     isearlyinit_finished = true;
 }
 
@@ -152,8 +153,6 @@ void EventManager::update_event()
 
 void EventManager::trigger_events()
 {
-    // TODO: clean globals_appmanager bs and put it in a header
-    static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     update_event();
     ingame_event();
     if (globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2)) {

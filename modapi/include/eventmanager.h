@@ -23,6 +23,8 @@
 class EventManager {
     private:
         static std::map<std::string, std::vector<sol::protected_function>> listeners;
+        static inline Globals_appManager** globals_appmanager = 0;
+
         template <typename... Args>
         static void trigger(std::string eventname, Args&&... args)
         {
