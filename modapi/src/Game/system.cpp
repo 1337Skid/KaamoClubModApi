@@ -5,135 +5,124 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
-#include <thread>
-#include <chrono>
 
 void System::init()
 {
-    auto start = std::chrono::high_resolution_clock::now();
-    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
-    
-    while (globals_status == nullptr) {
-        globals_status = *reinterpret_cast<Globals_status**>(base + 0x20AD6C); // Globals::status
-        if (globals_status == nullptr)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    globals_status = reinterpret_cast<Globals_status**>(0x0060AD6C);
 }
 
 int System::getid()
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->id;
+    return (*globals_status)->m_pSystemInfo->id;
 }
 
 void System::setid(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->id = value;
+    (*globals_status)->m_pSystemInfo->id = value;
 }
 
 int System::getrisklevel()
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->risk;
+    return (*globals_status)->m_pSystemInfo->risk;
 }
 
 void System::setrisklevel(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->risk = value;
+    (*globals_status)->m_pSystemInfo->risk = value;
 }
 
 int System::getfaction(void)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->faction;
+    return (*globals_status)->m_pSystemInfo->faction;
 }
 
 void System::setfaction(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->faction = value;
+    (*globals_status)->m_pSystemInfo->faction = value;
 }
 
 int System::getjumpgatestationid(void)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->jumpgate_station_id;
+    return (*globals_status)->m_pSystemInfo->jumpgate_station_id;
 }
 
 void System::setjumpgatestationid(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->jumpgate_station_id = value;
+    (*globals_status)->m_pSystemInfo->jumpgate_station_id = value;
 }
 
 int System::getmapcoordinatex(void)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->pos.x;
+    return (*globals_status)->m_pSystemInfo->pos.x;
 }
 
 void System::setmapcoordinatex(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->pos.x = value;
+    (*globals_status)->m_pSystemInfo->pos.x = value;
 }
 
 int System::getmapcoordinatey(void)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->pos.y;
+    return (*globals_status)->m_pSystemInfo->pos.y;
 }
 
 void System::setmapcoordinatey(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->pos.y = value;
+    (*globals_status)->m_pSystemInfo->pos.y = value;
 }
 
 int System::getmapcoordinatez(void)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
-    return globals_status->m_pSystemInfo->pos.z;
+    return (*globals_status)->m_pSystemInfo->pos.z;
 }
 
 void System::setmapcoordinatez(int value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    globals_status->m_pSystemInfo->pos.z = value;
+    (*globals_status)->m_pSystemInfo->pos.z = value;
 }
 
 std::string System::getname()
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return "";
-    uintptr_t strptr = reinterpret_cast<uintptr_t>(globals_status->m_pSystemInfo->name.text);
+    uintptr_t strptr = reinterpret_cast<uintptr_t>((*globals_status)->m_pSystemInfo->name.text);
 
     return MemoryUtils::ReadWideString(strptr);
 }
 
 void System::setname(std::string value)
 {
-    if (globals_status->m_pSystemInfo == nullptr)
+    if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
-    uintptr_t strptr = reinterpret_cast<uintptr_t>(globals_status->m_pSystemInfo->name.text);
+    uintptr_t strptr = reinterpret_cast<uintptr_t>((*globals_status)->m_pSystemInfo->name.text);
 
     MemoryUtils::WriteWideString(strptr, value);
 }
@@ -173,15 +162,15 @@ int System::create(const std::string& str, int x, int y, int z, int faction, int
 
 bool System::isvisible(int systemid)
 {
-    if (globals_status->m_pSystemVisibilities == nullptr)
+    if ((*globals_status)->m_pSystemVisibilities == nullptr)
         return false;
-    return reinterpret_cast<uint8_t*>(globals_status->m_pSystemVisibilities->data)[systemid] == 1;
+    return reinterpret_cast<uint8_t*>((*globals_status)->m_pSystemVisibilities->data)[systemid] == 1;
 }
 
 void System::setvisible(int systemid, bool visible)
 {
-    if (globals_status->m_pSystemVisibilities == nullptr)
+    if ((*globals_status)->m_pSystemVisibilities == nullptr)
         return;
-    uint8_t* data = reinterpret_cast<uint8_t*>(globals_status->m_pSystemVisibilities->data);    
+    uint8_t* data = reinterpret_cast<uint8_t*>((*globals_status)->m_pSystemVisibilities->data);    
     data[systemid] = static_cast<uint8_t>(visible);
 }

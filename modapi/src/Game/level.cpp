@@ -11,23 +11,14 @@
 
 void Level::init()
 {
-    auto start = std::chrono::high_resolution_clock::now();
-    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
-
-    while (globals_appmanager == nullptr) {
-        globals_appmanager = *reinterpret_cast<Globals_appManager**>(base + 0x20AEFC); // Globals::appManager
-        if (globals_appmanager == nullptr)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
 }
 
 // TODO: do imageinfo (do stuff in hooks.cpp Hooks::imagefactory_drawchar_hook)
 void Level::createradiomessage(const std::string& name, const std::string& content, sol::table imageinfo)
 {
     uintptr_t address = 0x479678;
-    MGame* mgame = reinterpret_cast<MGame*>(globals_appmanager->m_pCurrentModule);
+    MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
 
     if (!mgame) {
         std::cout << "[-] Cannot call Level::createradiomessage because MGame isn't init!" << std::endl;

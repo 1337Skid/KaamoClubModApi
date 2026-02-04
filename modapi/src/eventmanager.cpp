@@ -36,7 +36,7 @@ void EventManager::joingame_event()
     static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     static bool joinedgame = false;
 
-    if (!joinedgame && (*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0) {
+    if (!joinedgame && globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2)) {
         Item::refreshitemsprices();
         joinedgame = true;
         trigger("OnJoinGame");
@@ -48,7 +48,7 @@ void EventManager::joingame_event()
 void EventManager::ingame_event()
 {
     static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
-    if (globals_appmanager && (*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0)
+    if (globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2))
         trigger("IsInGame");
 }
 
@@ -156,7 +156,7 @@ void EventManager::trigger_events()
     static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     update_event();
     ingame_event();
-    if (globals_appmanager && (*globals_appmanager)->m_nCurrentModule != 1 && (*globals_appmanager)->m_nCurrentModule != 0) {
+    if (globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2)) {
         systemchanged_event();
         moneychanged_event();
         stationchanged_event();

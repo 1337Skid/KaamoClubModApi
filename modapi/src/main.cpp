@@ -9,7 +9,6 @@
 
 DWORD WINAPI MainThread(LPVOID lpParam) {
     // TODO: CLEAN THE GOD DAMN HEADERS!!!!!!!!!!!!!
-    // TODO: Remove baseaddr+offset and use directly the address of globals
     // TODO: do a offset.h for the love of god
     LuaManager *luamanager = new LuaManager();
     FILE* dummyfile;

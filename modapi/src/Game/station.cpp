@@ -5,63 +5,52 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
-#include <thread>
-#include <chrono>
 
 void Station::init()
 {
-    auto start = std::chrono::high_resolution_clock::now();
-    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
-    
-    while (globals_status == nullptr) {
-        globals_status = *reinterpret_cast<Globals_status**>(base + 0x20AD6C); // Globals::status
-        if (globals_status == nullptr)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    globals_status = reinterpret_cast<Globals_status**>(0x0060AD6C);
 }
 
 int Station::getid()
 {
-    if (globals_status->m_pStationInfo == nullptr)
+    if ((*globals_status)->m_pStationInfo == nullptr)
         return 0;
-    return globals_status->m_pStationInfo->id;
+    return (*globals_status)->m_pStationInfo->id;
 }
 
 void Station::setid(int value)
 {
-    if (globals_status->m_pStationInfo == nullptr)
+    if ((*globals_status)->m_pStationInfo == nullptr)
         return;
-    globals_status->m_pStationInfo->id = value;
+    (*globals_status)->m_pStationInfo->id = value;
 }
 
 std::string Station::getname()
 {
-    if (globals_status->m_pStationInfo->name.text == nullptr)
+    if ((*globals_status)->m_pStationInfo->name.text == nullptr)
         return "";
-    return MemoryUtils::ReadWideString(reinterpret_cast<uintptr_t>(globals_status->m_pStationInfo->name.text));
+    return MemoryUtils::ReadWideString(reinterpret_cast<uintptr_t>((*globals_status)->m_pStationInfo->name.text));
 }
 
 void Station::setname(const std::string value)
 {
-    if (globals_status->m_pStationInfo->name.text == nullptr)
+    if ((*globals_status)->m_pStationInfo->name.text == nullptr)
         return;
-    MemoryUtils::WriteWideString(reinterpret_cast<uintptr_t>(globals_status->m_pStationInfo->name.text), value);
+    MemoryUtils::WriteWideString(reinterpret_cast<uintptr_t>((*globals_status)->m_pStationInfo->name.text), value);
 }
 
 int Station::gettechlevel()
 {
-    if (globals_status->m_pStationInfo == nullptr)
+    if ((*globals_status)->m_pStationInfo == nullptr)
         return 0;
-    return globals_status->m_pStationInfo->techlevel;
+    return (*globals_status)->m_pStationInfo->techlevel;
 }
 
 void Station::settechlevel(int value)
 {
-    if (globals_status->m_pStationInfo == nullptr)
+    if ((*globals_status)->m_pStationInfo == nullptr)
         return;
-    globals_status->m_pStationInfo->techlevel = value;
+    (*globals_status)->m_pStationInfo->techlevel = value;
 }
 
 bool Station::isvoid(void)
@@ -73,17 +62,17 @@ bool Station::isvoid(void)
 
 int Station::gethangaritemscount()
 {
-    if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pItemsInHangar == nullptr)
         return 0;
-    return globals_status->m_pStationInfo->m_pItemsInHangar->size;
+    return (*globals_status)->m_pStationInfo->m_pItemsInHangar->size;
 }
 
 bool Station::hasiteminhangar(int id)
 {
-    Sleep(1); // TODO: hell no | sleep 1 bcz the eventmanager is goofy :skull:
-    if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)
+    Sleep(1);
+    if ((*globals_status)->m_pStationInfo->m_pItemsInHangar == nullptr)
         return false;
-    AEArray<SingleItem*>* array = (AEArray<SingleItem*>*)globals_status->m_pStationInfo->m_pItemsInHangar;
+    AEArray<SingleItem*>* array = (AEArray<SingleItem*>*)(*globals_status)->m_pStationInfo->m_pItemsInHangar;
     for (uint32_t i = 0; i < array->size; i++) {
         if (array->data[i] != nullptr && array->data[i]->m_nID == id) {
             return true;
@@ -94,10 +83,10 @@ bool Station::hasiteminhangar(int id)
 
 void Station::removehangaritem(int id)
 {
-    Sleep(1); // TODO: hell no | sleep 1 bcz the eventmanager is goofy :skull:
-    if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)
+    Sleep(1);
+    if ((*globals_status)->m_pStationInfo->m_pItemsInHangar == nullptr)
         return;
-    AEArray<SingleItem*>* oldarray = (AEArray<SingleItem*>*)globals_status->m_pStationInfo->m_pItemsInHangar;
+    AEArray<SingleItem*>* oldarray = (AEArray<SingleItem*>*)(*globals_status)->m_pStationInfo->m_pItemsInHangar;
     int finalid = -1;
     for (uint32_t i = 0; i < oldarray->size; i++) {
         if (oldarray->data[i] != nullptr && oldarray->data[i]->m_nID == id) {
@@ -113,7 +102,7 @@ void Station::removehangaritem(int id)
     if (newsize == 0) {
         AbyssEngine::memory_free(oldarray->data);
         AbyssEngine::memory_free(oldarray);
-        globals_status->m_pStationInfo->m_pItemsInHangar = nullptr;
+        (*globals_status)->m_pStationInfo->m_pItemsInHangar = nullptr;
         return;
     }
     AEArray<SingleItem*>* newarray = AbyssEngine::newarray<SingleItem*>(newsize);
@@ -128,38 +117,38 @@ void Station::removehangaritem(int id)
     }
     AbyssEngine::memory_free(oldarray->data);
     AbyssEngine::memory_free(oldarray);
-    globals_status->m_pStationInfo->m_pItemsInHangar = (AEArray<SingleItem>*)newarray;    
+    (*globals_status)->m_pStationInfo->m_pItemsInHangar = (AEArray<SingleItem>*)newarray;    
 }
 
 void Station::sethangaritemscount(int value)
 {
-    if (globals_status->m_pStationInfo->m_pItemsInHangar == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pItemsInHangar == nullptr)
         return;
-    globals_status->m_pStationInfo->m_pItemsInHangar->size = value;
-    globals_status->m_pStationInfo->m_pItemsInHangar->size2 = value;
+    (*globals_status)->m_pStationInfo->m_pItemsInHangar->size = value;
+    (*globals_status)->m_pStationInfo->m_pItemsInHangar->size2 = value;
 }
 
 int Station::gethangarshipscount()
 {
-    if (globals_status->m_pStationInfo->m_pShipsInHangar == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pShipsInHangar == nullptr)
         return 0;
-    return globals_status->m_pStationInfo->m_pShipsInHangar->size;
+    return (*globals_status)->m_pStationInfo->m_pShipsInHangar->size;
 }
 
 void Station::sethangarshipscount(int value)
 {
-    if (globals_status->m_pStationInfo->m_pShipsInHangar == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pShipsInHangar == nullptr)
         return;
-    globals_status->m_pStationInfo->m_pShipsInHangar->size = value;
-    globals_status->m_pStationInfo->m_pShipsInHangar->size2 = value;
+    (*globals_status)->m_pStationInfo->m_pShipsInHangar->size = value;
+    (*globals_status)->m_pStationInfo->m_pShipsInHangar->size2 = value;
 }
 
 void Station::sethangarshipinfo(int id, sol::table shipinfo)
 {
-    if (globals_status->m_pStationInfo->m_pShipsInHangar == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pShipsInHangar == nullptr)
         return;
     unsigned int offset = (id == 0) ? 0 : (1 << (id + 1));
-    auto* shipsarray = globals_status->m_pStationInfo->m_pShipsInHangar;
+    auto* shipsarray = (*globals_status)->m_pStationInfo->m_pShipsInHangar;
     uint8_t* arraydata = reinterpret_cast<uint8_t*>(shipsarray->data);
     ShipInfo** ship_ptr = reinterpret_cast<ShipInfo**>(arraydata + offset);
     
@@ -171,17 +160,18 @@ void Station::sethangarshipinfo(int id, sol::table shipinfo)
 
 int Station::getagentscount()
 {
-    if (globals_status->m_pStationInfo->m_pAgents == nullptr) //TODO: Sometimes agents is null if it's in systemchanged event??
+    Sleep(1);
+    if ((*globals_status)->m_pStationInfo->m_pAgents == nullptr)
         return 0;
-    return globals_status->m_pStationInfo->m_pAgents->size;
+    return (*globals_status)->m_pStationInfo->m_pAgents->size;
 }
 
 void Station::setagentscount(int value)
 {
-    if (globals_status->m_pStationInfo->m_pAgents == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pAgents == nullptr)
         return;
-    globals_status->m_pStationInfo->m_pAgents->size = value;
-    globals_status->m_pStationInfo->m_pAgents->size2 = value;
+    (*globals_status)->m_pStationInfo->m_pAgents->size = value;
+    (*globals_status)->m_pStationInfo->m_pAgents->size2 = value;
 }
 
 int Station::create(const std::string& str, int techlevel, int textureid, int systemid)
@@ -215,32 +205,32 @@ int Station::create(const std::string& str, int techlevel, int textureid, int sy
 
 std::string Station::getagentname(int id)
 {
-    if (globals_status->m_pStationInfo->m_pAgents == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pAgents == nullptr)
         return "";
-    SingleAgent** agents_list = reinterpret_cast<SingleAgent**>(globals_status->m_pStationInfo->m_pAgents->data);
+    SingleAgent** agents_list = reinterpret_cast<SingleAgent**>((*globals_status)->m_pStationInfo->m_pAgents->data);
     SingleAgent* agent = agents_list[id];
     return MemoryUtils::ReadWideString(reinterpret_cast<uintptr_t>(agent->m_sName.text));
 }
 
 int Station::getagentfaction(int id)
 {
-    if (globals_status->m_pStationInfo->m_pAgents == nullptr)
+    if ((*globals_status)->m_pStationInfo->m_pAgents == nullptr)
         return 0;
-    SingleAgent** agents_list = reinterpret_cast<SingleAgent**>(globals_status->m_pStationInfo->m_pAgents->data);
+    SingleAgent** agents_list = reinterpret_cast<SingleAgent**>((*globals_status)->m_pStationInfo->m_pAgents->data);
     SingleAgent* agent = agents_list[id];
     return agent->m_nFactionType;
 }
 
 void Station::createagent(const std::string& name, int factiontype, int terranwoman, int hair, int eyes, int mouth, int armor, sol::table agentinfo)
 {
-    if (globals_status->m_pStationInfo == nullptr)
+    if ((*globals_status)->m_pStationInfo == nullptr)
         return;
     if (!agentinfo) {
         std::cout << "[-] Cannot create agent '" << name << "' because its missing the agentinfo table !" << std::endl;
         return;
     }
     Sleep(1); // TODO: hell no | sleep 1 bcz the eventmanager is goofy :skull:
-    SingleStation* station = globals_status->m_pStationInfo;
+    SingleStation* station = (*globals_status)->m_pStationInfo;
     AEArray<SingleAgent*>* oldarray = reinterpret_cast<AEArray<SingleAgent*>*>(station->m_pAgents);
     if (oldarray != nullptr && oldarray->size2 == 7) {
         std::cout << "[-] Cannot create agent '" << name << "' because the space lounge has reached the limit (7) you might need to check agents count to avoid duplicates?" << std::endl;

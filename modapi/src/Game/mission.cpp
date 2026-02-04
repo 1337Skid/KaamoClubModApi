@@ -4,42 +4,31 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
-#include <thread>
-#include <chrono>
 #include "patches.h"
 
 void Mission::init()
 {
-    auto start = std::chrono::high_resolution_clock::now();
-    uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
-    
-    while (globals_status == nullptr) {
-        globals_status = *reinterpret_cast<Globals_status**>(base + 0x20AD6C); // Globals::status
-        if (globals_status == nullptr)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1100));
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    globals_status = reinterpret_cast<Globals_status**>(0x0060AD6C);
 }
 
 int Mission::getid()
 {
-    return globals_status->m_nCurrentCampaignMission;
+    return (*globals_status)->m_nCurrentCampaignMission;
 }
 
 void Mission::setid(int value)
 {
-    globals_status->m_nCurrentCampaignMission = value;
+    (*globals_status)->m_nCurrentCampaignMission = value;
 }
 
 int Mission::getcompletedsidemissions()
 {
-    return globals_status->m_nCompletedSideMissions;
+    return (*globals_status)->m_nCompletedSideMissions;
 }
 
 void Mission::setcompletedsidemissions(int value)
 {
-    globals_status->m_nCompletedSideMissions = value;
+    (*globals_status)->m_nCompletedSideMissions = value;
 }
 
 void Mission::enablevalkyrie()
@@ -50,8 +39,9 @@ void Mission::enablevalkyrie()
 void Mission::nextcampaignmission()
 {
     uintptr_t address = 0x004D605F;
+    Globals_status* ptr_status = (*globals_status);
     __asm {
-        mov ecx, globals_status
+        mov ecx, ptr_status
         call address
     }
 }

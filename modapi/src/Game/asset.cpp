@@ -9,16 +9,13 @@
 
 void Asset::init()
 {
-    auto start = std::chrono::high_resolution_clock::now();
+    // Canvas is loading the last thing to load and I need to sleep if canvas is still nullptr
     uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
-
-    while (globals_canvas == nullptr) {
-        globals_canvas = *reinterpret_cast<Globals_Canvas**>(base + 0x20AE68); // Globals::Canvas
+    while (globals_canvas == 0) {
+        globals_canvas = *reinterpret_cast<Globals_Canvas**>(0x0060AE68);
         if (globals_canvas == nullptr) 
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
     }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 }
 
 std::string Asset::getassetfilepath(unsigned int id)
