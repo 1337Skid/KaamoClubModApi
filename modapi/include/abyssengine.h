@@ -49,8 +49,8 @@ class AbyssEngine {
 
             if (!str)
                 return r;
-            r.size = (uint32_t)(wcslen(str) + 1);
-            r.text = (wchar_t*)memory_allocate(sizeof(wchar_t) * r.size);
+            r.size = static_cast<uint32_t>((wcslen(str) + 1));
+            r.text = reinterpret_cast<wchar_t*>(memory_allocate(sizeof(wchar_t) * r.size));
             if (r.text != nullptr) {
                 wcscpy_s(r.text, r.size, str);
             } else {

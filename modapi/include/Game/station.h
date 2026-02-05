@@ -3,7 +3,7 @@
 
 class Station {
     private:
-        static inline Globals_status* globals_status = 0;
+        static inline Globals_status** globals_status = 0;
     public:
         static inline std::vector<SingleStation> created_stations;
         static void init(void);

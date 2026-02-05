@@ -28,7 +28,7 @@ void Patches::patchstarmap(uint8_t new_limit)
     DWORD old;
 
     VirtualProtect((LPVOID)0x004CE771, 2, PAGE_EXECUTE_READWRITE, &old);
-    *(uint8_t*)(0x004CE771 + 1) = new_limit; // push 27 asm
+    *reinterpret_cast<uint8_t*>((0x004CE771 + 1)) = new_limit; // push 27 asm
     VirtualProtect((LPVOID)0x004CE771, 2, old, &old);
 }
 
@@ -42,7 +42,7 @@ void Patches::patchloadstations(uint8_t new_limit)
     for (size_t i = 0; i < 2; i++) {
         uintptr_t addr = addrs[i];
         VirtualProtect((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &old);
-        *(uint8_t*)addr = new_limit; // 0x6E
+        *reinterpret_cast<uint8_t*>(addr) = new_limit; // 0x6E
         VirtualProtect((LPVOID)addr, 1, old, &old);
     }
 }
@@ -53,7 +53,7 @@ void Patches::patchmissions(uint8_t new_value)
     uintptr_t addr = 0x0049E212;
 
     VirtualProtect((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &old);
-    *(uint8_t*)addr = new_value;
+    *reinterpret_cast<uint8_t*>(addr) = new_value;
     VirtualProtect((LPVOID)addr, 1, old, &old);
 }
 
@@ -65,7 +65,7 @@ void Patches::patchvalkyrie()
     for (size_t i = 0; i < 2; i++) {
         uintptr_t addr = addrs[i];
         VirtualProtect((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &old);
-        *(uint8_t*)addr = 0x74; // jz
+        *reinterpret_cast<uint8_t*>(addr) = 0x74; // jz
         VirtualProtect((LPVOID)addr, 1, old, &old);
     }
     MemoryUtils::Write<int>(MemoryUtils::GetModuleBase("GOF2.exe") + 0x20AD4D, 1); // is valkyrie

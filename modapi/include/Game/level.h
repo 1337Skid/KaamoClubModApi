@@ -3,7 +3,7 @@
 #include <Game/structs.h>
 class Level {
     private:
-        static inline Globals_appManager* globals_appmanager = 0;
+        static inline Globals_appManager** globals_appmanager = 0;
         struct CustomRadioMsg {
             int part_one;
             int part_two;

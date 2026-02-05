@@ -19,15 +19,15 @@ Hooks::imagefactory_drawchar Hooks::old_imagefactorydrawchar = nullptr;
 
 void Hooks::injectitems()
 {
-    Items* itemsarray = (Items*)GLOBALS_ITEMS;
+    Items* itemsarray = reinterpret_cast<Items*>(Offset::GLOBALS_ITEMS);
     AEArray<SingleItem*>* old_array = itemsarray->items;
-    int newcount = old_array->size + (int)Item::created_items.size();
-    AEArray<SingleItem*>* new_array = (AEArray<SingleItem*>*)AbyssEngine::memory_allocate(sizeof(AEArray<SingleItem*>));
+    int newcount = old_array->size + static_cast<int>(Item::created_items.size());
+    AEArray<SingleItem*>* new_array = reinterpret_cast<AEArray<SingleItem*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<SingleItem*>)));
     new_array->size = newcount;
     new_array->size2 = newcount;
     new_array->data = (SingleItem**)AbyssEngine::memory_allocate(sizeof(SingleItem*) * newcount);
     memcpy(new_array->data, old_array->data, sizeof(SingleItem*) * old_array->size);
-    for (int i = 0; i < (int)Item::created_items.size(); i++) {
+    for (int i = 0; i < static_cast<int>(Item::created_items.size()); i++) {
         SingleItem* item = (SingleItem*)AbyssEngine::memory_allocate(sizeof(SingleItem));        
         *item = Item::created_items[i].item;        
         new_array->data[old_array->size + i] = item;
@@ -40,12 +40,12 @@ void Hooks::injectitems()
 
 void Hooks::injectsystemsandstations()
 {
-    auto* galaxy = *(Galaxy**)GLOBALS_GALAXY;
+    auto* galaxy = *reinterpret_cast<Galaxy**>(Offset::GLOBALS_GALAXY);
     if (!galaxy || !galaxy->systems || System::created_systems.empty())
         return;
     auto* systems = galaxy->systems;
     const uint32_t sys_count = systems->size;
-    const uint32_t add_sys_count = (uint32_t)System::created_systems.size();
+    const uint32_t add_sys_count = static_cast<uint32_t>(System::created_systems.size());
     const uint32_t new_sys_count = sys_count + add_sys_count;
     auto* new_sys_array = reinterpret_cast<AEArray<SingleSystem*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<SingleSystem*>)));
     new_sys_array->size = new_sys_array->size2 = new_sys_count;
@@ -53,7 +53,7 @@ void Hooks::injectsystemsandstations()
 
     memcpy(new_sys_array->data, systems->data, sizeof(SingleSystem*) * sys_count);
     for (size_t i = 0; i < System::created_systems.size(); ++i) {
-        const uint32_t sysid = sys_count + (uint32_t)i;
+        const uint32_t sysid = sys_count + static_cast<uint32_t>(i);
         const SingleSystem& src = System::created_systems[i];
         for (auto& st : Station::created_stations) {
             if (st.systemid == src.id)
@@ -74,7 +74,7 @@ void Hooks::injectsystemsandstations()
                 matching_ids.push_back(st.id);
         }
         if (!matching_ids.empty()) {
-            newsys->station_ids = AbyssEngine::newarray<uint32_t>((int)matching_ids.size());
+            newsys->station_ids = AbyssEngine::newarray<uint32_t>(static_cast<int>(matching_ids.size()));
             for (size_t j = 0; j < matching_ids.size(); ++j)
                 newsys->station_ids->data[j] = matching_ids[j];
             if (src.linked_system_ids != nullptr)
@@ -103,7 +103,7 @@ void Hooks::injectsystemsandstations()
         }
     }
     galaxy->systems = new_sys_array;
-    Patches::patchstarmap((uint8_t)new_sys_count); 
+    Patches::patchstarmap(static_cast<uint8_t>(new_sys_count)); 
     System::created_systems.clear();
 }
 
@@ -120,7 +120,7 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinary_hook(SingleSystem* system)
             }
         }
         if (!matchlist.empty()) {
-            int count = (int)matchlist.size();
+            int count = static_cast<int>(matchlist.size());
             auto* new_array = reinterpret_cast<AEArray<SingleStation*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<SingleStation*>)));
             if (new_array) {
                 new_array->data = reinterpret_cast<SingleStation**>(AbyssEngine::memory_allocate(sizeof(SingleStation*) * count));
@@ -146,7 +146,7 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinaryfromid_hook(const uint16_t*
 {
     if (!id)
         return old_filereadloadstationbinaryfromid(id);
-    uint32_t requested_id = (uint32_t)*id;
+    uint32_t requested_id = static_cast<uint32_t>(*id);
 
     for (const auto& st : Station::created_stations) {
         if (st.id == requested_id) {
@@ -214,48 +214,48 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
         mov returnaddr, edx
     }
     // Custom radio messages texts
-    if ((uintptr_t)returnaddr == 0x4bcc59 && !Level::created_radiomessages.empty()) {
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4bcc59 && !Level::created_radiomessages.empty()) {
         static AEString customstring;
         if (Level::created_radiomessages.size() == 1) {
             customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[0].name.c_str());
-            customstring.size = (uint32_t)Level::created_radiomessages[0].name.length();
+            customstring.size = static_cast<uint32_t>(Level::created_radiomessages[0].name.length());
         } else {
             customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[Level::created_radiomessages.size() - 1].name.c_str());
-            customstring.size = (uint32_t)Level::created_radiomessages[Level::created_radiomessages.size() - 1].name.length();
+            customstring.size = static_cast<uint32_t>(Level::created_radiomessages[Level::created_radiomessages.size() - 1].name.length());
         }
         return &customstring;
     }
-    if ((uintptr_t)returnaddr == 0x4bca93 && !Level::created_radiomessages.empty()) {
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4bca93 && !Level::created_radiomessages.empty()) {
         static AEString customstring;
         if (Level::created_radiomessages.size() == 1) {
             customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[0].content.c_str());
-            customstring.size = (uint32_t)Level::created_radiomessages[0].content.length();
+            customstring.size = static_cast<uint32_t>(Level::created_radiomessages[0].content.length());
         } else {
             customstring.text = const_cast<wchar_t*>(Level::created_radiomessages[Level::created_radiomessages.size() - 1].content.c_str());
-            customstring.size = (uint32_t)Level::created_radiomessages[Level::created_radiomessages.size() - 1].content.length();
+            customstring.size = static_cast<uint32_t>(Level::created_radiomessages[Level::created_radiomessages.size() - 1].content.length());
         }
         return &customstring;
     }
     // The return addresses of every GameText::GetText() items name, useful to not overwrite in others strings
     // TODO: find in game npc cargo hold returnaddr
     // Custom items texts
-    if ((uintptr_t)returnaddr == 0x483331 || (uintptr_t)returnaddr == 0x454c4e || (uintptr_t)returnaddr == 0x44edae || (uintptr_t)returnaddr == 0x4c9725 || (uintptr_t)returnaddr == 0x4cc0bc || (uintptr_t)returnaddr == 0x48d8b1 || (uintptr_t)returnaddr == 0x458618 || (uintptr_t)returnaddr == 0x4585C1) {
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x483331 || reinterpret_cast<uintptr_t>(returnaddr) == 0x454c4e || reinterpret_cast<uintptr_t>(returnaddr) == 0x44edae || reinterpret_cast<uintptr_t>(returnaddr) == 0x4c9725 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4cc0bc || reinterpret_cast<uintptr_t>(returnaddr) == 0x48d8b1 || reinterpret_cast<uintptr_t>(returnaddr) == 0x458618 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4585C1) {
         for (const auto& item : Item::created_items) {
             if (id == item.id + 1247) { // + 1247 bcz the game decided so don't ask my why
                 static AEString customstring;
                 customstring.text = const_cast<wchar_t*>(item.name.c_str());
-                customstring.size = (uint32_t)item.name.length();
+                customstring.size = static_cast<uint32_t>(item.name.length());
                 return &customstring;
             }
         }
     }
     // if ((uintptr_t)returnaddr == 0x45565e) { -- for ships names
-    if ((uintptr_t)returnaddr == 0x48307b) {
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x48307b) {
         for (const auto& item : Item::created_items) {
             if (id == item.id + 1014) { // + 1014 bcz the game decided
                 static AEString customstring;
                 customstring.text = const_cast<wchar_t*>(item.description.c_str());
-                customstring.size = (uint32_t)item.description.length();
+                customstring.size = static_cast<uint32_t>(item.description.length());
                 return &customstring;
             }
         }
@@ -269,7 +269,7 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
 int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 {
     // This function is useful to prevent custom items being injected in the save resulting in a crash at load...
-    Globals_status** globals_status_ptr = (Globals_status**)0x60AD6C;
+    Globals_status** globals_status_ptr = reinterpret_cast<Globals_status**>(0x60AD6C);
     Globals_status* globals_status = *globals_status_ptr;
     int oldsize = 196;
 
@@ -281,7 +281,7 @@ int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 
         newarray->size = oldsize;
         newarray->size2 = oldsize;
-        newarray->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize);
+        newarray->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize));
         memcpy(newarray->data, oldarray->data, sizeof(unsigned int) * oldsize);
         globals_status->m_pItemLowestPrices = newarray;
         AbyssEngine::memory_free(oldarray->data);
@@ -293,7 +293,7 @@ int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 
         newarray->size = oldsize;
         newarray->size2 = oldsize;
-        newarray->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize);
+        newarray->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize));
         memcpy(newarray->data, oldarray->data, sizeof(unsigned int) * oldsize);
         globals_status->m_pItemHighestPrices = newarray;
         AbyssEngine::memory_free(oldarray->data);
@@ -305,7 +305,7 @@ int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 
         newarray->size = oldsize;
         newarray->size2 = oldsize;
-        newarray->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize);
+        newarray->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize));
         memcpy(newarray->data, oldarray->data, sizeof(unsigned int) * oldsize);
         globals_status->m_pItemLowestPricesSystem = newarray;
         AbyssEngine::memory_free(oldarray->data);
@@ -317,7 +317,7 @@ int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 
         newarray->size = oldsize;
         newarray->size2 = oldsize;
-        newarray->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize);
+        newarray->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * oldsize));
         memcpy(newarray->data, oldarray->data, sizeof(unsigned int) * oldsize);
         globals_status->m_pItemHighestPricesSystem = newarray;
         AbyssEngine::memory_free(oldarray->data);
@@ -331,7 +331,7 @@ int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
 
 int __stdcall Hooks::level_creategun_hook(int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8, int a9)
 {
-    for (int i = 0; i < (int)Item::created_items.size(); i++) {
+    for (int i = 0; i < static_cast<int>(Item::created_items.size()); i++) {
         if (Item::created_items[i].item.m_nID == a2 && Item::created_items[i].type == "Laser") {
             a2 = 0;
         } else if (Item::created_items[i].item.m_nID == a2 && Item::created_items[i].type == "LaserBeam") {
@@ -396,15 +396,15 @@ int __stdcall Hooks::imagefactory_drawchar_hook(int a2, int a3, int a4)
 void Hooks::init()
 {
     MH_Initialize();
-    MH_CreateHook((LPVOID)GLOBALS_INIT_ADDR, &globals_init_hook, (LPVOID*)&oldglobals_init);
-    MH_CreateHook((LPVOID)FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
-    MH_CreateHook((LPVOID)FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
-    //MH_CreateHook((LPVOID)STANDING_ISENEMY, &standing_isenemy_hook, (LPVOID*)&old_standingisenemy);
-    MH_CreateHook((LPVOID)ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
-    MH_CreateHook((LPVOID)GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
-    MH_CreateHook((LPVOID)RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
-    MH_CreateHook((LPVOID)LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);
-    //MH_CreateHook((LPVOID)LEVEL_CREATESHIP, &level_createship_hook, (LPVOID*)&old_levelcreateship);
-    MH_CreateHook((LPVOID)IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
+    MH_CreateHook((LPVOID)Offset::GLOBALS_INIT_ADDR, &globals_init_hook, (LPVOID*)&oldglobals_init);
+    MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
+    MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
+    //MH_CreateHook((LPVOID)Offset::STANDING_ISENEMY, &standing_isenemy_hook, (LPVOID*)&old_standingisenemy);
+    MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
+    MH_CreateHook((LPVOID)Offset::GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
+    MH_CreateHook((LPVOID)Offset::RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
+    MH_CreateHook((LPVOID)Offset::LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESHIP, &level_createship_hook, (LPVOID*)&old_levelcreateship);
+    MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
     MH_EnableHook(MH_ALL_HOOKS);
 }

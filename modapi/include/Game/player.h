@@ -4,8 +4,8 @@
 
 class Player {
     private:
-        static inline Globals_status* globals_status = 0;
-        static inline Globals_appManager* globals_appmanager = 0;
+        static inline Globals_status** globals_status = 0;
+        static inline Globals_appManager** globals_appmanager = 0;
         static inline lua_State* lstate = nullptr;
     public:
         static void init(lua_State* lua_state);

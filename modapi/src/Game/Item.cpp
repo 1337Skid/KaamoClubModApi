@@ -9,7 +9,7 @@ void Item::create_commodity_item(ModdedItem m)
     memset(iteminfoarr->data, 0, sizeof(ItemInfo));
     ItemInfo* info = &iteminfoarr->data[0];
     info->field_0 = 0;
-    info->m_nID = (int)created_items.size() + 196;
+    info->m_nID = static_cast<int>(created_items.size() + 196);
     info->m_bIsThermo = 1;
     info->m_nType = m.item.m_nType;
     info->field_10 = 2;
@@ -41,7 +41,7 @@ void Item::create_cloak_item(ModdedItem m, int effect, int loadingspeed, int ene
     memset(iteminfoarr->data, 0, sizeof(ItemInfo));
     ItemInfo* info = &iteminfoarr->data[0];
     info->field_0 = 0;
-    info->m_nID = (int)created_items.size() + 196;
+    info->m_nID = static_cast<int>(created_items.size() + 196);
     info->m_bIsThermo = 1;
     info->m_nType = m.item.m_nType;
     info->field_10 = 2;
@@ -81,7 +81,7 @@ void Item::create_booster_item(ModdedItem m, int boostduration, int loadingspeed
     memset(iteminfoarr->data, 0, sizeof(ItemInfo));
     ItemInfo* info = &iteminfoarr->data[0];
     info->field_0 = 0;
-    info->m_nID = (int)created_items.size() + 196;
+    info->m_nID = static_cast<int>(created_items.size() + 196);
     info->m_bIsThermo = 1;
     info->m_nType = m.item.m_nType;
     info->field_10 = 2;
@@ -121,7 +121,7 @@ void Item::create_gun_item(ModdedItem m, int damage, int loadingspeed, int range
     memset(iteminfoarr->data, 0, sizeof(ItemInfo));
     ItemInfo* info = &iteminfoarr->data[0];
     info->field_0 = 0;
-    info->m_nID = (int)created_items.size() + 196;
+    info->m_nID = static_cast<int>(created_items.size() + 196);
     info->m_bIsThermo = 1;
     info->m_nType = m.item.m_nType;
     info->field_10 = 2;
@@ -171,7 +171,7 @@ int Item::create(const std::string& name, const std::string& description, sol::t
     MultiByteToWideChar(CP_UTF8, 0, description.c_str(), -1, descriptionws.data(), len);
 
     ModdedItem m;
-    m.id = (int)created_items.size() + 196;
+    m.id = static_cast<int>(created_items.size() + 196);
     m.name = namews;
     m.description = descriptionws;
     memset(&m.item, 0, sizeof(SingleItem));
@@ -229,10 +229,10 @@ int Item::create(const std::string& name, const std::string& description, sol::t
 }
 
 void Item::refreshitemsprices() {
-    Globals_status** globals_status_ptr = (Globals_status**)0x0060AD6C;
+    Globals_status** globals_status_ptr = reinterpret_cast<Globals_status**>(0x0060AD6C);
     Globals_status* globals_status = *globals_status_ptr;
     int old_size = 196;
-    int newsize = old_size + (int)created_items.size();
+    int newsize = old_size + static_cast<int>(created_items.size());
 
     if(created_items.size() == 0)
         return;
@@ -241,9 +241,9 @@ void Item::refreshitemsprices() {
     AEArray<unsigned int>* newlow = (AEArray<unsigned int>*)AbyssEngine::memory_allocate(sizeof(AEArray<unsigned int>));
     newlow->size = newsize;
     newlow->size2 = newsize;
-    newlow->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize);
+    newlow->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize));
     memcpy(newlow->data, oldlow->data, sizeof(unsigned int) * old_size);
-    for (int i = 0; i < (int)created_items.size(); i++)
+    for (int i = 0; i < static_cast<int>(created_items.size()); i++)
         newlow->data[old_size + i] = created_items[i].item.m_nMinPrice;
     globals_status->m_pItemLowestPrices = newlow;
     AbyssEngine::memory_free(oldlow->data);
@@ -253,9 +253,9 @@ void Item::refreshitemsprices() {
     AEArray<unsigned int>* newhigh = (AEArray<unsigned int>*)AbyssEngine::memory_allocate(sizeof(AEArray<unsigned int>));
     newhigh->size = newsize;
     newhigh->size2 = newsize;
-    newhigh->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize);
+    newhigh->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize));
     memcpy(newhigh->data, oldhigh->data, sizeof(unsigned int) * old_size);
-    for (int i = 0; i < (int)created_items.size(); i++)
+    for (int i = 0; i < static_cast<int>(created_items.size()); i++)
         newhigh->data[old_size + i] = created_items[i].item.m_nMaxPrice;
     globals_status->m_pItemHighestPrices = newhigh;
     AbyssEngine::memory_free(oldhigh->data);
@@ -265,9 +265,9 @@ void Item::refreshitemsprices() {
     AEArray<unsigned int>* newlowsys = (AEArray<unsigned int>*)AbyssEngine::memory_allocate(sizeof(AEArray<unsigned int>));
     newlowsys->size = newsize;
     newlowsys->size2 = newsize;
-    newlowsys->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize);
+    newlowsys->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize));
     memcpy(newlowsys->data, oldlowsys->data, sizeof(unsigned int) * old_size);
-    for (int i = 0; i < (int)created_items.size(); i++)
+    for (int i = 0; i < static_cast<int>(created_items.size()); i++)
         newlowsys->data[old_size + i] = created_items[i].item.m_nLowestPriceSystemId;
     globals_status->m_pItemLowestPricesSystem = newlowsys;
     AbyssEngine::memory_free(oldlowsys->data);
@@ -277,9 +277,9 @@ void Item::refreshitemsprices() {
     AEArray<unsigned int>* newhighsys = (AEArray<unsigned int>*)AbyssEngine::memory_allocate(sizeof(AEArray<unsigned int>));
     newhighsys->size = newsize;
     newhighsys->size2 = newsize;
-    newhighsys->data = (unsigned int*)AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize);
+    newhighsys->data = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(sizeof(unsigned int) * newsize));
     memcpy(newhighsys->data, oldhighsys->data, sizeof(unsigned int) * old_size);
-    for (int i = 0; i < (int)created_items.size(); i++)
+    for (int i = 0; i < static_cast<int>(created_items.size()); i++)
         newhighsys->data[old_size + i] = created_items[i].item.m_nHighestPriceSystemId;
     globals_status->m_pItemHighestPricesSystem = newhighsys;
     AbyssEngine::memory_free(oldhighsys->data);
