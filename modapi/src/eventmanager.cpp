@@ -18,6 +18,7 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 #include <Game/level.h>
+#include "offset.h"
 
 std::map<std::string, std::vector<sol::protected_function>> EventManager::listeners;
 
@@ -33,7 +34,6 @@ void EventManager::clearlisteners()
 
 void EventManager::joingame_event()
 {
-    static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     static bool joinedgame = false;
 
     if (!joinedgame && globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2)) {
@@ -47,7 +47,6 @@ void EventManager::joingame_event()
 
 void EventManager::ingame_event()
 {
-    static Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
     if (globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2))
         trigger("IsInGame");
 }
@@ -55,7 +54,7 @@ void EventManager::ingame_event()
 void EventManager::earlyinit_event()
 {
     trigger("EarlyInit");
-    globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
+    globals_appmanager = reinterpret_cast<Globals_appManager**>(Offset::GLOBALS_APPMANAGER);
     isearlyinit_finished = true;
 }
 

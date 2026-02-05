@@ -5,10 +5,11 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 #include "patches.h"
+#include "offset.h"
 
 void Mission::init()
 {
-    globals_status = reinterpret_cast<Globals_status**>(0x0060AD6C);
+    globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
 }
 
 int Mission::getid()

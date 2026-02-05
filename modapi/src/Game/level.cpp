@@ -8,10 +8,11 @@
 #include <thread>
 #include <chrono>
 #include "patches.h"
+#include "offset.h"
 
 void Level::init()
 {
-    globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
+    globals_appmanager = reinterpret_cast<Globals_appManager**>(Offset::GLOBALS_APPMANAGER);
 }
 
 // TODO: do imageinfo (do stuff in hooks.cpp Hooks::imagefactory_drawchar_hook)

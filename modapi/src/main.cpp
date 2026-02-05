@@ -9,7 +9,6 @@
 
 DWORD WINAPI MainThread(LPVOID lpParam) {
     // TODO: CLEAN THE GOD DAMN HEADERS!!!!!!!!!!!!!
-    // TODO: do a offset.h for the love of god
     LuaManager *luamanager = new LuaManager();
     FILE* dummyfile;
     freopen_s(&dummyfile, "CONOUT$", "w", stdout);

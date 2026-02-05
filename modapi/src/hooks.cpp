@@ -19,7 +19,7 @@ Hooks::imagefactory_drawchar Hooks::old_imagefactorydrawchar = nullptr;
 
 void Hooks::injectitems()
 {
-    Items* itemsarray = reinterpret_cast<Items*>(GLOBALS_ITEMS);
+    Items* itemsarray = reinterpret_cast<Items*>(Offset::GLOBALS_ITEMS);
     AEArray<SingleItem*>* old_array = itemsarray->items;
     int newcount = old_array->size + static_cast<int>(Item::created_items.size());
     AEArray<SingleItem*>* new_array = reinterpret_cast<AEArray<SingleItem*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<SingleItem*>)));
@@ -40,7 +40,7 @@ void Hooks::injectitems()
 
 void Hooks::injectsystemsandstations()
 {
-    auto* galaxy = *reinterpret_cast<Galaxy**>(GLOBALS_GALAXY);
+    auto* galaxy = *reinterpret_cast<Galaxy**>(Offset::GLOBALS_GALAXY);
     if (!galaxy || !galaxy->systems || System::created_systems.empty())
         return;
     auto* systems = galaxy->systems;
@@ -396,15 +396,15 @@ int __stdcall Hooks::imagefactory_drawchar_hook(int a2, int a3, int a4)
 void Hooks::init()
 {
     MH_Initialize();
-    MH_CreateHook((LPVOID)GLOBALS_INIT_ADDR, &globals_init_hook, (LPVOID*)&oldglobals_init);
-    MH_CreateHook((LPVOID)FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
-    MH_CreateHook((LPVOID)FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
-    //MH_CreateHook((LPVOID)STANDING_ISENEMY, &standing_isenemy_hook, (LPVOID*)&old_standingisenemy);
-    MH_CreateHook((LPVOID)ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
-    MH_CreateHook((LPVOID)GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
-    MH_CreateHook((LPVOID)RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
-    MH_CreateHook((LPVOID)LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);
-    //MH_CreateHook((LPVOID)LEVEL_CREATESHIP, &level_createship_hook, (LPVOID*)&old_levelcreateship);
-    MH_CreateHook((LPVOID)IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
+    MH_CreateHook((LPVOID)Offset::GLOBALS_INIT_ADDR, &globals_init_hook, (LPVOID*)&oldglobals_init);
+    MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
+    MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
+    //MH_CreateHook((LPVOID)Offset::STANDING_ISENEMY, &standing_isenemy_hook, (LPVOID*)&old_standingisenemy);
+    MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
+    MH_CreateHook((LPVOID)Offset::GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
+    MH_CreateHook((LPVOID)Offset::RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
+    MH_CreateHook((LPVOID)Offset::LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESHIP, &level_createship_hook, (LPVOID*)&old_levelcreateship);
+    MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
     MH_EnableHook(MH_ALL_HOOKS);
 }

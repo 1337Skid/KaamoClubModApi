@@ -5,10 +5,11 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include "offset.h"
 
 void System::init()
 {
-    globals_status = reinterpret_cast<Globals_status**>(0x0060AD6C);
+    globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
 }
 
 int System::getid()

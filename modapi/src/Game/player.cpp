@@ -4,11 +4,12 @@
 #include <Game/station.h>
 #include <Game/mission.h>
 #include <Game/asset.h>
+#include "offset.h"
 
 void Player::init(lua_State* lua_state)
 {
-    globals_status = reinterpret_cast<Globals_status**>(0x0060AD6C);
-    globals_appmanager = reinterpret_cast<Globals_appManager**>(0x0060AEFC);
+    globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+    globals_appmanager = reinterpret_cast<Globals_appManager**>(Offset::GLOBALS_APPMANAGER);
     lstate = lua_state;
 }
 

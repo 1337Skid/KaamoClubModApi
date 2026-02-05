@@ -6,13 +6,14 @@
 #include <Game/asset.h>
 #include <thread>
 #include <chrono>
+#include "offset.h"
 
 void Asset::init()
 {
-    // Canvas is loading the last thing to load and I need to sleep if canvas is still nullptr
+    // Canvas is the last thing to load and I need to sleep if canvas is still nullptr
     uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
     while (globals_canvas == 0) {
-        globals_canvas = *reinterpret_cast<Globals_Canvas**>(0x0060AE68);
+        globals_canvas = *reinterpret_cast<Globals_Canvas**>(Offset::GLOBALS_CANVAS);
         if (globals_canvas == nullptr) 
             std::this_thread::sleep_for(std::chrono::milliseconds(1100));
     }
