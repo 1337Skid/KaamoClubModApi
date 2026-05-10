@@ -22,10 +22,48 @@ end)
 
 RegisterEvent("OnAsteroidDestroyed", function(count)
 	print("New asteroid destroyed : " .. count)
-	level:CreateRadioMessage("Asteroid event", "asteroid destroyed " .. count)
+	local imageinfo = {
+		race = 6,
+		hair = 0,
+		eyes = 0,
+		mouth = 0,
+		armor = 0
+	} -- a bobolian
+	--level:CreateRadioMessage("Asteroid event", "asteroid destroyed " .. count, imageinfo)
+	--local dialogues = {
+    	--	{ name = "Keith T. Maxwell",  content = "hello", image = {0, 0, 0, 0, 0}, isplayer = 1 },
+    	--	{ name = "lil snail", content = "hi", image = {6, 1, 2, 0, 0}, isplayer = 0 },
+	--	{ name = "Keith T. Maxwell",  content = "bleh", image = {0, 0, 0, 0, 0}, isplayer = 1 },
+    	--	{ name = "lil snail", content = "OK!", image = {6, 1, 2, 0, 0}, isplayer = 1 },
+	--}
+    	--wait(5)
+	--level:CreateDialogueWindow(dialogues)
 	--mission:NextCampaignMission()
 	--player:ToggleCloaking()
 	--player:SetPosition(10,10,10)
+	--local points = {
+    	--	{ pos = {0, 8000, 0}, duration = 5  },
+    	--	{ pos = {2500, 200, 0}, duration = 5,  shake = 8.0, shakefrequency = 100 },
+    	--	{ pos = {0, 0, 30000}, duration = 5  },
+	--}
+	--level:CreateCutScene(points)
+	--local route = level:CreateRoute({
+    	--	{ 100000.0, 0.0, 100000.0 },
+    	--	{ 200000.0, 0.0, 200000.0 },
+    	--	{ 300000.0, 0.0, 100000.0 },
+	--})
+	--if route:IsValid() then
+	--	print("ROUTE CREATED!")
+	--end
+	--level:GetEntities()[2]:SetRoute(route)
+	--for k, v in pairs(level:GetEntities()) do
+	--	print(v)
+	--	v:SetRoute(route)
+	--end
+	--level:CreateAsteroid(0, 0, 50000, 30, 17000)
+	--for k, v in pairs(level:GetEntities()) do
+	--	print(v)
+	--end
 end)
 
 RegisterEvent("OnEnemieKilled", function(count)
@@ -71,7 +109,7 @@ RegisterEvent("IsInMainMenu", function()
 	if assetchanged then return end
 	--get_every_assets_filepath()
 	print("Asset changed!")
-	asset:SetAssetFilePath(2050, "mods/hello_mod/my_assets/custom_gof2_interface.aei") -- feel free to custom the gof2 interface with any tools (I don't know if we have any) also you can call this setassetfilepath function while the game is running BUT it won't be edited instantly, for the asset to be edited you need to 'reload' the game aka going to a station, changing system etc..
+	--asset:SetAssetFilePath(2050, "mods/hello_mod/my_assets/custom_gof2_interface.aei") -- feel free to custom the gof2 interface with any tools (I don't know if we have any) also you can call this setassetfilepath function while the game is running BUT it won't be edited instantly, for the asset to be edited you need to 'reload' the game aka going to a station, changing system etc..
 	assetchanged = true
 end)
 
@@ -126,4 +164,19 @@ end)
 
 RegisterEvent("OnUpdate", function()
 	-- every ticks
+end)
+
+HookFunction("Level::createMission", function(ctx)
+	--for i = 0, 100 do
+	--	ctx:CreateFighter(math.random(0,41), 8) -- meshid, faction
+	--end
+	ctx:call() -- call original function
+end)
+
+HookFunction("Level::createCampaignMission", function(ctx)
+	print("Hello i'm in a mission")
+	--for i = 0, 3 do
+	--	ctx:CreateFighter(math.random(0,41), 8) -- meshid, faction
+	--end
+	ctx:call() -- call original function
 end)

@@ -1,21 +1,12 @@
 #include "patches.h"
 #include "abyssengine.h"
 #include "hooks.h"
+#include "hookcontext.h"
 #include <Game/system.h>
 #include <Game/level.h>
 #include <iostream>
 #include <vector>
-
-Hooks::globals_init Hooks::oldglobals_init = nullptr;
-Hooks::fileread_loadstationbinaryfromid Hooks::old_filereadloadstationbinaryfromid = nullptr;
-Hooks::fileread_loadstationbinary Hooks::old_filereadloadstationbinary = nullptr;
-Hooks::standing_isenemy Hooks::old_standingisenemy = nullptr;
-Hooks::abyssengine_paintcanvas_setcolor Hooks::old_abyssenginepaintcanvassetcolor = nullptr;
-Hooks::gametext_gettext Hooks::old_gametextgettext = nullptr;
-Hooks::recordhandler_recordstorewrite Hooks::old_recordhandlerrecordstorewrite = nullptr;
-Hooks::level_creategun Hooks::old_levelcreategun = nullptr;
-Hooks::level_createship Hooks::old_levelcreateship = nullptr;
-Hooks::imagefactory_drawchar Hooks::old_imagefactorydrawchar = nullptr;
+#include <cmath>
 
 void Hooks::injectitems()
 {
@@ -207,6 +198,7 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
 {
     void* returnaddr = nullptr;
     int id;
+    AEString* result = nullptr;
 
     __asm {
         mov id, eax
@@ -241,7 +233,7 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
     // Custom items texts
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x483331 || reinterpret_cast<uintptr_t>(returnaddr) == 0x454c4e || reinterpret_cast<uintptr_t>(returnaddr) == 0x44edae || reinterpret_cast<uintptr_t>(returnaddr) == 0x4c9725 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4cc0bc || reinterpret_cast<uintptr_t>(returnaddr) == 0x48d8b1 || reinterpret_cast<uintptr_t>(returnaddr) == 0x458618 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4585C1) {
         for (const auto& item : Item::created_items) {
-            if (id == item.id + 1247) { // + 1247 bcz the game decided so don't ask my why
+            if (id == item.id + 1247) { // + 1247 bcz the game decided so don't ask me why
                 static AEString customstring;
                 customstring.text = const_cast<wchar_t*>(item.name.c_str());
                 customstring.size = static_cast<uint32_t>(item.name.length());
@@ -260,10 +252,25 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
             }
         }
     }
+    // Custom dialogue window message
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4071bf && !Level::created_dialoguemessages.empty()) {
+        static AEString customstring;
+        customstring.text = const_cast<wchar_t*>(Level::created_dialoguemessages[Level::current_dialogue_id].name.c_str());
+        customstring.size = static_cast<uint32_t>(Level::created_dialoguemessages[Level::current_dialogue_id].name.length());
+        return &customstring;
+    }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x407279 && !Level::created_dialoguemessages.empty()) {
+        static AEString customstring;
+        customstring.text = const_cast<wchar_t*>(Level::created_dialoguemessages[Level::current_dialogue_id].content.c_str());
+        customstring.size = static_cast<uint32_t>(Level::created_dialoguemessages[Level::current_dialogue_id].content.length());
+        return &customstring;
+    }
     __asm {
         mov eax, id
         call old_gametextgettext
+        mov result, eax
     }
+    return result; // fun fact: this wasn't needed but I added it because it looked weird without, it worked due to of the return value being in eax
 }
 
 int __stdcall Hooks::recordhandler_recordstorewrite_hook(uintptr_t a, int b)
@@ -372,15 +379,27 @@ int __stdcall Hooks::imagefactory_drawchar_hook(int a2, int a3, int a4)
         mov edx, [ebp + 4]
         mov returnaddr, edx
     }
+    
+    //AEArray<ImagePart*>* imageparts = reinterpret_cast<AEArray<ImagePart*>*>(a1);
+    //std::cout << imageparts->size << std::endl;
     //std::cout << a1 << std::endl;
-    //std::cout << a2 << std::endl;
-    //std::cout << a3 << std::endl;
-    //std::cout << a4 << std::endl;
-    //std::cout << returnaddr << std::endl;
-    //std::cout << "---------------" << std::endl;
-    AEArray<ImagePart*>* imageparts = reinterpret_cast<AEArray<ImagePart*>*>(a1);
-    //for (int i = 0; i < imageparts->size; i++)
-        //std::cout << imageparts->data[i]->id << std::endl;
+    //if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4bccb3) {
+    //    if (imageparts->data[0] == nullptr)
+    //        return;
+        //static int id1 = imageparts->data[0]->id - 1;
+        //static int id2 = imageparts->data[1]->id - 1;
+    //    static int id3 = imageparts->data[2]->id - 1;
+        //static int id4 = imageparts->data[3]->id - 1;
+
+        //imageparts->data[0]->id = id1;
+        //imageparts->data[1]->id = id2;
+    //    imageparts->data[2]->id = id3;
+        //imageparts->data[3]->id = id4;
+    //}
+    //for (int i = 0; i < imageparts->size; i++) {
+    //    if (imageparts->data[i] != nullptr)
+    //        std::cout << "index " << i << " " << imageparts->data[i]->id << std::endl;
+    //}
     __asm {
         push a4 
         push a3
@@ -393,6 +412,812 @@ int __stdcall Hooks::imagefactory_drawchar_hook(int a2, int a3, int a4)
     return returnvalue;
 }
 
+void __stdcall Hooks::imagepart_draw_hook(unsigned int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8)
+{
+    //std::cout << "a1 : " << a1 << std::endl;
+    //std::cout << "a2 : " << a2 << std::endl;
+    //std::cout << "a3 : " << a3 << std::endl;
+    //std::cout << "a4 : " << a4 << std::endl;
+    //std::cout << "a5 : " << a5 << std::endl;
+    //std::cout << "a6 : " << a6 << std::endl;
+    //std::cout << "a7 : " << a7 << std::endl;
+    //std::cout << "a8 : " << a8 << std::endl;
+   // a1 = 174;
+
+    return old_imagepartdraw(a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+void __stdcall Hooks::abyssengine_paintcanvas_drawimage2d_hook(int a1, unsigned int a2, int a3, int a4, int a5)
+{
+    // useful for position
+    return old_abyssenginepaintcanvasdrawimage2d(a1, a2, a3, a4, a5);
+}
+
+int __stdcall Hooks::radiomessage_radiomessage_hook(int a4, int a5)
+{
+    int a1;
+    int a2;
+    int a3;
+    int returnvalue;
+
+    __asm {
+        mov a1, eax
+        mov a2, edi
+        mov a3, esi
+    }
+
+    __asm {
+        push a5
+        push a4
+        mov eax, a1
+        mov edi, a2
+        mov esi, a3
+        call old_radiomessageradiomessage
+        mov returnvalue, eax 
+    }
+    return returnvalue;
+}
+
+int __stdcall Hooks::imagefactory_loadchar_hook(int *a1)
+{
+    void* returnaddr = nullptr;
+
+    __asm {
+        mov edx, [ebp + 4]
+        mov returnaddr, edx
+    }
+    // radio messages
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x04bca3c) {
+        if (Level::created_radiomessages.empty())
+            return old_imagefactoryloadchar(a1);
+
+        int index = Level::created_radiomessages.size() == 1 ? 0 : Level::created_radiomessages.size() - 1;
+        int* newimage = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * 5));
+        newimage[0] = Level::created_radiomessages[index].race;
+        newimage[1] = Level::created_radiomessages[index].hair;
+        newimage[2] = Level::created_radiomessages[index].eyes;
+        newimage[3] = Level::created_radiomessages[index].mouth;
+        newimage[4] = Level::created_radiomessages[index].armor;
+        int result = old_imagefactoryloadchar(newimage);
+        AbyssEngine::memory_free(newimage);
+        return result;
+    }
+    // dialogue window image
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x04075e3 && !Level::created_dialoguemessages.empty()) {
+        Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(Offset::GLOBALS_APPMANAGER);
+        MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
+        ModStation* mstation = reinterpret_cast<ModStation*>((*globals_appmanager)->m_pCurrentModule);
+        if (mgame->m_pLevel != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
+            mgame->m_pDialogueWindow->m_bFlipImage = 1;
+        else if(mstation->m_pDialogueWindow != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
+            mstation->m_pDialogueWindow->m_bFlipImage = 1;
+        int* newimage = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * 5));
+        newimage[0] = Level::created_dialoguemessages[Level::current_dialogue_id].race;
+        newimage[1] = Level::created_dialoguemessages[Level::current_dialogue_id].hair;
+        newimage[2] = Level::created_dialoguemessages[Level::current_dialogue_id].eyes;
+        newimage[3] = Level::created_dialoguemessages[Level::current_dialogue_id].mouth;
+        newimage[4] = Level::created_dialoguemessages[Level::current_dialogue_id].armor;
+        int result = old_imagefactoryloadchar(newimage);
+        AbyssEngine::memory_free(newimage);
+        return result;
+    }
+    return old_imagefactoryloadchar(a1);
+}
+
+int __stdcall Hooks::dialoguewindow_dialoguewindow_hook(int *a1, int *a2, int *a3, int a4)
+{
+    Level::current_dialogue_id = 0;
+    return old_dialoguewindowdialoguewindow(a1, a2, a3, a4);
+}
+
+// TODO: I think I know why it didn't work (was missing &) lol
+// Why am I using naked you may ask? because when i'm trying to hook this function normally like every others functions the game crash???
+// Like it's a really weird crash and I spent 3 hours to figures out the crash and I couldn't figure it out... if you have a better way to do that then do a PR!!
+static DWORD globals_dialoguesoundid = Offset::GLOBALS_GETDIALOGUESOUNDID;
+static __declspec(naked) void globals_getdialoguesoundid_retpatch()
+{
+    __asm {
+        call globals_dialoguesoundid
+        mov eax, 0xffffffff
+        ret
+    }
+}
+
+int __stdcall Hooks::dialoguewindow_loadcontent_hook(int *a1)
+{
+    void* returnaddr = nullptr;
+    __asm {
+        mov edx, [ebp + 4]
+        mov returnaddr, edx
+    }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x406456)
+        if (!Level::created_dialoguemessages.empty() && Level::current_dialogue_id < (int)Level::created_dialoguemessages.size() - 1)
+            Level::current_dialogue_id++;
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4078eb)
+        if (!Level::created_dialoguemessages.empty() && Level::current_dialogue_id > 0)
+            Level::current_dialogue_id--;
+    if (!Level::created_dialoguemessages.empty()) {
+        DWORD callsite = 0x407617;
+        DWORD target = reinterpret_cast<DWORD>(&globals_getdialoguesoundid_retpatch);
+        DWORD relativeoffset = target - (callsite + 5);
+        DWORD old;
+        VirtualProtect(reinterpret_cast<void*>(callsite), 5, PAGE_EXECUTE_READWRITE, &old);
+        *reinterpret_cast<BYTE*>(callsite) = 0xe8;
+        *reinterpret_cast<DWORD*>((callsite + 1)) = relativeoffset;
+        VirtualProtect(reinterpret_cast<void*>(callsite), 5, old, &old);
+    }
+    return old_dialoguewindowloadcontent(a1);
+}
+
+int __stdcall Hooks::dialoguewindow_set_hook(int a4)
+{
+    int returnvalue;
+    int *a1;
+    int a2;
+    int *a3;
+
+    __asm {
+        mov a1, eax
+        mov a2, edx
+        mov a3, ecx
+    }
+
+    __asm {
+        mov eax, a1
+        mov edx, a2
+        mov ecx, a3
+        push a4
+        call old_dialoguewindowset
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+int __cdecl Hooks::mgame_togglepause_hook()
+{
+    int* a1 = nullptr;
+    int returnvalue = 0;
+    char a2 = 0;
+
+    __asm {
+        mov a1, eax
+        mov a2, cl
+    }
+    __asm {
+        mov eax, a1
+        movzx ecx, a2
+        mov edx, old_mgametogglepause
+        call edx
+        mov returnvalue, eax        
+    }
+    return returnvalue; 
+}
+
+int __cdecl Hooks::cutscene_cutscene_hook()
+{
+    int a1 = 0;
+    int* a2 = nullptr;
+    int returnvalue = 0;
+
+    __asm {
+        mov a2, eax
+        mov a1, ecx
+    }
+    std::cout << "a1: " << a1 << std::endl;
+    std::cout << "a2: " << a2 << std::endl;
+    __asm {
+        mov eax, a2
+        mov ecx, a1
+        mov edx, old_cutscenecutscene
+        call edx
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+float* __cdecl Hooks::targetfollowcamera_setposition_hook()
+{
+    int* a1 = nullptr;
+    float* a2 = nullptr;
+    float* returnvalue = nullptr;
+
+    __asm {
+        mov a1, eax
+        mov a2, ecx
+    }
+
+    std::cout << "Targetfollowcamera: " << a1 << std::endl;
+    std::cout << "Vector: " << a2 << std::endl;
+
+    __asm {
+        mov eax, a1
+        mov ecx, a2
+        mov edx, old_targetfollowcamerasetposition
+        call edx
+        mov returnvalue, eax
+    }
+
+    return returnvalue;
+}
+
+char __thiscall Hooks::levelscript_process_hook(LevelScript* a1, int a2)
+{
+    if (!Level::created_cutscene)
+        return old_levelscriptprocess(a1, a2);
+    if (Level::created_cutscenepts.empty()) {
+        Level::created_cutscene = 0;
+        return old_levelscriptprocess(a1, a2);
+    }
+    TargetFollowCamera* camera = a1->m_pCamera;
+    if (a1->m_nState == 0) {
+        a1->m_nState = 1000; // 1000 so we are sure it doesn't exist in the game
+        Level::cutscene_timer = 0.0f;
+        Level::cutscene_pointid = 0;
+        Level::cutscene_anchored = false;
+        if (camera != nullptr) // just to be sure
+            Level::cutscene_originaltarget = reinterpret_cast<uintptr_t>(camera->m_pTarget);
+        return 1;
+    }
+    if (a1->m_nState >= 1000) {
+        if (camera == nullptr)
+            return 1;
+        int points = static_cast<int>(Level::created_cutscenepts.size());
+        if (Level::cutscene_pointid >= points) {
+            if (Level::cutscene_originaltarget != 0)
+                camera->m_pTarget = reinterpret_cast<void*>(Level::cutscene_originaltarget);
+            camera->m_nShakeAmount = 0.0f;
+            camera->m_nShakeFrequency = 0;
+            Level::created_cutscene = 0;
+            Level::created_cutscenepts.clear();
+            Level::cutscene_timer = 0.0f;
+            Level::cutscene_pointid = 0;
+            a1->m_nState = 0;
+            return 1;
+        }
+        if (!Level::cutscene_anchored) {
+            if (camera->m_nPosX != 0.0f && !std::isnan(camera->m_nPosX) && std::abs(camera->m_nPosX) > 1.0f) {
+                Level::cutscene_anchorX = camera->m_nPosX;
+                Level::cutscene_anchorY = camera->m_nPosY;
+                Level::cutscene_anchorZ = camera->m_nPosZ;
+                Level::cutscene_anchored = true;
+            }
+            return 1;
+        }
+        Level::cutscene_timer += static_cast<float>(a2); // dt
+        camera->m_nPosX = Level::cutscene_anchorX + Level::created_cutscenepts[Level::cutscene_pointid].x;
+        camera->m_nPosY = Level::cutscene_anchorY + Level::created_cutscenepts[Level::cutscene_pointid].y;
+        camera->m_nPosZ = Level::cutscene_anchorZ + Level::created_cutscenepts[Level::cutscene_pointid].z;
+        camera->m_nShakeAmount = Level::created_cutscenepts[Level::cutscene_pointid].shakeamount;
+        camera->m_nShakeFrequency = Level::created_cutscenepts[Level::cutscene_pointid].shakefrequency;
+        if (Level::cutscene_timer >= Level::created_cutscenepts[Level::cutscene_pointid].duration) {
+            camera->m_nShakeAmount = 0.0f;
+            camera->m_nShakeFrequency = 0;
+            Level::cutscene_pointid = Level::cutscene_pointid + 1;
+            Level::cutscene_timer = 0.0f;
+        }
+        return 1;
+    }
+    return old_levelscriptprocess(a1, a2);
+}
+
+int __stdcall Hooks::route_route_hook(int a2, int a3)
+{
+    int* a1;
+    int returnvalue;
+    
+    __asm {
+        mov a1, ebx
+    }
+    std::cout << a1 << std::endl;
+    std::cout << a2 << std::endl;
+    std::cout << a3 << std::endl;
+    //a3 = 0; a3 how much waypoints left?
+    __asm {
+        push a3
+        push a2
+
+        mov ebx, a1
+        call old_routeroute
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+int __stdcall Hooks::waypoint_waypoint_hook(int a2, int a3, int a4, int* a5)
+{
+    int* a1;
+    int returnvalue;
+    void* returnaddr = nullptr;
+
+    __asm {
+        mov a1, esi
+        mov edx, [ebp + 4]
+        mov returnaddr, edx
+    }
+    std::cout << "Waypoint: " << a1 << std::endl;
+    std::cout << "a2: " << a2 << std::endl;
+    std::cout << "a3: " << a3 << std::endl;
+    std::cout << "a4: " << a4 << std::endl;
+    std::cout << "Route: " << a5 << std::endl;
+    std::cout << "returnaddr: " << returnaddr << std::endl;
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x004C23A0) {
+        //    a2 = 100000;
+        //a3 = 100000;
+        //a4 = 100000;
+    }
+    __asm {
+        push a5
+        push a4
+        push a3
+        push a2
+
+        mov esi, a1
+        call old_waypointwaypoint
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+void __stdcall Hooks::radar_draw_hook(int* a1, float* a2, int* a3, int a4)
+{
+    std::cout << "radar: " << a1 << std::endl;
+    std::cout << "player: " << a2 << std::endl;
+    std::cout << "hud: " << a3 << std::endl;
+    return old_radardraw(a1, a2, a3, a4);
+}
+
+int __cdecl Hooks::route_getwaypoint_hook()
+{
+    int* a1 = nullptr;
+    int returnvalue = 0;
+
+    __asm {
+        mov a1, eax
+    }
+    std::cout << "a1: " << a1 << std::endl;
+    __asm {
+        mov eax, a1
+        mov edx, old_routegetwaypoint
+        call edx
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+float* __thiscall Hooks::playerfighter_render_hook(unsigned int *a1)
+{
+    return old_playerfighterrender(a1);
+}
+
+int* __stdcall Hooks::level_assignguns_hook(int *a1)
+{
+    int* returnv = old_levelassignguns(a1);
+    std::cout << "assign gun ptr: " << a1 << std::endl;
+    std::cout << "returnval assigngun : " << returnv << std::endl;
+    return returnv;
+}
+
+/*int* __stdcall Hooks::level_assignguns_hook(int *a1)
+{
+    int* returnvalue = old_levelassignguns(a1);
+
+    if (a1[48] != 0) {
+        int* gunarray = reinterpret_cast<int*>(a1[48]);
+        gunarray[0] = 0;
+    }
+    return returnvalue;
+}*/
+
+void __stdcall Hooks::kiplayer_addgun_hook(int a3)
+{
+    int** a1;
+    int* a2;
+
+    __asm {
+        mov a1, ebx
+        mov a2, edi
+    }
+    std::cout << "===ADDGUN===" << std::endl;
+    std::cout << std::hex << a1 << std::endl;
+    std::cout << std::hex << a2 << std::endl;
+    std::cout << a3 << std::endl;
+    std::cout << "===end ADDGUN==" << std::endl;
+    __asm {
+        mov ebx, a1
+        mov edi, a2
+    }
+    old_kiplayeraddgun(a3);
+}
+
+int* __stdcall Hooks::globals_getshipgroup_hook(int a1, int a2, char a3)
+{
+    int* old = old_globalsgetshipgroup(a1, a2, a3);
+    std::cout << a1 << std::endl;
+    std::cout << a2 << std::endl;
+    std::cout << (int)a3 << std::endl;
+    std::cout << "return : " << std::hex << old << std::endl;
+    return old;
+}
+
+void __stdcall Hooks::level_update_hook(int a2, int a3, int a4)
+{
+    int* a1;
+    __asm {
+        mov a1, eax
+    }
+    std::cout << std::hex << a1 << std::endl;
+    std::cout << a2 << std::endl;
+    std::cout << a3 << std::endl;
+    std::cout << a4 << std::endl;
+    __asm {
+        mov eax, a1
+        push a4
+        push a3
+        push a2
+        call old_levelupdate
+    }
+}
+
+void __thiscall Hooks::level_createmission_hook(void *a1)
+{
+    MissionContext ctx = EventManager::trigger_hook<MissionContext>("Level::createMission");
+    int* level = reinterpret_cast<int*>(a1);
+    int calloriginal = 1;
+    uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
+    std::vector<int*> spawnednpcs;
+
+    for (const auto& fighter : Level::created_playerfighters) {
+        int shiptype = fighter.meshid;
+        int faction = fighter.faction;
+        int* plrfighterptr = nullptr;
+        __asm {
+            push 1
+            push 0
+            push shiptype
+            push 0
+            push faction
+            push level
+            call address_createship
+            mov plrfighterptr, eax
+        }
+        uintptr_t address_assignguns = Offset::LEVEL_ASSIGNGUNS;
+        __asm {
+            push level
+            call address_assignguns
+        }
+        spawnednpcs.push_back(plrfighterptr);
+    }
+    Level::created_playerfighters.clear(); // TODO: maybe use ctx for args instead of vectors?
+    if (ctx.call_original)
+        old_levelcreatemission(a1);
+    if (!spawnednpcs.empty()) {
+        AEArray<int*>* entitylist = reinterpret_cast<SingleLevel*>(a1)->m_pEntities;
+        if (entitylist) {
+            int oldcount = entitylist->size;
+            int newcount = oldcount + static_cast<uint32_t>(spawnednpcs.size());
+            int** newdata = reinterpret_cast<int**>(AbyssEngine::memory_allocate(newcount * sizeof(int*)));
+            if (newdata) {
+                if (entitylist->data && oldcount > 0)
+                    memcpy(newdata, entitylist->data, oldcount * sizeof(int*));
+                for (int i = 0; i < static_cast<int>(spawnednpcs.size()); i++)
+                    newdata[oldcount + i] = spawnednpcs[i];
+                entitylist->data = newdata;
+                entitylist->size = newcount;
+                entitylist->size2 = newcount;
+            }
+        }
+    }
+}
+
+int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
+{
+    MissionContext ctx = EventManager::trigger_hook<MissionContext>("Level::createCampaignMission");
+    int* level = reinterpret_cast<int*>(a1);
+    uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
+    int result = 0;
+    std::vector<int*> spawnednpcs;
+
+    for (const auto& fighter : Level::created_playerfighters) {
+        int shiptype = fighter.meshid;
+        int faction = fighter.faction;
+        int* plrfighterptr = nullptr;
+        __asm {
+            push 1
+            push 0
+            push shiptype
+            push 0
+            push faction
+            push level
+            call address_createship
+            mov plrfighterptr, eax
+        }
+        uintptr_t address_assignguns = Offset::LEVEL_ASSIGNGUNS;
+        __asm {
+            push level
+            call address_assignguns
+        }
+        spawnednpcs.push_back(plrfighterptr);
+    }
+    Level::created_playerfighters.clear(); // TODO: maybe use ctx for args instead of vectors?
+    if (ctx.call_original)
+        result = old_levelcreatecampaignmission(a1);
+    if (!spawnednpcs.empty()) {
+        AEArray<int*>* entitylist = reinterpret_cast<SingleLevel*>(a1)->m_pEntities;
+        if (!entitylist) { // it's already null but just to make sure lmao
+            entitylist = reinterpret_cast<AEArray<int*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<int*>)));
+            if (entitylist) {
+                entitylist->size = 0;
+                entitylist->data = nullptr;
+                entitylist->size2 = 0;                
+                reinterpret_cast<SingleLevel*>(a1)->m_pEntities = entitylist; 
+            }
+        }
+        if (entitylist) {
+            int oldcount = entitylist->size;
+            int newcount = oldcount + static_cast<uint32_t>(spawnednpcs.size());
+            int** newdata = reinterpret_cast<int**>(AbyssEngine::memory_allocate(newcount * sizeof(int*)));
+            if (newdata) {
+                if (entitylist->data && oldcount > 0)
+                    memcpy(newdata, entitylist->data, oldcount * sizeof(int*));
+                for (int i = 0; i < static_cast<int>(spawnednpcs.size()); i++)
+                    newdata[oldcount + i] = spawnednpcs[i];
+                entitylist->data = newdata;
+                entitylist->size = newcount;
+                entitylist->size2 = newcount;
+            }
+        }
+    }
+    return result;
+}
+
+void __thiscall Hooks::modmainmenu_onrender2d_hook(int *a1)
+{
+    old_modmainmenuonrender2d(a1);
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+    unsigned int color = 0x44ffffff;
+    unsigned int imageid = 65; // gof2 logo is 65 for example
+    int flag1 = 0x0;
+    int flag2 = 0x0;
+
+    uintptr_t addr_setcolor = Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR;
+    __asm {
+        mov eax, color
+        mov ecx, canvas
+        call addr_setcolor
+    }
+    uintptr_t addr_drawimage = Offset::ABYSSENGINE_PAINTCANVAS_DRAWIMAGE2D_2;
+    __asm {
+        push flag1
+        push flag2
+        push 0
+        push imageid
+        mov eax, 0
+        call addr_drawimage
+    }
+    color = 0xff44ffff;
+    __asm {
+        mov eax, color
+        mov ecx, canvas
+        call addr_setcolor
+    }
+    static wchar_t text[] = L"Hello worldd";
+    static AEString mystring;
+    mystring.text = text;
+    mystring.size = 12;
+    AEString* pstring = &mystring;
+    int font   = *reinterpret_cast<int*>(Offset::GLOBALS_FONT);
+    int x = 400;
+    int y = 800;
+    uintptr_t addr_drawstring = Offset::ABYSSENGINE_PAINTCANVAS_DRAWSTRING;
+    __asm {
+        push y
+        push x
+        push pstring
+        push font
+        push canvas
+        call addr_drawstring
+    }
+}
+
+int* __stdcall Hooks::level_createstaticobject_hook(int a1, int *a2, int a3)
+{
+    std::cout << "hiii" << std::endl;
+    return old_levelcreatestaticobject(a1, a2, a3);
+}
+
+void __thiscall Hooks::mgame_onrender2d_hook(int *a1)
+{
+    old_mgameonrender2d(a1);
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+    unsigned int color = 0xff44ffff;
+    uintptr_t addr_setcolor = Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR;
+    __asm {
+        mov eax, color
+        mov ecx, canvas
+        call addr_setcolor
+    }
+    static wchar_t text[] = L"Hello worldd";
+    static AEString mystring;
+    mystring.text = text;
+    mystring.size = 12;
+    AEString* pstring = &mystring;
+    int font   = *reinterpret_cast<int*>(Offset::GLOBALS_FONT);
+    int x = 400;
+    int y = 800;
+    uintptr_t addr_drawstring = Offset::ABYSSENGINE_PAINTCANVAS_DRAWSTRING;
+    __asm {
+        push y
+        push x
+        push pstring
+        push font
+        push canvas
+        call addr_drawstring
+    }
+}
+
+unsigned int __stdcall Hooks::level_createspace_hook(int *a1)
+{
+    return old_levelcreatespace(a1);
+}
+
+void __thiscall Hooks::status_nextcampaignmission_hook(int *a1)
+{
+    old_statusnextcampaignmission(a1);
+}
+
+int __fastcall Hooks::starmap_init_hook(int a1, int a2, char a3, int a4, char a5)
+{
+    Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+    Globals_status* status = *status_ptr;
+    
+    // TODO: if they do alt f4 in the starmap the save will just be corrupted so yeah good luck w/ that it's a user issue to me
+    if (status && status->m_pMission) {
+        uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.enabled) {
+                *(int*)(m + 8) = 1; // TODO: do mission struct
+                *(int*)(m + 0x30) = custom_mission.stationid;
+                break; 
+            }
+        }
+    }
+    return old_starmapinit(a1, a2, a3, a4, a5);
+}
+
+int __stdcall Hooks::starmap_starmap_hook(int a2, int a3, int a4, int a5)
+{
+    int a1;
+    int returnvalue;
+    
+    __asm {
+        mov a1, ebx
+    }
+    __asm {
+        push a5
+        push a4
+        push a3
+        push a2
+        mov ebx, a1
+        call old_starmapstarmap
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+int __cdecl Hooks::status_getcampaignmission_hook()
+{
+    int *a1;
+    int returnvalue;
+
+    __asm {
+        mov a1, eax
+    }
+    __asm {
+        mov eax, a1
+        call old_statusgetcampaignmission
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+int __cdecl Hooks::status_getfreelancemission_hook()
+{
+    void* returnaddr = nullptr;
+
+    __asm {
+        mov edx, [ebp + 4]
+        mov returnaddr, edx
+    }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4D0452 && Mission::created_missions.size() > 0) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.enabled && custom_mission.type == 0)
+                return 0;
+        }
+    }
+    return old_statusgetfreelancemission();
+}
+
+int __cdecl Hooks::starmap_dtor_hook()
+{
+    int *a1;
+    int returnvalue;
+
+    __asm {
+        mov a1, edi
+    }
+    std::cout << "StarMap::~StarMap()" << std::endl;
+    __asm {
+        mov edi, a1
+        call old_starmapdtor
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+char __fastcall Hooks::starmap_ontouchend_hook(int a1, int *a2, int a3)
+{
+    std::cout << *(int*)((uintptr_t)a2 + 0x70) << std::endl;
+    std::cout << std::hex << a2 << std::endl;
+    return old_starmaptouchend(a1, a2, a3);
+}
+
+char __cdecl Hooks::modstation_leavestation_hook()
+{
+    int a1;
+    char returnvalue;
+
+    __asm {
+        mov a1, esi
+    }
+    __asm {
+        mov esi, a1
+        call old_modstationleavestation
+        mov returnvalue, al
+    }
+    return returnvalue;
+}
+
+int __thiscall Hooks::modstation_onupdate_hook(ModStation *a1)
+{
+    if (!a1->m_nStarMapWindowOpen && Mission::created_missions.size() > 0) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.enabled) {
+                Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+                Globals_status* status = *status_ptr;
+                uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
+                *(int*)(m + 8) = -1; // TODO: do mission struct
+                *(int*)(m + 0x30) = 0;
+                break; 
+            }
+        }
+    }
+    return old_modstationonupdate(a1);
+}
+
+void __thiscall Hooks::mgame_onupdate_hook(MGame *a1)
+{
+    if (!a1->m_nStarMapWindowOpen && Mission::created_missions.size() > 0) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.enabled && custom_mission.entered_mission) {
+                Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+                Globals_status* status = *status_ptr;
+                uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
+                *(int*)(m + 8) = 1;
+                *(int*)(m + 0x30) = custom_mission.stationid;
+            }
+            if (custom_mission.enabled && !custom_mission.entered_mission) {
+                Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+                Globals_status* status = *status_ptr;
+                uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
+                *(int*)(m + 8) = -1;
+                *(int*)(m + 0x30) = 0;
+                break; 
+            }
+        }
+    }
+    old_mgameonupdate(a1);
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -400,11 +1225,76 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
     MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
     //MH_CreateHook((LPVOID)Offset::STANDING_ISENEMY, &standing_isenemy_hook, (LPVOID*)&old_standingisenemy);
-    MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
+    //MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
     MH_CreateHook((LPVOID)Offset::GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
     MH_CreateHook((LPVOID)Offset::RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
     MH_CreateHook((LPVOID)Offset::LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);
     //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESHIP, &level_createship_hook, (LPVOID*)&old_levelcreateship);
-    MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
+    //MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWCHAR, &imagefactory_drawchar_hook, (LPVOID*)&old_imagefactorydrawchar);
+    //MH_CreateHook((LPVOID)Offset::IMAGEPART_DRAW, &imagepart_draw_hook, (LPVOID*)&old_imagepartdraw);
+    //MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_DRAWIMAGE2D, &abyssengine_paintcanvas_drawimage2d_hook, (LPVOID*)&old_abyssenginepaintcanvasdrawimage2d);
+    //MH_CreateHook((LPVOID)Offset::RADIOMESSAGE_RADIOMESSAGE, &radiomessage_radiomessage_hook, (LPVOID*)&old_radiomessageradiomessage);
+    MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_LOADCHAR, &imagefactory_loadchar_hook, (LPVOID*)&old_imagefactoryloadchar);
+    MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_DIALOGUEWINDOW, &dialoguewindow_dialoguewindow_hook, (LPVOID*)&old_dialoguewindowdialoguewindow);
+    MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_LOADCONTENT, &dialoguewindow_loadcontent_hook, (LPVOID*)&old_dialoguewindowloadcontent);
+    //MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_SET, &dialoguewindow_set_hook, (LPVOID*)&old_dialoguewindowset);
+    //MH_CreateHook((LPVOID)Offset::MGAME_TOGGLEPAUSE, &mgame_togglepause_hook, (LPVOID*)&old_mgametogglepause);
+    //MH_CreateHook((LPVOID)Offset::CUTSCENE_CUTSCENE, &cutscene_cutscene_hook, (LPVOID*)&old_cutscenecutscene);
+    //MH_CreateHook((LPVOID)Offset::TARGETFOLLOWCAMERA_SETPOSITION, &targetfollowcamera_setposition_hook, (LPVOID*)&old_targetfollowcamerasetposition);
+    MH_CreateHook((LPVOID)Offset::LEVELSCRIPT_PROCESS, &levelscript_process_hook, (LPVOID*)&old_levelscriptprocess);
+    //MH_CreateHook((LPVOID)Offset::ROUTE_ROUTE, &route_route_hook, (LPVOID*)&old_routeroute);
+    //MH_CreateHook((LPVOID)Offset::WAYPOINT_WAYPOINT, &waypoint_waypoint_hook, (LPVOID*)&old_waypointwaypoint);
+    //MH_CreateHook((LPVOID)Offset::RADAR_DRAW, &radar_draw_hook, (LPVOID*)&old_radardraw);
+    //MH_CreateHook((LPVOID)Offset::ROUTE_GETWAYPOINT, (LPVOID)&route_getwaypoint_hook, (LPVOID*)&old_routegetwaypoint);
+    //MH_CreateHook((LPVOID)Offset::PLAYERFIGHTER_RENDER, (LPVOID)&playerfighter_render_hook, (LPVOID*)&old_playerfighterrender);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_ASSIGNGUNS, (LPVOID)&level_assignguns_hook, (LPVOID*)&old_levelassignguns);
+    //MH_CreateHook((LPVOID)Offset::KIPLAYER_ADDGUN, (LPVOID)&kiplayer_addgun_hook, (LPVOID*)&old_kiplayeraddgun);
+    //MH_CreateHook((LPVOID)Offset::GLOBALS_GETSHIPGROUP, (LPVOID)&globals_getshipgroup_hook, (LPVOID*)&old_globalsgetshipgroup);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_UPDATE, (LPVOID)&level_update_hook, (LPVOID*)&old_levelupdate);
+    MH_CreateHook((LPVOID)Offset::LEVEL_CREATEMISSION, (LPVOID)&level_createmission_hook, (LPVOID*)&old_levelcreatemission);
+    //MH_CreateHook((LPVOID)Offset::MODMAINMENU_ONRENDER2D, (LPVOID)&modmainmenu_onrender2d_hook, (LPVOID*)&old_modmainmenuonrender2d);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESTATICOBJECT, (LPVOID)&level_createstaticobject_hook, (LPVOID*)&old_levelcreatestaticobject);
+    //MH_CreateHook((LPVOID)Offset::MGAME_ONRENDER2D, (LPVOID)&mgame_onrender2d_hook, (LPVOID*)&old_mgameonrender2d);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESPACE, (LPVOID)&level_createspace_hook, (LPVOID*)&old_levelcreatespace);
+    //MH_CreateHook((LPVOID)Offset::STATUS_NEXTCAMPAIGNMISSION, (LPVOID)&status_nextcampaignmission_hook, (LPVOID*)&old_statusnextcampaignmission);
+    MH_CreateHook((LPVOID)Offset::STARMAP_INIT, (LPVOID)&starmap_init_hook, (LPVOID*)&old_starmapinit);
+    //MH_CreateHook((LPVOID)Offset::STARMAP_STARMAP, (LPVOID)&starmap_starmap_hook, (LPVOID*)&old_starmapstarmap);
+    MH_CreateHook((LPVOID)Offset::STATUS_GETCAMPAIGNMISSION, (LPVOID)&status_getcampaignmission_hook, (LPVOID*)&old_statusgetcampaignmission);
+    MH_CreateHook((LPVOID)Offset::STATUS_GETFREELANCEMISSION, (LPVOID)&status_getfreelancemission_hook, (LPVOID*)&old_statusgetfreelancemission);
+    //MH_CreateHook((LPVOID)Offset::STARMAP_DTOR, (LPVOID)&starmap_dtor_hook, (LPVOID*)&old_starmapdtor);
+    //MH_CreateHook((LPVOID)Offset::STARMAP_ONTOUCHEND, (LPVOID)&starmap_ontouchend_hook, (LPVOID*)&old_starmaptouchend);
+    //MH_CreateHook((LPVOID)Offset::MODSTATION_LEAVESTATION, (LPVOID)&modstation_leavestation_hook, (LPVOID*)&old_modstationleavestation);
+    MH_CreateHook((LPVOID)Offset::MODSTATION_ONUPDATE, (LPVOID)&modstation_onupdate_hook, (LPVOID*)&old_modstationonupdate);
+    MH_CreateHook((LPVOID)Offset::LEVEL_CREATECAMPAIGNMISSION, (LPVOID)&level_createcampaignmission_hook, (LPVOID*)&old_levelcreatecampaignmission);
+    MH_CreateHook((LPVOID)Offset::MGAME_ONUPDATE, (LPVOID)&mgame_onupdate_hook, (LPVOID*)&old_mgameonupdate);
     MH_EnableHook(MH_ALL_HOOKS);
 }
+
+/*
+// TODO: do cutscene custom entity anchor support
+ else if (state == 1002) {
+            uintptr_t entitiylist = *(uintptr_t*)((uintptr_t)levelptr + 0xcc);
+            if (entitiylist != 0) {
+                uintptr_t* entities = *(uintptr_t**)(entitiylist + 4);
+                void* npc = (void*)entities[1]; 
+                
+                if (npc != nullptr) {
+                    float* npcc = *(float**)((uintptr_t)npc + 8);
+                    
+                    if (npcc != nullptr) {
+                        float x = npcc[7];
+                        float y = npcc[8];
+                        float z = npcc[9];
+                        camfloats[2] = 0.0f;
+                        camfloats[3] = 0.0f;
+                        camfloats[4] = 0.0f;
+                        camPtrs[1] = (uintptr_t)npcc; 
+                        uintptr_t func = (DWORD)Offset::TARGETFOLLOWCAMERA_SETPOSITION;
+                        __asm {
+                            mov ecx, cameraptr
+                            call func
+                        }
+                    }
+                }
+            }
+*/

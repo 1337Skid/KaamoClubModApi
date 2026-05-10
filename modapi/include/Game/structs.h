@@ -105,6 +105,64 @@ struct AgentTextureFaceInfo {
     int field_14;
 };
 
+struct SingleLevel {
+    int* field_0;
+    int field_04;
+    int field_08;
+    int field_0C;
+    int field_10;
+    int field_14;
+    int field_18;
+    int field_1C;
+    int field_20;
+    int field_24;
+    int field_28;
+    int field_2C;
+    int field_30;
+    int field_34;
+    int field_38;
+    int field_3C;
+    int field_40;
+    int field_44;
+    int field_48;
+    int field_4C;
+    int field_50;
+    int field_54;
+    int field_58;
+    int* field_5C;
+    int* field_60;
+    int* field_64;
+    int* field_68;
+    int* field_6C;
+    int* field_70;
+    int* field_74;
+    int field_78;
+    int* field_7C;
+    int field_80;
+    int* field_84;
+    int* field_88;
+    int field_8C;
+    int field_90;
+    int field_94;
+    int field_98;
+    int field_9C;
+    int* field_A0;
+    int field_A4;
+    int field_A8;
+    int field_AC;
+    int* field_B0;
+    int field_B4;
+    int field_B8;
+    int* field_BC;
+    int* field_C0;
+    int* field_C4;
+    int* field_C8;
+    AEArray<int*>* m_pEntities;
+    AEArray<int*>* m_pAsteroids;
+    int* field_D4;
+    int field_D8;
+};
+
 struct SingleAgent {
     AEString m_sName;
     int field_08;
@@ -714,15 +772,82 @@ struct Globals_Canvas {
 };
 
 struct PlayerEgo {
-    int* m_pPlayer;
+    int m_pPlayer;
     int* field_4;
     int* field_8;
-    int* m_pLevel;
+    SingleLevel* m_pLevel;
     int* field_10;
     int* field_14;
     int* field_18;
     int field_1C;
     int field_20;
+};
+
+struct DialogueWindow {
+    int* field_0;
+    int* field_4;
+    int* field_8;
+    int* field_C;
+    int field_10;
+    int m_nFramePosX;
+    int m_nFramePosY;
+    int m_nFrameScaleX;
+    int m_nFrameScaleY;
+    int* field_24;
+    AEString m_pText;
+    AEString m_pAgentName;
+    int* field_38;
+    int field_3C;
+    int field_40;
+    int* field_44;
+    int* field_48;
+    int field_4C;
+    int* field_50;
+    int* field_54;
+    int* field_58;
+    int field_5C;
+    int field_60;
+    int field_64;
+    int m_bFlipImage;
+};
+
+struct ModStation {
+    int field_0;
+    int* field_4;
+    int* field_8;
+    int field_C;
+    int field_10;
+    int* field_14;
+    int* field_18;
+    int* field_1C;
+    int field_20;
+    int field_24;
+    int field_28;
+    int field_2C;
+    int field_30;
+    int field_34;
+    int* field_38;
+    int field_3C;
+    int field_40;
+    int field_44;
+    int field_48;
+    int field_4C;
+    int field_50;
+    int field_54;
+    int field_58;
+    int field_5C;
+    int m_nStarMapWindowOpen;
+    int field_64;
+    int field_68;
+    int* field_6C;
+    int field_70;
+    int field_74;
+    int field_78;
+    int field_7C;
+    DialogueWindow* m_pDialogueWindow;
+    int field_84;
+    int* field_88;
+    int* field_8C;
 };
 
 struct MGame {
@@ -755,8 +880,30 @@ struct MGame {
     int field_68;
     int field_6C;
     int* field_70;
-    int* m_pLevel;
-    int field_78;
+    SingleLevel* m_pLevel;
+    int* field_78;
+    int* field_7C;
+    int* field_80;
+    int* field_84;
+    DialogueWindow* m_pDialogueWindow;
+    int field_8C;
+    int* field_90;
+    int field_94;
+    int field_98;
+    int field_9C;
+    int field_A0;
+    int field_A4;
+    int field_A8;
+    int field_AC;
+    int field_B0;
+    int field_B4;
+    int field_B8;
+    int field_BC;
+    uint8_t field_C0; 
+    uint8_t field_C1;
+    uint8_t field_C2;
+    uint8_t m_nStarMapWindowOpen;
+    uint8_t field_C4;
 };
 
 struct Globals_appManager {
@@ -784,6 +931,118 @@ struct Globals_appManager {
     int field_54;
     int m_nCurrentModule;
     int* m_pCurrentModule;
+};
+
+struct TargetFollowCamera {
+    int* field_0;
+    void* m_pTarget;
+    float m_nPosX;
+    float m_nPosY;
+    float m_nPosZ;
+    int field_14;
+    int field_18;
+    int field_1C;
+    int field_20;
+    int field_24;
+    int field_28;
+    int field_2C;
+    int field_30;
+    int field_34;
+    int field_38;
+    int field_3C;
+    int field_40;
+    int field_44;
+    int field_48;
+    int field_4C;
+    int field_50;
+    int field_54;
+    int field_58;
+    int field_5C;
+    int field_60;
+    int field_64;
+    int field_68;
+    int field_6C;
+    int field_70;
+    int field_74;
+    int field_78;
+    int field_7C;
+    int field_80;
+    int field_84;
+    int field_88;
+    int field_8C;
+    int field_90;
+    int field_94;
+    int field_98;
+    int field_9C;
+    int field_A0;
+    int field_A4;
+    int field_A8;
+    int field_AC;
+    int field_B0;
+    int field_B4;
+    int field_B8;
+    int field_BC;
+    int field_C0;
+    int field_C4;
+    int field_C8;
+    int field_CC;
+    int field_D0;
+    int field_D4;
+    int field_D8;
+    int field_DC;
+    int field_E0;
+    int field_E4;
+    int field_E8;
+    int field_EC;
+    int field_F0;
+    int field_F4;
+    int field_F8;
+    int field_FC;
+    int field_100;
+    int field_104;
+    int field_108;
+    int field_10C;
+    float m_nShakeAmount;
+    int m_nShakeFrequency;
+};
+
+struct LevelScript {
+    int* field_0;
+    int field_4;
+    int field_8;
+    int field_C;
+    int field_10;
+    TargetFollowCamera* m_pCamera;
+    MGame* m_pLevel;
+    int m_nState;
+    int field_20;
+    int field_24;
+    float m_nStreamTimer;
+    float m_nStreamOffsetX;
+    float m_nStreamOffsetZ;
+    int field_34;
+    int field_38;
+    int field_3C;
+    int field_40;
+    int field_44;
+    int field_48;
+    float m_pMatrix[16];
+    float field_8C;
+    int field_90;
+    int field_94;
+    int field_98;
+    int* m_pAlien0; // not sure
+    int* m_pAlien1; // not sure
+    int* m_pAlien2; // not sure
+    int* m_pGeometriesMission; // not sure
+    int* m_pGeometriesMission2; // not sure
+    int* m_pExplosion;
+    int* m_pMission;
+    PlayerEgo* m_pPlayerEgo;
+    int* m_pAsteroids; // not sure
+    int* m_pExtra; // not sure
+    int m_nParticleSystem0;
+    int m_nParticleSystem1;
 };
 
 struct Globals_status {
@@ -873,7 +1132,7 @@ struct Globals_status {
     int field_14C;
     int field_150;
     ShipInfo* m_pShipInfo;
-    int* field_158;
+    int* m_pMission;
     int* field_15C;
     SingleStation* m_pStationInfo;
     int field_164;

@@ -1,32 +1,31 @@
 #ifndef LUAMANAGER_H
 #define LUAMANAGER_H
-#include <windows.h>
-#include <iostream>
-#include <cstdint>
-#include <cstdio>
-#include <filesystem>
-#include <tlhelp32.h>
-#include <vector>
+
 #include <sol/sol.hpp>
-#include <map>
+#include <vector>
 #include <string>
-#include "modapi_utils.h"
-#include "luamanager.h"
-#include "memoryutils.h"
-#include "eventmanager.h"
-#include <Game/player.h>
-#include <Game/system.h>
-#include <Game/station.h>
-#include <Game/mission.h>
-#include <Game/asset.h>
 
 class LuaManager {
     private:
+        struct LuaTask {
+            sol::thread script_thread;
+            sol::coroutine cor;
+            float time_left;
+            std::function<void()> on_complete;
+            std::vector<sol::object> args;
+        };
+        struct LuaRoute {
+            int* ptr = nullptr;
+        };
         sol::state lua_state;
+        std::vector<LuaTask> tasks;
     public:
-        void init(void);
-        void bind_api(void);
+        void init();
+        void bind_api();
         void execute_script(const std::string& filepath);
-        lua_State* getluastate(void);
+        void update(float dt);
+        void handle_coroutine(sol::thread script, sol::coroutine cor, const sol::protected_function_result& result, std::function<void()> on_complete, std::vector<sol::object> args);
+        lua_State* getluastate();
 };
+
 #endif

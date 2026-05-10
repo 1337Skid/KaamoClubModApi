@@ -25,7 +25,7 @@ void Player::setmoney(int value)
 
 void Player::togglecloaking()
 {
-    uintptr_t address = 0x004ABA3B;
+    uintptr_t address = Offset::PLAYEREGO_TOGGLECLOAKING;
     MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
     PlayerEgo* playerego = mgame->m_pPlayerEgo;
 
@@ -41,7 +41,7 @@ void Player::togglecloaking()
 
 void Player::setposition(float x, float y, float z)
 {
-    uintptr_t address = 0x4AC590;
+    uintptr_t address = Offset::PLAYEREGO_SETPOSITION;
     MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
     PlayerEgo* playerego = mgame->m_pPlayerEgo;
 
@@ -104,7 +104,7 @@ bool Player::hasshiparmor()
 bool Player::hasjumpdrive()
 {
     int hasdrive = 0;
-    uintptr_t address = 0x004C2F11;
+    uintptr_t address = Offset::SHIP_HASJUMPDRIVE;
     ShipInfo* shipinfo = (*globals_status)->m_pShipInfo;
 
     __asm {

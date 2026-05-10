@@ -1,5 +1,5 @@
 set_arch("x86")
-add_requires("lua", {configs = {arch = "x86"}})
+add_requires("lua 5.4.*", {configs = {arch = "x86"}})
 add_requires("sol2", {configs = {arch = "x86"}})
 add_requires("minhook", {configs = {arch = "x86"}})
 

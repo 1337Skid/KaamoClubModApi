@@ -11,6 +11,7 @@
 #include "modapi_utils.h"
 #include "luamanager.h"
 #include "memoryutils.h"
+#include "hookcontext.h"
 #include "eventmanager.h"
 #include <Game/player.h>
 #include <Game/system.h>
@@ -19,19 +20,35 @@
 #include <Game/asset.h>
 #include <Game/level.h>
 #include <Game/structs.h>
+#include <Game/kiplayer.h>
 
 void LuaManager::init()
 {
-    lua_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::os, sol::lib::io);
+    lua_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::os, sol::lib::io, sol::lib::coroutine);
 }
 
 void LuaManager::bind_api()
-{    
-    // TODO: do a better wait (aka a scheduler) because if a script uses wait() then every scripts waits...
-    lua_state.set_function("wait", [](int seconds) { 
-        Sleep(seconds * 1000); 
-    });
+{
+    lua_state.script("function wait(sec) coroutine.yield(sec) end");
 
+    lua_state.new_usertype<HookContext>("HookContext",
+        sol::no_constructor,
+        "call", [](HookContext* self) {
+            self->call();
+        }
+    );
+
+    lua_state.new_usertype<MissionContext>("MissionContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<HookContext>(),
+        "call", [](MissionContext* self) {
+            self->call();
+        },
+        "CreateFighter", [](MissionContext* self, int meshid, int faction) {
+            self->createfighter(meshid, faction);
+        }
+    );
+ 
     lua_state.new_usertype<Player>("Player",
         sol::no_constructor,
         "money", sol::property(&Player::getmoney, &Player::setmoney),
@@ -93,6 +110,15 @@ void LuaManager::bind_api()
         },
         "NextCampaignMission", [](Mission& self) {
             Mission::nextcampaignmission();
+        },
+        "Create", [](Mission& self, int stationid, std::string description, int type) -> int {
+            return Mission::create(stationid, description, type);
+        },
+        "Enable", [](Mission& self, int custom_missionid) {
+            Mission::enable(custom_missionid);
+        },
+        "Disable", [](Mission& self, int custom_missionid) {
+            Mission::disable(custom_missionid);
         }
     );
 
@@ -120,7 +146,7 @@ void LuaManager::bind_api()
             return Station::getagentfaction(id);
         },
         "CreateAgent", [](Station& self, const std::string& name, int factiontype, int terranwoman, int hair, int eyes, int mouth, int armor, sol::table agentinfo) {
-            Station::createagent(name, factiontype, terranwoman, hair, eyes, mouth, armor, agentinfo);
+            Station::createagent(name, factiontype, terranwoman, hair, eyes, mouth, armor, agentinfo); // TODO: do a sol::table for image info
         },
         "RemoveHangarItem", [](Station& self, int id) {
             Station::removehangaritem(id);
@@ -154,11 +180,45 @@ void LuaManager::bind_api()
         sol::no_constructor,
         "CreateRadioMessage", [](Level& self, const std::string& name, const std::string& content, sol::table imageinfo)  {
             Level::createradiomessage(name, content, imageinfo);
+        },
+        "CreateDialogueWindow", [](Level& self, sol::table dialogueinfo) {
+            Level::createdialoguewindow(dialogueinfo);
+        },
+        "CreateCutScene", [](Level& self, sol::table camerapoints) {
+            Level::createcutscene(camerapoints);
+        },
+        "CreateRoute", [](Level& self, sol::table pospoints) -> LuaRoute {
+            return LuaRoute{Level::createroute(pospoints)};
+        },
+        "GetEntities", [](Level& self) -> sol::table {
+            return Level::getentities();
+        },
+        "CreateAsteroid", [](Level& self, float x, float y, float z, float scale, int meshid) {
+            Level::createasteroid(x,y,z,scale,meshid); // TODO: return a playerasteroid?
         }
+    );
+
+    lua_state.new_usertype<LuaRoute>("Route",
+        sol::no_constructor,
+        "IsValid", [](LuaRoute& self) -> bool {
+            return self.ptr != nullptr;
+        }
+    );
+
+    lua_state.new_usertype<KIPlayer>("KIPlayer",
+        sol::no_constructor,
+        "SetRoute", [](KIPlayer& self, LuaRoute& route) {
+            self.setroute(route.ptr);
+        },
+        sol::meta_function::to_string, &KIPlayer::tostring
     );
 
     lua_state.set_function("RegisterEvent", [&](std::string name, sol::protected_function callback) {
         EventManager::addlistener(name, callback);
+    });
+
+    lua_state.set_function("HookFunction", [&](std::string name, sol::protected_function callback) {
+        EventManager::addhook(name, callback);
     });
 
     lua_state["player"] = Player();
@@ -170,22 +230,64 @@ void LuaManager::bind_api()
     lua_state["level"] = Level();
 }
 
+void LuaManager::handle_coroutine(sol::thread script, sol::coroutine cor, const sol::protected_function_result& result, std::function<void()> on_complete, std::vector<sol::object> args)
+{
+    if (!result.valid()) {
+        sol::error err = result;
+        std::cout << "[LuaManager] runtime error: " << err.what() << std::endl;
+        if (on_complete)
+            on_complete();
+        return;
+    }
+    // wait()
+    if (result.get_type() == sol::type::number) {
+        float wait_time = result.get<float>();
+        tasks.emplace_back(LuaTask{std::move(script), std::move(cor), wait_time, on_complete, std::move(args)});
+    } else {
+        if (on_complete)
+            on_complete();
+    }
+}
+
 void LuaManager::execute_script(const std::string& filepath)
 {
     try {
         std::filesystem::path path(filepath);
         std::string scriptdir = path.parent_path().string();
         std::string cpath = lua_state["package"]["path"];
-
         lua_state["package"]["path"] = cpath + ";" + scriptdir + "/?.lua";
-        auto result = lua_state.script_file(filepath);
+
+        sol::load_result loaded_script = lua_state.load_file(filepath);
+        if (!loaded_script.valid()) {
+            sol::error err = loaded_script;
+            std::cout << "[LuaManager] Load error: " << err.what() << std::endl;
+            return;
+        }
+        sol::protected_function_result result = loaded_script();
         if (!result.valid()) {
             sol::error err = result;
-            std::cout << "[LuaManager] Lua Script error: " << err.what() << std::endl;
+            std::cout << "[LuaManager] runtime error: " << err.what() << std::endl;
         }
+    } catch (const sol::error& err) {
+        std::cout << "[LuaManager] Lua exception: " << err.what() << std::endl;
     }
-    catch (const sol::error& e) {
-        std::cout << "[LuaManager] Lua exception: " << e.what() << std::endl;
+}
+
+void LuaManager::update(float dt)
+{
+    for (auto t = tasks.begin(); t != tasks.end();) {
+        t->time_left -= dt;
+        if (t->time_left <= 0.0f) {
+            sol::thread script = std::move(t->script_thread);
+            sol::coroutine cor = std::move(t->cor);
+            auto on_complete = std::move(t->on_complete);
+            auto args = std::move(t->args);
+            t = tasks.erase(t);
+            auto result = cor(sol::as_args(args));
+            handle_coroutine(std::move(script), std::move(cor), result, on_complete, std::move(args));
+        } else {
+            ++t;
+        }
     }
 }
 

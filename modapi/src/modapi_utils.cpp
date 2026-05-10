@@ -90,7 +90,7 @@ void ModApiUtils::load_mods(LuaManager *luamanager)
             std::string init_lua = mod_path + "/init.lua";
             
             if (std::filesystem::exists(init_lua)) {
-                std::cout << "[*] Loading mod: " << entry.path().filename().string() << std::endl;
+                std::cout << "[+] Loaded mod: " << entry.path().filename().string() << std::endl;
                 
                 luamanager->execute_script(init_lua);
             }

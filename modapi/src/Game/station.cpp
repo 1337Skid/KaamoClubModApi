@@ -230,7 +230,7 @@ void Station::createagent(const std::string& name, int factiontype, int terranwo
         std::cout << "[-] Cannot create agent '" << name << "' because its missing the agentinfo table !" << std::endl;
         return;
     }
-    Sleep(1); // TODO: hell no | sleep 1 bcz the eventmanager is goofy :skull:
+    Sleep(1);
     SingleStation* station = (*globals_status)->m_pStationInfo;
     AEArray<SingleAgent*>* oldarray = reinterpret_cast<AEArray<SingleAgent*>*>(station->m_pAgents);
     if (oldarray != nullptr && oldarray->size2 == 7) {
