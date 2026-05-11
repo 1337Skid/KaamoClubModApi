@@ -46,8 +46,7 @@ void EventManager::joingame_event()
     if (!joinedgame && globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2)) {
         Item::refreshitemsprices();
         Level::created_radiomessages.clear(); // TODO: clean up messages by hooking ~RadioMessages() destructor
-        Level::created_dialoguemessages.clear(); // TODO: clean up messages by TRYING HARDER! yeah I tried to clean up the messages with the dtor and it didn't work so look at vtables?.. (edit i found out why i was dumb anyway i should do it..)
-        Level::created_cutscenepts.clear();
+        Level::created_cutscenepts.clear(); // TODO: destructor?
         joinedgame = true;
         trigger("OnJoinGame");
     }
@@ -81,7 +80,6 @@ void EventManager::stationchanged_event()
 
     if (current != old) {
         Level::created_radiomessages.clear();
-        Level::created_dialoguemessages.clear();
         Level::created_cutscenepts.clear();
         Globals_status** globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
         uintptr_t m = reinterpret_cast<uintptr_t>((*globals_status)->m_pMission);

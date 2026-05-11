@@ -189,6 +189,10 @@ class Hooks {
         inline static mgame_onupdate old_mgameonupdate = nullptr;
         static void __thiscall mgame_onupdate_hook(MGame *a1);
 
+        using dialoguewindow_dtor = int* (__thiscall*)(void*, int *a2);
+        inline static dialoguewindow_dtor old_dialoguewindowdtor = nullptr;
+        static int* __thiscall dialoguewindow_dtor_hook(void *a1, int *a2);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
     public:

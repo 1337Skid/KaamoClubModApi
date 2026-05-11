@@ -56,6 +56,7 @@ class Offset {
         static constexpr uintptr_t DIALOGUEWINDOW_DIALOGUEWINDOW = 0x405E2D;
         static constexpr uintptr_t DIALOGUEWINDOW_LOADCONTENT = 0x40645E;
         static constexpr uintptr_t DIALOGUEWINDOW_SET = 0x406095;
+        static constexpr uintptr_t DIALOGUEWINDOW_DTOR = 0x490D7C;
 
         static constexpr uintptr_t MGAME_TOGGLEPAUSE = 0x497564;
         static constexpr uintptr_t MGAME_ONUPDATE = 0x492BB4;

@@ -487,9 +487,10 @@ int __stdcall Hooks::imagefactory_loadchar_hook(int *a1)
         Globals_appManager** globals_appmanager = reinterpret_cast<Globals_appManager**>(Offset::GLOBALS_APPMANAGER);
         MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
         ModStation* mstation = reinterpret_cast<ModStation*>((*globals_appmanager)->m_pCurrentModule);
+        mstation->m_pDialogueWindow->m_bFlipImage = 0;
         if (mgame->m_pLevel != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
             mgame->m_pDialogueWindow->m_bFlipImage = 1;
-        else if(mstation->m_pDialogueWindow != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
+        else if (mstation->m_pDialogueWindow != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
             mstation->m_pDialogueWindow->m_bFlipImage = 1;
         int* newimage = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * 5));
         newimage[0] = Level::created_dialoguemessages[Level::current_dialogue_id].race;
@@ -531,7 +532,7 @@ int __stdcall Hooks::dialoguewindow_loadcontent_hook(int *a1)
         mov returnaddr, edx
     }
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x406456)
-        if (!Level::created_dialoguemessages.empty() && Level::current_dialogue_id < (int)Level::created_dialoguemessages.size() - 1)
+        if (!Level::created_dialoguemessages.empty() && Level::current_dialogue_id < static_cast<int>(Level::created_dialoguemessages.size()) - 1)
             Level::current_dialogue_id++;
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4078eb)
         if (!Level::created_dialoguemessages.empty() && Level::current_dialogue_id > 0)
@@ -1070,7 +1071,7 @@ int __fastcall Hooks::starmap_init_hook(int a1, int a2, char a3, int a4, char a5
     Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
     Globals_status* status = *status_ptr;
     
-    // TODO: if they do alt f4 in the starmap the save will just be corrupted so yeah good luck w/ that it's a user issue to me
+    // if they do alt f4 in the starmap the save will just be corrupted so yeah good luck w/ that it's a user issue to me
     if (status && status->m_pMission) {
         uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
         for (const auto& custom_mission : Mission::created_missions) {
@@ -1218,6 +1219,13 @@ void __thiscall Hooks::mgame_onupdate_hook(MGame *a1)
     old_mgameonupdate(a1);
 }
 
+int* __thiscall Hooks::dialoguewindow_dtor_hook(void *a1, int *a2)
+{
+    if (!Level::created_dialoguemessages.empty())
+        Level::created_dialoguemessages.clear();
+    return old_dialoguewindowdtor(a1, a2);
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1267,6 +1275,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::MODSTATION_ONUPDATE, (LPVOID)&modstation_onupdate_hook, (LPVOID*)&old_modstationonupdate);
     MH_CreateHook((LPVOID)Offset::LEVEL_CREATECAMPAIGNMISSION, (LPVOID)&level_createcampaignmission_hook, (LPVOID*)&old_levelcreatecampaignmission);
     MH_CreateHook((LPVOID)Offset::MGAME_ONUPDATE, (LPVOID)&mgame_onupdate_hook, (LPVOID*)&old_mgameonupdate);
+    MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_DTOR, (LPVOID)&dialoguewindow_dtor_hook, (LPVOID*)&old_dialoguewindowdtor);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 
