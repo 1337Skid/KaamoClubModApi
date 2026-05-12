@@ -19,7 +19,7 @@ struct Vector3Int {
     int32_t z; 
 };
 
-struct ImagePart { // TODO: is it really named imagepart in the game? I guess yeah..
+struct ImagePart { // is it really named imagepart in the game? I guess yeah..
     int id;
     int field_04;
     int pos_y;
@@ -58,6 +58,24 @@ struct ItemInfo {
     int m_nPropertyFiveValue;
     int field_70;
     int field_74;
+};
+
+struct SingleMission {
+    int field_00;
+    int field_04;
+    int m_nMissionEnabled;
+    int* field_0C;
+    int field_10;
+    int field_14;
+    int field_18;
+    int field_1C;
+    int field_20;
+    int field_24;
+    int field_28;
+    int field_2C;
+    int m_nStationId;
+    int field_34;
+    int field_38;
 };
 
 struct SingleItem {
@@ -1132,7 +1150,7 @@ struct Globals_status {
     int field_14C;
     int field_150;
     ShipInfo* m_pShipInfo;
-    int* m_pMission;
+    SingleMission* m_pMission;
     int* field_15C;
     SingleStation* m_pStationInfo;
     int field_164;

@@ -37,7 +37,6 @@ void Level::createradiomessage(const std::string& name, const std::string& conte
         std::cout << "[-] imageinfo can't be null!" << std::endl;
         return;
     }
-    // TODO: maybe clear created_radiomessages? but it can causes a crash if the function is called twice at the same time soo idk
     int len = MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, nullptr, 0);
     std::wstring namews(len, L'\0');
     MultiByteToWideChar(CP_UTF8, 0, name.c_str(), -1, namews.data(), len);
@@ -74,7 +73,7 @@ void Level::createdialoguewindow(sol::table dialogueinfo)
     MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
     ModStation* mstation = nullptr;
     SingleLevel* level = mgame->m_pLevel;
-    int* mission = (*globals_status)->m_pMission;
+    SingleMission* mission = (*globals_status)->m_pMission;
     int oldcurrentcampaignmission = (*globals_status)->m_nCurrentCampaignMission;
     int pages = 0;
     int isstationdialogue = 0;
@@ -103,7 +102,6 @@ void Level::createdialoguewindow(sol::table dialogueinfo)
         std::cout << "cannot find mission?" << std::endl;
         return;
     }
-    // TODO: maybe clear created_dialoguemessages? but it can causes a crash if the function is called twice at the same time soo idk
     dialogueinfo.for_each([&](sol::object key, sol::object val) {
         sol::table entry = val.as<sol::table>();
         CustomDialogueMsg msg;

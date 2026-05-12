@@ -1073,11 +1073,11 @@ int __fastcall Hooks::starmap_init_hook(int a1, int a2, char a3, int a4, char a5
     
     // if they do alt f4 in the starmap the save will just be corrupted so yeah good luck w/ that it's a user issue to me
     if (status && status->m_pMission) {
-        uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
+        SingleMission* m = reinterpret_cast<SingleMission*>(status->m_pMission);
         for (const auto& custom_mission : Mission::created_missions) {
             if (custom_mission.enabled) {
-                *(int*)(m + 8) = 1; // TODO: do mission struct
-                *(int*)(m + 0x30) = custom_mission.stationid;
+                m->m_nMissionEnabled = 1;
+                m->m_nStationId = custom_mission.stationid;
                 break; 
             }
         }
@@ -1185,9 +1185,9 @@ int __thiscall Hooks::modstation_onupdate_hook(ModStation *a1)
             if (custom_mission.enabled) {
                 Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
                 Globals_status* status = *status_ptr;
-                uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
-                *(int*)(m + 8) = -1; // TODO: do mission struct
-                *(int*)(m + 0x30) = 0;
+                SingleMission *m = reinterpret_cast<SingleMission*>(status->m_pMission);
+                m->m_nMissionEnabled = -1;
+                m->m_nStationId = 0;
                 break; 
             }
         }
@@ -1202,16 +1202,16 @@ void __thiscall Hooks::mgame_onupdate_hook(MGame *a1)
             if (custom_mission.enabled && custom_mission.entered_mission) {
                 Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
                 Globals_status* status = *status_ptr;
-                uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
-                *(int*)(m + 8) = 1;
-                *(int*)(m + 0x30) = custom_mission.stationid;
+                SingleMission *m = reinterpret_cast<SingleMission*>(status->m_pMission);
+                m->m_nMissionEnabled = 1;
+                m->m_nStationId = custom_mission.stationid;
             }
             if (custom_mission.enabled && !custom_mission.entered_mission) {
                 Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
                 Globals_status* status = *status_ptr;
-                uintptr_t m = reinterpret_cast<uintptr_t>(status->m_pMission);
-                *(int*)(m + 8) = -1;
-                *(int*)(m + 0x30) = 0;
+                SingleMission *m = reinterpret_cast<SingleMission*>(status->m_pMission);
+                m->m_nMissionEnabled = -1;
+                m->m_nStationId = 0;
                 break; 
             }
         }

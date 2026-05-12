@@ -75,23 +75,15 @@ void ModApiUtils::suspendgame(bool suspend)
 }
 
 void ModApiUtils::load_mods(LuaManager *luamanager)
-{
-    std::string mods_folder = "mods";
-    
-    // TODO: make a folder lol
-    if (!std::filesystem::exists(mods_folder) || !std::filesystem::is_directory(mods_folder)) {
-        std::cout << "[-] Mods folder not found: " << mods_folder << std::endl;
-        return;
-    }
-
-    for (const auto& entry : std::filesystem::directory_iterator(mods_folder)) {
+{    
+    if (!std::filesystem::exists("mods") || !std::filesystem::is_directory("mods"))
+        std::filesystem::create_directory("mods");
+    for (const auto& entry : std::filesystem::directory_iterator("mods")) {
         if (entry.is_directory()) {
             std::string mod_path = entry.path().string();
             std::string init_lua = mod_path + "/init.lua";
-            
             if (std::filesystem::exists(init_lua)) {
                 std::cout << "[+] Loaded mod: " << entry.path().filename().string() << std::endl;
-                
                 luamanager->execute_script(init_lua);
             }
         }

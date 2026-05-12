@@ -85,12 +85,12 @@ void Mission::enable(int custom_missionid)
 
 void Mission::disable(int custom_missionid)
 {
-    uintptr_t m = reinterpret_cast<uintptr_t>((*globals_status)->m_pMission);
+    SingleMission *m = reinterpret_cast<SingleMission*>((*globals_status)->m_pMission);
 
     if (custom_missionid >= 0 && (custom_missionid - 1) < created_missions.size()) {
         created_missions[custom_missionid - 1].enabled = 0;
-        *(int*)(m + 8) = -1; // disable
-        *(int*)(m + 0x30) = 0;
+        m->m_nMissionEnabled = -1; // disable
+        m->m_nStationId = 0;
         return;
     }
     std::cout << "[-] Failed to enable custom mission id because the id doesn't exist anymore, did you call create?" << std::endl;
