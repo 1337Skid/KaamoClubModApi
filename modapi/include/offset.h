@@ -45,6 +45,7 @@ class Offset {
         static constexpr uintptr_t LEVEL_CREATESPACE = 0x467D5A;
         static constexpr uintptr_t LEVEL_INIT = 0x467061;
         static constexpr uintptr_t LEVEL_CREATECAMPAIGNMISSION = 0x46D9E9;
+        static constexpr uintptr_t LEVEL_CREATERADIOMESSAGE = 0x479678;
         
         static constexpr uintptr_t IMAGEFACTORY_DRAWCHAR = 0x45F4C5;
         static constexpr uintptr_t IMAGEFACTORY_LOADCHAR = 0x45F31A;
@@ -121,6 +122,7 @@ class Offset {
         static constexpr uintptr_t STARMAP_STARMAP = 0x4CE5D0;
         static constexpr uintptr_t STARMAP_DTOR = 0x4CE9E3;
         static constexpr uintptr_t STARMAP_ONTOUCHEND = 0x4D332E;
+        static constexpr uintptr_t STARMAP_DEPART = 0x4CFE97;
 
         static constexpr uintptr_t AEGEOMETRY_DTOR = 0x402A05;
 

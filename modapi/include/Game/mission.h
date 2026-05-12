@@ -14,6 +14,7 @@ class Mission {
         };
     public:
         static inline std::vector<CustomMission> created_missions;
+        static inline int savedrealmissionid;
         static void init(void);
         static int getid(void);
         static void setid(int value);

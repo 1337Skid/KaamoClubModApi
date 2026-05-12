@@ -222,12 +222,16 @@ int Station::getagentfaction(int id)
     return agent->m_nFactionType;
 }
 
-void Station::createagent(const std::string& name, int factiontype, int terranwoman, int hair, int eyes, int mouth, int armor, sol::table agentinfo)
+void Station::createagent(const std::string& name, int factiontype, int terranwoman, sol::table imageinfo, sol::table agentinfo)
 {
     if ((*globals_status)->m_pStationInfo == nullptr)
         return;
     if (!agentinfo) {
         std::cout << "[-] Cannot create agent '" << name << "' because its missing the agentinfo table !" << std::endl;
+        return;
+    }
+    if (!imageinfo) {
+        std::cout << "[-] Cannot create agent '" << name << "' because its missing the imageinfo table !" << std::endl;
         return;
     }
     Sleep(1);
@@ -312,10 +316,10 @@ void Station::createagent(const std::string& name, int factiontype, int terranwo
         pNewAgent->field_70 = nullptr;
         pNewAgent->m_pAgentTextureFace = reinterpret_cast<AgentTextureFaceInfo*>(AbyssEngine::memory_allocate(sizeof(AgentTextureFaceInfo)));
         pNewAgent->m_pAgentTextureFace->faction_type = factiontype;
-        pNewAgent->m_pAgentTextureFace->mouth = mouth;
-        pNewAgent->m_pAgentTextureFace->eyes = eyes;
-        pNewAgent->m_pAgentTextureFace->armor = armor;
-        pNewAgent->m_pAgentTextureFace->hair = hair;
+        pNewAgent->m_pAgentTextureFace->mouth = imageinfo["mouth"];
+        pNewAgent->m_pAgentTextureFace->eyes = imageinfo["eyes"];
+        pNewAgent->m_pAgentTextureFace->armor = imageinfo["armor"];
+        pNewAgent->m_pAgentTextureFace->hair = imageinfo["hair"];
         pNewAgent->m_pAgentTextureFace->field_14 = 0;
         pNewAgent->m_pMissionInfo = nullptr;
         pNewAgent->m_pRecruitedAllies = nullptr;

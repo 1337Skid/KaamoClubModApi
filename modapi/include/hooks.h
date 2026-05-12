@@ -193,6 +193,10 @@ class Hooks {
         inline static dialoguewindow_dtor old_dialoguewindowdtor = nullptr;
         static int* __thiscall dialoguewindow_dtor_hook(void *a1, int *a2);
 
+        using starmap_depart = int (__stdcall*)(int);
+        inline static starmap_depart old_starmapdepart = nullptr;
+        static int __stdcall starmap_depart_hook(int a2);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
     public:

@@ -19,13 +19,12 @@ class Station {
         static void sethangarshipscount(int value);
         static int getagentscount();
         static void setagentscount(int value);
-
         static bool isvoid(void);
         static void sethangarshipinfo(int id, sol::table shipinfo);
         static int create(const std::string& str, int techlevel, int textureid, int systemid);
         static std::string getagentname(int id);
         static int getagentfaction(int id);
-        static void createagent(const std::string& str, int factiontype, int terranwoman, int hair, int eyes, int mouth, int armor, sol::table agentinfo);
+        static void createagent(const std::string& str, int factiontype, int terranwoman, sol::table imageinfo, sol::table agentinfo);
         static void removehangaritem(int id);
         static bool hasiteminhangar(int id);
 };

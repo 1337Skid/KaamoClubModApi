@@ -21,7 +21,7 @@ void Level::init(lua_State* lua_state)
 
 void Level::createradiomessage(const std::string& name, const std::string& content, sol::table imageinfo)
 {
-    uintptr_t address = 0x479678;
+    uintptr_t address = Offset::LEVEL_CREATERADIOMESSAGE;
     MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
 
     if (!mgame) {
@@ -54,11 +54,25 @@ void Level::createradiomessage(const std::string& name, const std::string& conte
     created_radiomessages.push_back(crm);
     int a3 = 0; // voice line
     int a2 = 8; // image (will be edited with the hook sooo)
+    for (const auto& custom_mission : Mission::created_missions) {
+        if (custom_mission.enabled && custom_mission.entered_mission) {
+            SingleMission *m = reinterpret_cast<SingleMission*>((*globals_status)->m_pMission);
+            m->m_nMissionEnabled = -1;
+            m->m_nStationId = 0;
+        }
+    }
     __asm {
         push a3
         push level
         mov ecx, a2
         call address
+    }
+    for (const auto& custom_mission : Mission::created_missions) {
+        if (custom_mission.enabled && custom_mission.entered_mission) {
+            SingleMission *m = reinterpret_cast<SingleMission*>((*globals_status)->m_pMission);
+            m->m_nMissionEnabled = 1;
+            m->m_nStationId = custom_mission.stationid;
+        }
     }
 }
 
@@ -243,7 +257,6 @@ sol::table Level::getentities(void)
         return result;
     }
     unsigned int* entities = *reinterpret_cast<unsigned int**>(reinterpret_cast<uintptr_t>(level) + 0xCC); // TODO: make Level struct...
-    std::cout << "entities (getentities): " << entities << std::endl;
     if (!entities)
         return result;
     int entitysize = entities[0];

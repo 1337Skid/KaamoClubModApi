@@ -265,6 +265,16 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
         customstring.size = static_cast<uint32_t>(Level::created_dialoguemessages[Level::current_dialogue_id].content.length());
         return &customstring;
     }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x498CE4 && !Mission::created_missions.empty()) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.enabled) {
+                static AEString customstring;
+                customstring.text = const_cast<wchar_t*>(custom_mission.description.c_str());
+                customstring.size = static_cast<uint32_t>(custom_mission.description.length());
+                return &customstring;
+            }
+        }
+    }
     __asm {
         mov eax, id
         call old_gametextgettext
@@ -888,7 +898,7 @@ void __thiscall Hooks::level_createmission_hook(void *a1)
         }
         spawnednpcs.push_back(plrfighterptr);
     }
-    Level::created_playerfighters.clear(); // TODO: maybe use ctx for args instead of vectors?
+    Level::created_playerfighters.clear(); // maybe use ctx for args instead of vectors?
     if (ctx.call_original)
         old_levelcreatemission(a1);
     if (!spawnednpcs.empty()) {
@@ -939,7 +949,7 @@ int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
         }
         spawnednpcs.push_back(plrfighterptr);
     }
-    Level::created_playerfighters.clear(); // TODO: maybe use ctx for args instead of vectors?
+    Level::created_playerfighters.clear(); // maybe use ctx for args instead of vectors?
     if (ctx.call_original)
         result = old_levelcreatecampaignmission(a1);
     if (!spawnednpcs.empty()) {
@@ -1107,14 +1117,32 @@ int __stdcall Hooks::starmap_starmap_hook(int a2, int a3, int a4, int a5)
 
 int __cdecl Hooks::status_getcampaignmission_hook()
 {
-    int *a1;
+    int* a1;
     int returnvalue;
+    void* returnaddr;
 
     __asm {
-        mov a1, eax
+        mov a1, eax      
+        mov eax, [ebp + 4]   
+        mov returnaddr, eax
+        pushad
+        pushfd
+    }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4D044A && Mission::created_missions.size() > 0) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.enabled && custom_mission.type == 1) {
+                __asm {
+                    popfd
+                    popad
+                }
+                return 0;
+            }
+        }
     }
     __asm {
-        mov eax, a1
+        popfd
+        popad
+        mov eax, a1   
         call old_statusgetcampaignmission
         mov returnvalue, eax
     }
@@ -1197,6 +1225,27 @@ int __thiscall Hooks::modstation_onupdate_hook(ModStation *a1)
 
 void __thiscall Hooks::mgame_onupdate_hook(MGame *a1)
 {
+    // this is needed because if we create a custom mission and then click on "close" or "skip" the real mission id will increments lol
+    if (Mission::created_missions.size() > 0 && *(bool*)((uintptr_t)a1 + 0x5e)) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.entered_mission) {
+                Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+                Globals_status* status = *status_ptr;
+                Mission::savedrealmissionid = status->m_nCurrentCampaignMission;
+            }
+        }
+    }
+    if (Mission::created_missions.size() > 0 && !*(bool*)((uintptr_t)a1 + 0x5e)) {
+        for (const auto& custom_mission : Mission::created_missions) {
+            if (custom_mission.entered_mission && Mission::savedrealmissionid != 0) {
+                Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+                Globals_status* status = *status_ptr;
+                status->m_nCurrentCampaignMission = Mission::savedrealmissionid;
+                Mission::savedrealmissionid = 0;
+            }
+        }
+    }
+    // Prevents "Missions" button crashing the game
     if (!a1->m_nStarMapWindowOpen && Mission::created_missions.size() > 0) {
         for (const auto& custom_mission : Mission::created_missions) {
             if (custom_mission.enabled && custom_mission.entered_mission) {
@@ -1219,11 +1268,39 @@ void __thiscall Hooks::mgame_onupdate_hook(MGame *a1)
     old_mgameonupdate(a1);
 }
 
+// TODO: executed only by ModStation...
 int* __thiscall Hooks::dialoguewindow_dtor_hook(void *a1, int *a2)
 {
     if (!Level::created_dialoguemessages.empty())
         Level::created_dialoguemessages.clear();
     return old_dialoguewindowdtor(a1, a2);
+}
+
+int __stdcall Hooks::starmap_depart_hook(int a2)
+{
+    int a1;
+    int returnvalue;
+
+    __asm {
+        mov a1, eax
+    }
+    for (const auto& custom_mission : Mission::created_missions) {
+        if (custom_mission.enabled && !custom_mission.entered_mission) {
+            Globals_status** status_ptr = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+            Globals_status* status = *status_ptr;
+            SingleMission *m = reinterpret_cast<SingleMission*>(status->m_pMission);
+            m->m_nMissionEnabled = -1;
+            m->m_nStationId = 0;
+            break; 
+        }
+    }
+    __asm {
+        push a2
+        mov eax, a1
+        call old_starmapdepart
+        mov returnvalue, eax
+    }
+    return returnvalue;
 }
 
 void Hooks::init()
@@ -1276,6 +1353,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::LEVEL_CREATECAMPAIGNMISSION, (LPVOID)&level_createcampaignmission_hook, (LPVOID*)&old_levelcreatecampaignmission);
     MH_CreateHook((LPVOID)Offset::MGAME_ONUPDATE, (LPVOID)&mgame_onupdate_hook, (LPVOID*)&old_mgameonupdate);
     MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_DTOR, (LPVOID)&dialoguewindow_dtor_hook, (LPVOID*)&old_dialoguewindowdtor);
+    MH_CreateHook((LPVOID)Offset::STARMAP_DEPART, (LPVOID)&starmap_depart_hook, (LPVOID*)&old_starmapdepart);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

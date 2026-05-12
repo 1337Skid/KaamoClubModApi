@@ -48,17 +48,21 @@ void Mission::nextcampaignmission()
     }
 }
 
-// TODO: check if stationid etc.. are nulls (probs a lot of function needs that tbh)
-// TODO: do type freelance
 // TODO: planets does not show marker on MGame
 // TODO: might crash if clicked on mission btn if in a correct stationid with the current mission (MGame) (pause check won't work - tested)
-// TODO: if i open the map and if i get out of the station where the mission was i see no ships??
-// TODO: Why the hell is real mission id incrementing LOL?
 int Mission::create(int stationid, std::string description, int type)
 {
     if (EventManager::isearlyinit_finished) {
         std::cout << "[-] Failed to call mission:Create(), you can only call it in the EarlyInit event" << std::endl;
         return -1;
+    }
+    if (stationid < 0 || description.empty()) {
+        std::cout << "[-] Failed to call mission:Create(), bad args" << std::endl;
+        return -1;
+    }
+    if (type > 1 || type < 0) {
+        std::cout << "[-] Failed to call mission:Create(), bad args" << std::endl;
+        return -1;    
     }
     CustomMission cm;
     int len = MultiByteToWideChar(CP_UTF8, 0, description.c_str(), -1, nullptr, 0);
@@ -73,9 +77,14 @@ int Mission::create(int stationid, std::string description, int type)
     return created_missions.size();
 }
 
-// TODO: if a mission is already enabled then cancel it needs to be disabled
 void Mission::enable(int custom_missionid)
 {
+    for (auto& custom_mission : Mission::created_missions) {
+        if (custom_mission.enabled) {
+            std::cout << "[-] Failed to enable custom mission id because there is already a mission enabled, disable it with mission:Disable()" << std::endl;
+            return;
+        }
+    }
     if (custom_missionid >= 0 && (custom_missionid - 1) < created_missions.size()) {
         created_missions[custom_missionid - 1].enabled = 1;
         return;
@@ -89,7 +98,7 @@ void Mission::disable(int custom_missionid)
 
     if (custom_missionid >= 0 && (custom_missionid - 1) < created_missions.size()) {
         created_missions[custom_missionid - 1].enabled = 0;
-        m->m_nMissionEnabled = -1; // disable
+        m->m_nMissionEnabled = -1;
         m->m_nStationId = 0;
         return;
     }

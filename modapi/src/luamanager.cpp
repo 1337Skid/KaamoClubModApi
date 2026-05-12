@@ -145,8 +145,8 @@ void LuaManager::bind_api()
         "GetAgentFaction", [](Station& self, int id) {
             return Station::getagentfaction(id);
         },
-        "CreateAgent", [](Station& self, const std::string& name, int factiontype, int terranwoman, int hair, int eyes, int mouth, int armor, sol::table agentinfo) {
-            Station::createagent(name, factiontype, terranwoman, hair, eyes, mouth, armor, agentinfo); // TODO: do a sol::table for image info
+        "CreateAgent", [](Station& self, const std::string& name, int factiontype, int terranwoman, sol::table imageinfo, sol::table agentinfo) {
+            Station::createagent(name, factiontype, terranwoman, imageinfo, agentinfo);
         },
         "RemoveHangarItem", [](Station& self, int id) {
             Station::removehangaritem(id);
