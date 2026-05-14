@@ -1373,57 +1373,7 @@ int __stdcall Hooks::starmap_depart_hook(int a2)
 
 float* __stdcall Hooks::playerego_calccollision_hook(int a1, float *a2)
 {
-    // Treat a2 as an array of unsigned ints (4 bytes each)
-    unsigned int* param_2 = (unsigned int*)a2;
-
-    // Check for null or 0 count (param_2[0] is equivalent to *param_2)
-    if (!param_2 || param_2[0] == 0) {
-        return nullptr;
-    }
-
-    // param_2[0] is the count
-    unsigned int count = param_2[0];
-    
-    // param_2[1] holds the memory address to the array of object pointers
-    unsigned int** objectArray = (unsigned int**)param_2[1];
-
-    // Allocate temporary pointer array for asteroids
-    unsigned int** asteroids = new unsigned int*[count];
-    unsigned int asteroid_count = 0;
-
-    for (unsigned int i = 0; i < count; ++i) {
-        // Read the object pointer from the array
-        unsigned int* obj = objectArray[i];
-        
-        if (obj) {
-            // obj[0x1D] accesses the type ID (0x1D * 4 = 0x74 bytes offset)
-            unsigned int objectType = obj[0x1D]; 
-            
-            // Type 3 is an Asteroid
-            if (objectType == 3) {
-                asteroids[asteroid_count] = obj;
-                asteroid_count++;
-            }
-        }
-    }
-
-    float* result = nullptr;
-
-    // If we found any asteroids, call the original function with our custom array
-    if (asteroid_count > 0) {
-        // Rebuild the param_2 structure format using an array of 2 unsigned ints
-        unsigned int dummy_param[2];
-        dummy_param[0] = asteroid_count;                  // Index 0: New Count
-        dummy_param[1] = (unsigned int)asteroids;         // Index 1: Address of our asteroid array
-        
-        // Pass the spoofed parameters back into the original function
-        result = old_playeregocalccollision(a1, (float*)dummy_param);
-    }
-
-    // Clean up
-    delete[] asteroids;
-    
-    return result;
+    return nullptr;
 }
 
 void Hooks::init()
