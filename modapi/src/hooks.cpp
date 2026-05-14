@@ -1373,7 +1373,7 @@ int __stdcall Hooks::starmap_depart_hook(int a2)
 
 float* __stdcall Hooks::playerego_calccollision_hook(int a1, float *a2)
 {
-    return nullptr;
+    return old_playeregocalccollision(a1, a2);
 }
 
 void Hooks::init()
