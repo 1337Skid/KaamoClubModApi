@@ -10,6 +10,7 @@ class HookContext {
 class MissionContext : public HookContext {
     public:
         void createfighter(int meshid, int faction);
+        void createstaticobject(int type, float x, float y, float z);
 };
 
 #endif

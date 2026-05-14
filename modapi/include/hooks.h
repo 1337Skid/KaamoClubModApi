@@ -197,6 +197,10 @@ class Hooks {
         inline static starmap_depart old_starmapdepart = nullptr;
         static int __stdcall starmap_depart_hook(int a2);
 
+        using playerego_calccollision = float* (__stdcall*)(int, float*);
+        inline static playerego_calccollision old_playeregocalccollision = nullptr;
+        static float* __stdcall playerego_calccollision_hook(int a1, float *a2);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
     public:

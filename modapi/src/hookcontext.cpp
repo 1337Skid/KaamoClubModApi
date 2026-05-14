@@ -12,3 +12,8 @@ void MissionContext::createfighter(int meshid, int faction)
 {
     Level::createfighter(meshid, faction);
 }
+
+void MissionContext::createstaticobject(int type, float x, float y, float z)
+{
+    Level::createstaticobject(type, x, y, z);
+}

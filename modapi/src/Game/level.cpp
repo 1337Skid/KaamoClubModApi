@@ -373,6 +373,11 @@ void Level::createfighter(int meshid, int faction)
     Level::created_playerfighters.push_back({meshid, faction});
 }
 
+void Level::createstaticobject(int type, float x, float y, float z)
+{
+    Level::created_staticobjects.push_back({type, x, y, z});
+}
+
 // just a quick reminder for me to look at rendering stuff for UIs etc..
 //uintptr_t address_draw = 0x40764A;
 //__asm { oh my fucking god do not call DialogueWindow::draw() you'll see it for one frame...

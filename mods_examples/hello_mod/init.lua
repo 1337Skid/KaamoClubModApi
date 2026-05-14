@@ -167,6 +167,8 @@ RegisterEvent("OnUpdate", function()
 end)
 
 HookFunction("Level::createMission", function(ctx)
+	print("Hello level!")
+	--ctx:CreateStaticObject(0, 55000, 5000, 10000) -- object_type(0=pirate station;1=valkyrie turret), x, y, z
 	--for i = 0, 100 do
 	--	ctx:CreateFighter(math.random(0,41), 8) -- meshid, faction
 	--end
@@ -175,6 +177,7 @@ end)
 
 HookFunction("Level::createCampaignMission", function(ctx)
 	print("Hello i'm in a mission")
+	--ctx:CreateStaticObject(0, 55000, 5000, 10000) -- object_type(0=pirate station;1=valkyrie turret), x, y, z
 	--for i = 0, 3 do
 	--	ctx:CreateFighter(math.random(0,41), 8) -- meshid, faction
 	--end

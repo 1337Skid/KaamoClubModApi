@@ -89,12 +89,15 @@ class Offset {
         static constexpr uintptr_t PLAYEREGO_SETPOSITION = 0x4AC590;
         static constexpr uintptr_t PLAYEREGO_TOGGLECLOAKING = 0x004ABA3B;
         static constexpr uintptr_t PLAYEREGO_UPDATE = 0x4AD64F;
+        static constexpr uintptr_t PLAYEREGO_CALCCOLLISION = 0x4AF3A5;
 
         static constexpr uintptr_t PLAYERASTEROID_PLAYERASTEROID = 0x4AA595;
 
         static constexpr uintptr_t PLAYERFIGHTER_PLAYERFIGHTER = 0x4B19F3;
         static constexpr uintptr_t PLAYERFIGHTER_RENDER = 0x4B4F27;
         static constexpr uintptr_t PLAYERFIGHTER_UPDATE = 0x4B2497;
+
+        static constexpr uintptr_t PLAYERFIXEDOBJECT_SETPOSITION = 0x4B55E5;
         
         static constexpr uintptr_t PLAYER_PLAYER = 0x4A9088;
 

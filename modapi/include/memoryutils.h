@@ -64,6 +64,16 @@ class MemoryUtils {
 
             WriteProcessMemory(GetCurrentProcess(), (LPVOID)addr, str.c_str(), size, nullptr);
         }
+        static void PatchByte(uintptr_t address, uint8_t value)
+        {
+            DWORD old;
+            if (VirtualProtect(reinterpret_cast<LPVOID>(address), 1, PAGE_EXECUTE_READWRITE, &old)) {
+                *reinterpret_cast<uint8_t*>(address) = value;
+                VirtualProtect(reinterpret_cast<LPVOID>(address), 1, old, &old);
+            } else {
+                std::cout << "[-] memoryutils:PatchByte() Failed to patch byte" << std::endl;
+            }
+        }
 
         template <typename T>
         static T Read(uintptr_t address)

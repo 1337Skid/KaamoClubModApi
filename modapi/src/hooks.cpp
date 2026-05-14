@@ -875,6 +875,8 @@ void __thiscall Hooks::level_createmission_hook(void *a1)
     int* level = reinterpret_cast<int*>(a1);
     int calloriginal = 1;
     uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
+    uintptr_t address_createstaticobject = Offset::LEVEL_CREATESTATICOBJECT;
+    uintptr_t address_setposition = Offset::PLAYERFIXEDOBJECT_SETPOSITION;
     std::vector<int*> spawnednpcs;
 
     for (const auto& fighter : Level::created_playerfighters) {
@@ -898,7 +900,39 @@ void __thiscall Hooks::level_createmission_hook(void *a1)
         }
         spawnednpcs.push_back(plrfighterptr);
     }
+    for (const auto& object : Level::created_staticobjects) {
+        int objtype = 0;
+        if (object.type == 0)
+            objtype = 14243; // pirate station
+        else if (object.type == 1)
+            objtype = 14363; // valkyrie turret
+        int* levelptr = level;
+        int* objectptr = nullptr;
+        __asm {
+            push objtype
+            push 0
+            push levelptr
+            call address_createstaticobject        
+            mov objectptr, eax
+        }
+        typedef void (__thiscall* SetPositionFn)(void* thisptr, float x, float y, float z);
+        float x = static_cast<float>(object.x); // even if it's already a float I still need to cast it to a float or else the game will crash
+        float y = static_cast<float>(object.y);
+        float z = static_cast<float>(object.z);
+        //uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(objectptr);
+        if (objtype == 14243) { // TODO: only pirate base support coordinate editing atm (game crash if it's the turret)
+            __asm {
+                push z
+                push y
+                push x
+                mov ecx, objectptr
+                call address_setposition
+            }
+        }
+        spawnednpcs.push_back(objectptr);
+    }
     Level::created_playerfighters.clear(); // maybe use ctx for args instead of vectors?
+    Level::created_staticobjects.clear();
     if (ctx.call_original)
         old_levelcreatemission(a1);
     if (!spawnednpcs.empty()) {
@@ -925,6 +959,8 @@ int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
     MissionContext ctx = EventManager::trigger_hook<MissionContext>("Level::createCampaignMission");
     int* level = reinterpret_cast<int*>(a1);
     uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
+    uintptr_t address_createstaticobject = Offset::LEVEL_CREATESTATICOBJECT;
+    uintptr_t address_setposition = Offset::PLAYERFIXEDOBJECT_SETPOSITION;
     int result = 0;
     std::vector<int*> spawnednpcs;
 
@@ -949,7 +985,39 @@ int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
         }
         spawnednpcs.push_back(plrfighterptr);
     }
+    for (const auto& object : Level::created_staticobjects) {
+        int objtype = 0;
+        if (object.type == 0)
+            objtype = 14243; // pirate station
+        else if (object.type == 1)
+            objtype = 14363; // valkyrie turret
+        int* levelptr = level;
+        int* objectptr = nullptr;
+        __asm {
+            push objtype
+            push 0
+            push levelptr
+            call address_createstaticobject        
+            mov objectptr, eax
+        }
+        typedef void (__thiscall* SetPositionFn)(void* thisptr, float x, float y, float z);
+        float x = static_cast<float>(object.x); // even if it's already a float I still need to cast it to a float or else the game will crash
+        float y = static_cast<float>(object.y);
+        float z = static_cast<float>(object.z);
+        //uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(objectptr);
+        if (objtype == 14243) { // TODO: only pirate base support coordinate editing atm (game crash if it's the turret)
+            __asm {
+                push z
+                push y
+                push x
+                mov ecx, objectptr
+                call address_setposition
+            }
+        }
+        spawnednpcs.push_back(objectptr);
+    }
     Level::created_playerfighters.clear(); // maybe use ctx for args instead of vectors?
+    Level::created_staticobjects.clear();
     if (ctx.call_original)
         result = old_levelcreatecampaignmission(a1);
     if (!spawnednpcs.empty()) {
@@ -1303,6 +1371,61 @@ int __stdcall Hooks::starmap_depart_hook(int a2)
     return returnvalue;
 }
 
+float* __stdcall Hooks::playerego_calccollision_hook(int a1, float *a2)
+{
+    // Treat a2 as an array of unsigned ints (4 bytes each)
+    unsigned int* param_2 = (unsigned int*)a2;
+
+    // Check for null or 0 count (param_2[0] is equivalent to *param_2)
+    if (!param_2 || param_2[0] == 0) {
+        return nullptr;
+    }
+
+    // param_2[0] is the count
+    unsigned int count = param_2[0];
+    
+    // param_2[1] holds the memory address to the array of object pointers
+    unsigned int** objectArray = (unsigned int**)param_2[1];
+
+    // Allocate temporary pointer array for asteroids
+    unsigned int** asteroids = new unsigned int*[count];
+    unsigned int asteroid_count = 0;
+
+    for (unsigned int i = 0; i < count; ++i) {
+        // Read the object pointer from the array
+        unsigned int* obj = objectArray[i];
+        
+        if (obj) {
+            // obj[0x1D] accesses the type ID (0x1D * 4 = 0x74 bytes offset)
+            unsigned int objectType = obj[0x1D]; 
+            
+            // Type 3 is an Asteroid
+            if (objectType == 3) {
+                asteroids[asteroid_count] = obj;
+                asteroid_count++;
+            }
+        }
+    }
+
+    float* result = nullptr;
+
+    // If we found any asteroids, call the original function with our custom array
+    if (asteroid_count > 0) {
+        // Rebuild the param_2 structure format using an array of 2 unsigned ints
+        unsigned int dummy_param[2];
+        dummy_param[0] = asteroid_count;                  // Index 0: New Count
+        dummy_param[1] = (unsigned int)asteroids;         // Index 1: Address of our asteroid array
+        
+        // Pass the spoofed parameters back into the original function
+        result = old_playeregocalccollision(a1, (float*)dummy_param);
+    }
+
+    // Clean up
+    delete[] asteroids;
+    
+    return result;
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1354,6 +1477,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::MGAME_ONUPDATE, (LPVOID)&mgame_onupdate_hook, (LPVOID*)&old_mgameonupdate);
     MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_DTOR, (LPVOID)&dialoguewindow_dtor_hook, (LPVOID*)&old_dialoguewindowdtor);
     MH_CreateHook((LPVOID)Offset::STARMAP_DEPART, (LPVOID)&starmap_depart_hook, (LPVOID*)&old_starmapdepart);
+    //MH_CreateHook((LPVOID)Offset::PLAYEREGO_CALCCOLLISION, (LPVOID)&playerego_calccollision_hook, (LPVOID*)&old_playeregocalccollision);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

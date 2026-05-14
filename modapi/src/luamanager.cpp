@@ -46,6 +46,9 @@ void LuaManager::bind_api()
         },
         "CreateFighter", [](MissionContext* self, int meshid, int faction) {
             self->createfighter(meshid, faction);
+        },
+        "CreateStaticObject", [](MissionContext* self, int type, float x, float y, float z) {
+            self->createstaticobject(type, x, y, z); // TODO: return kiplayer/playerstaticobject
         }
     );
  
@@ -194,7 +197,7 @@ void LuaManager::bind_api()
             return Level::getentities();
         },
         "CreateAsteroid", [](Level& self, float x, float y, float z, float scale, int meshid) {
-            Level::createasteroid(x,y,z,scale,meshid); // TODO: return a playerasteroid?
+            Level::createasteroid(x,y,z,scale,meshid); // TODO: return a playerasteroid/kiplayer?
         }
     );
 
@@ -212,6 +215,13 @@ void LuaManager::bind_api()
         },
         sol::meta_function::to_string, &KIPlayer::tostring
     );
+    
+    lua_state.new_usertype<MemoryUtils>("MemoryUtils",
+        sol::no_constructor,
+        "PatchByte", [](MemoryUtils& self, unsigned int address, uint8_t value) {
+            MemoryUtils::PatchByte(address, value);
+        }
+    );
 
     lua_state.set_function("RegisterEvent", [&](std::string name, sol::protected_function callback) {
         EventManager::addlistener(name, callback);
@@ -228,6 +238,7 @@ void LuaManager::bind_api()
     lua_state["asset"] = Asset();
     lua_state["item"] = Item();
     lua_state["level"] = Level();
+    lua_state["memoryutils"] = MemoryUtils();
 }
 
 void LuaManager::handle_coroutine(sol::thread script, sol::coroutine cor, const sol::protected_function_result& result, std::function<void()> on_complete, std::vector<sol::object> args)
