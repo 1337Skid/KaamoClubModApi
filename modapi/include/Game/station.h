@@ -27,5 +27,6 @@ class Station {
         static void createagent(const std::string& str, int factiontype, int terranwoman, sol::table imageinfo, sol::table agentinfo);
         static void removehangaritem(int id);
         static bool hasiteminhangar(int id);
+        static void addhangarship(int id);
 };
 #endif

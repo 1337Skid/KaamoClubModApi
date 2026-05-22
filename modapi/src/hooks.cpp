@@ -4,6 +4,7 @@
 #include "hookcontext.h"
 #include <Game/system.h>
 #include <Game/level.h>
+#include <Game/ship.h>
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -27,6 +28,104 @@ void Hooks::injectitems()
     // I'm not freeing old_array->data[i]->m_pItemInfo array because I did a memcpy of old array to new array and I don't want to realloc every item info it's kinda useless
     AbyssEngine::memory_free(old_array->data);
     AbyssEngine::memory_free(old_array);    
+}
+
+void Hooks::injectships()
+{
+    if (Ship::created_ships.empty())
+        return;
+    auto& ships = **reinterpret_cast<AEArray<int*>**>(Offset::GLOBALS_SHIPS);
+    int old = ships.size; 
+    int total = old + static_cast<int>(Ship::created_ships.size()); 
+    auto** newship_data = reinterpret_cast<int**>(AbyssEngine::memory_allocate(sizeof(int*) * total));
+    if (old > 0 && ships.data != nullptr)
+        std::memcpy(newship_data, ships.data, sizeof(int*) * old);
+    auto* newhangaroffsets_one = reinterpret_cast<DWORD*>(AbyssEngine::memory_allocate(sizeof(DWORD) * total));
+    auto* newhangaroffsets_two = reinterpret_cast<DWORD*>(AbyssEngine::memory_allocate(sizeof(DWORD) * total));
+    auto* meshes = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* nolights = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* addlights = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* lods = reinterpret_cast<uint8_t*>(AbyssEngine::memory_allocate(12 * total));
+    auto* lightlods = reinterpret_cast<uint8_t*>(AbyssEngine::memory_allocate(12 * total));
+    auto* ui_meshes_1 = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* ui_meshes_2 = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    std::memcpy(newhangaroffsets_one, reinterpret_cast<void*>(Offset::SHIP_HANGAR_OFFSETS), sizeof(DWORD) * old);
+    std::memcpy(newhangaroffsets_two, reinterpret_cast<void*>(Offset::SHIP_HANGAR_OFFSETS2), sizeof(DWORD) * old);
+    std::memcpy(meshes, reinterpret_cast<void*>(Offset::SHIP_MESHES), sizeof(WORD) * old);
+    std::memcpy(nolights, reinterpret_cast<void*>(Offset::SHIP_MESHES_NO_LIGHT), sizeof(WORD) * old);
+    std::memcpy(addlights, reinterpret_cast<void*>(Offset::SHIP_MESHES_ADD_LIGHTS), sizeof(WORD) * old);
+    std::memcpy(lods, reinterpret_cast<void*>(Offset::SHIP_LODS), 12 * old);
+    std::memcpy(lightlods, reinterpret_cast<void*>(Offset::SHIP_LIGHT_LODS), 12 * old);
+    std::memcpy(ui_meshes_1, reinterpret_cast<void*>(0x0052F288), sizeof(WORD) * old);
+    std::memcpy(ui_meshes_2, reinterpret_cast<void*>(0x0052F2E0), sizeof(WORD) * old);
+    auto* copyship_example = ships.data[0]; // we copy the first ship for a good example (we'll edit the stats etc...)
+    for (int i = 0; i < Ship::created_ships.size(); i++) {
+        int shipid = old + static_cast<int>(i);
+        ShipInfo* newship = reinterpret_cast<ShipInfo*>(AbyssEngine::memory_allocate(120));
+        std::memcpy(newship, copyship_example, 120);
+        newship->m_nID = shipid;
+        newship->m_nMaxHealth = Ship::created_ships[i].armor;
+        newship->m_nBasePrice = Ship::created_ships[i].baseprice;
+        newship->m_nPrice = Ship::created_ships[i].baseprice;
+        newship->m_nMaxCapacity = Ship::created_ships[i].maxcargo;
+        newship->m_fControlMultiplier = Ship::created_ships[i].handling;
+        newship->m_pShipSlots->m_nPrimaryWeapons = Ship::created_ships[i].primaryslots;
+        newship->m_pShipSlots->m_nSecondaryWeapons = Ship::created_ships[i].secondaryslots;
+        newship->m_pShipSlots->m_nTurrets = Ship::created_ships[i].turretslots;
+        newship->m_pShipSlots->m_nEquipments = Ship::created_ships[i].equipmentslots;
+        newship_data[shipid] = reinterpret_cast<int*>(newship);
+        newhangaroffsets_one[shipid] = Ship::created_ships[i].hangar_y;
+        newhangaroffsets_two[shipid] = Ship::created_ships[i].hangar_y;
+        ui_meshes_1[shipid] = Ship::created_ships[i].lod0; 
+        ui_meshes_2[shipid] = Ship::created_ships[i].lod0;
+        meshes[shipid] = Ship::created_ships[i].lod0; 
+        nolights[shipid] = -1;
+        addlights[shipid] = -1;
+        auto* current_lod = lods + (shipid * 12);
+        *reinterpret_cast<DWORD*>(current_lod + 0) = Ship::created_ships[i].lod0;
+        *reinterpret_cast<DWORD*>(current_lod + 4) = Ship::created_ships[i].lod1;
+        *reinterpret_cast<DWORD*>(current_lod + 8) = Ship::created_ships[i].lod2;
+        auto* current_lighlods = lightlods + (shipid * 12);
+        *reinterpret_cast<WORD*>(current_lighlods + 0) = -1;
+        *reinterpret_cast<WORD*>(current_lighlods + 2) = 0;
+        *reinterpret_cast<WORD*>(current_lighlods + 4) = -1;
+        *reinterpret_cast<WORD*>(current_lighlods + 6) = 0;
+        *reinterpret_cast<WORD*>(current_lighlods + 8) = -1;
+        *reinterpret_cast<WORD*>(current_lighlods + 10) = 0;
+    }
+    ships.data = newship_data;
+    ships.size = total;
+    ships.size2 = total;
+    DWORD oldp;
+    // we are going to use our own array in the getshipgroup function instead of the rdata arrays
+    // hangar offset
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0040512E), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0040512E) = reinterpret_cast<DWORD>(newhangaroffsets_one);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x00472CC0), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x00472CC0) = reinterpret_cast<DWORD>(newhangaroffsets_two);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x004730A4), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x004730A4) = reinterpret_cast<DWORD>(newhangaroffsets_two);
+    // meshes array
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0044D58F), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0044D58F) = reinterpret_cast<DWORD>(meshes);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0044D5BD), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0044D5BD) = reinterpret_cast<DWORD>(nolights);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0044D64E), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0044D64E) = reinterpret_cast<DWORD>(addlights);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0044D674), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0044D674) = reinterpret_cast<DWORD>(addlights);
+    // available lods array
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0044D701), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0044D701) = reinterpret_cast<DWORD>(lods);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x0044D834), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x0044D834) = reinterpret_cast<DWORD>(lightlods);
+    // UI ships mesh preview
+    VirtualProtect(reinterpret_cast<LPVOID>(0x00481059), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x00481059) = reinterpret_cast<DWORD>(ui_meshes_1);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x00481085), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x00481085) = reinterpret_cast<DWORD>(ui_meshes_2);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x004810A5), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x004810A5) = reinterpret_cast<DWORD>(ui_meshes_2);
 }
 
 void Hooks::injectsystemsandstations()
@@ -166,6 +265,8 @@ uintptr_t __stdcall Hooks::globals_init_hook(uintptr_t a, uintptr_t b, uintptr_t
         CreateThread(nullptr, 0, [](LPVOID)->DWORD {
             Patches::patchmissions(100);
             Hooks::injectitems();
+            EventManager::trigger_hook<GlobalsInitContext>("Globals::init"); // no ctx:call() on the lua side because the game will crash if globals::init is stopped so it makes no sense to do that
+            Hooks::injectships();
             Hooks::injectsystemsandstations();
             return 0;
         }, nullptr, 0, nullptr);
@@ -241,7 +342,6 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
             }
         }
     }
-    // if ((uintptr_t)returnaddr == 0x45565e) { -- for ships names
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x48307b) {
         for (const auto& item : Item::created_items) {
             if (id == item.id + 1014) { // + 1014 bcz the game decided
@@ -271,6 +371,27 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
                 static AEString customstring;
                 customstring.text = const_cast<wchar_t*>(custom_mission.description.c_str());
                 customstring.size = static_cast<uint32_t>(custom_mission.description.length());
+                return &customstring;
+            }
+        }
+    }
+    // custom ships texts
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x45565e || reinterpret_cast<uintptr_t>(returnaddr) == 0x483296 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4d99f8) {
+        for (const auto& ship : Ship::created_ships) {
+            if (id == ship.id + 892) { // + 892 bcz the game decided
+                static AEString customstring;
+                customstring.text = const_cast<wchar_t*>(ship.name.c_str());
+                customstring.size = static_cast<uint32_t>(ship.name.length());
+                return &customstring;
+            }
+        }
+    }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x481bb8) {
+        for (const auto& ship : Ship::created_ships) {
+            if (id == ship.id + 953) { // + 953 bcz the game decided
+                static AEString customstring;
+                customstring.text = const_cast<wchar_t*>(ship.description.c_str());
+                customstring.size = static_cast<uint32_t>(ship.description.length());
                 return &customstring;
             }
         }
@@ -842,12 +963,8 @@ void __stdcall Hooks::kiplayer_addgun_hook(int a3)
 
 int* __stdcall Hooks::globals_getshipgroup_hook(int a1, int a2, char a3)
 {
-    int* old = old_globalsgetshipgroup(a1, a2, a3);
-    std::cout << a1 << std::endl;
-    std::cout << a2 << std::endl;
-    std::cout << (int)a3 << std::endl;
-    std::cout << "return : " << std::hex << old << std::endl;
-    return old;
+    std::cout << std::dec << a1 << std::endl;
+    return old_globalsgetshipgroup(a1, a2, a3);
 }
 
 void __stdcall Hooks::level_update_hook(int a2, int a3, int a4)
@@ -1376,6 +1493,95 @@ float* __stdcall Hooks::playerego_calccollision_hook(int a1, float *a2)
     return old_playeregocalccollision(a1, a2);
 }
 
+unsigned int* __stdcall Hooks::fileread_loadweaponpositions_hook(int a1)
+{
+    if (a1 < 44)
+        return old_filereadloadweaponpositions(a1);
+    // loading primary pos, secondary pos, turret pos and finally the engine pos
+    auto& ship = Ship::created_ships[a1 - 44];
+    auto* result = reinterpret_cast<unsigned int*>(AbyssEngine::memory_allocate(12));
+    auto* arr = reinterpret_cast<DWORD*>(AbyssEngine::memory_allocate(4 * sizeof(DWORD)));
+    std::memset(arr, 0, 4 * sizeof(DWORD));
+    result[0] = 4;
+    result[1] = reinterpret_cast<unsigned int>(arr);
+    result[2] = 4;
+    int id = 0;
+    int primary_size = static_cast<int>(ship.primary_positions.size());
+    int primary_cap = primary_size > 0 ? primary_size : 1; // game crash if 0
+    auto* primary_arr = reinterpret_cast<int*>(AbyssEngine::memory_allocate(12));
+    auto* primary_data = reinterpret_cast<int*>(AbyssEngine::memory_allocate(primary_cap * sizeof(int)));
+    std::memset(primary_data, 0, primary_cap * sizeof(int));
+    primary_arr[0] = primary_size;
+    primary_arr[1] = reinterpret_cast<int>(primary_data);
+    primary_arr[2] = primary_cap;
+    arr[0] = reinterpret_cast<DWORD>(primary_arr);
+    id = 0;
+    for (auto& pos : ship.primary_positions) {
+        auto* entry = reinterpret_cast<float*>(AbyssEngine::memory_allocate(12));
+        entry[0] = pos.x;
+        entry[1] = pos.y;
+        entry[2] = pos.z;
+        primary_data[id++] = reinterpret_cast<int>(entry);
+    }
+    int secondary_size = static_cast<int>(ship.secondary_positions.size());
+    int secondary_cap = secondary_size > 0 ? secondary_size : 1; // same as primary
+    auto* secondary_arr = reinterpret_cast<int*>(AbyssEngine::memory_allocate(12));
+    auto* secondary_data = reinterpret_cast<int*>(AbyssEngine::memory_allocate(secondary_cap * sizeof(int)));
+    std::memset(secondary_data, 0, secondary_cap * sizeof(int));
+    secondary_arr[0] = secondary_size;
+    secondary_arr[1] = reinterpret_cast<int>(secondary_data);
+    secondary_arr[2] = secondary_cap;
+    arr[1] = reinterpret_cast<DWORD>(secondary_arr);
+    id = 0;
+    for (auto& pos : ship.secondary_positions) {
+        auto* entry = reinterpret_cast<float*>(AbyssEngine::memory_allocate(12));
+        entry[0] = pos.x;
+        entry[1] = pos.y;
+        entry[2] = pos.z;
+        secondary_data[id++] = reinterpret_cast<int>(entry);
+    }
+    int turret_size = static_cast<int>(ship.turret_positions.size());
+    int turret_cap = turret_size > 0 ? turret_size : 1; // same as primary and secondary
+    auto* turret_arr = reinterpret_cast<int*>(AbyssEngine::memory_allocate(12));
+    auto* turret_data = reinterpret_cast<int*>(AbyssEngine::memory_allocate(turret_cap * sizeof(int)));
+    std::memset(turret_data, 0, turret_cap * sizeof(int));
+    turret_arr[0] = turret_size;
+    turret_arr[1] = reinterpret_cast<int>(turret_data);
+    turret_arr[2] = turret_cap;
+    arr[2] = reinterpret_cast<DWORD>(turret_arr);
+    id = 0;
+    for (auto& pos : ship.turret_positions) {
+        auto* entry = reinterpret_cast<float*>(AbyssEngine::memory_allocate(12));
+        entry[0] = pos.x;
+        entry[1] = pos.y;
+        entry[2] = pos.z;
+        turret_data[id++] = reinterpret_cast<int>(entry);
+    }
+    int engine_size = static_cast<int>(ship.engines.size() * 2);
+    int engine_cap = engine_size > 0 ? engine_size : 1;
+    auto* engine_arr = reinterpret_cast<int*>(AbyssEngine::memory_allocate(12));
+    auto* engine_data = reinterpret_cast<int*>(AbyssEngine::memory_allocate(engine_cap * sizeof(int)));
+    std::memset(engine_data, 0, engine_cap * sizeof(int));
+    engine_arr[0] = engine_size;
+    engine_arr[1] = reinterpret_cast<int>(engine_data);
+    engine_arr[2] = engine_cap;
+    arr[3] = reinterpret_cast<DWORD>(engine_arr);
+    id = 0;
+    for (auto& engine : ship.engines) {
+        auto* pos_entry = reinterpret_cast<float*>(AbyssEngine::memory_allocate(12));
+        pos_entry[0] = engine.position.x;
+        pos_entry[1] = engine.position.y;
+        pos_entry[2] = engine.position.z;
+        engine_data[id++] = reinterpret_cast<int>(pos_entry);
+        auto* intensity_entry = reinterpret_cast<float*>(AbyssEngine::memory_allocate(12));
+        intensity_entry[0] = engine.intensity.x;
+        intensity_entry[1] = engine.intensity.y;
+        intensity_entry[2] = engine.intensity.z;
+        engine_data[id++] = reinterpret_cast<int>(intensity_entry);
+    }
+    return result;
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1428,6 +1634,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_DTOR, (LPVOID)&dialoguewindow_dtor_hook, (LPVOID*)&old_dialoguewindowdtor);
     MH_CreateHook((LPVOID)Offset::STARMAP_DEPART, (LPVOID)&starmap_depart_hook, (LPVOID*)&old_starmapdepart);
     //MH_CreateHook((LPVOID)Offset::PLAYEREGO_CALCCOLLISION, (LPVOID)&playerego_calccollision_hook, (LPVOID*)&old_playeregocalccollision);
+    MH_CreateHook((LPVOID)Offset::FILEREAD_LOADWEAPONPOSITIONS, (LPVOID)&fileread_loadweaponpositions_hook, (LPVOID*)&old_filereadloadweaponpositions);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

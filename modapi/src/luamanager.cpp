@@ -21,6 +21,7 @@
 #include <Game/level.h>
 #include <Game/structs.h>
 #include <Game/kiplayer.h>
+#include <Game/ship.h>
 
 void LuaManager::init()
 {
@@ -49,6 +50,14 @@ void LuaManager::bind_api()
         },
         "CreateStaticObject", [](MissionContext* self, int type, float x, float y, float z) {
             self->createstaticobject(type, x, y, z); // TODO: return kiplayer/playerstaticobject
+        }
+    );
+
+    lua_state.new_usertype<GlobalsInitContext>("GlobalsInitContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<HookContext>(),
+        "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
+            return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
         }
     );
  
@@ -156,6 +165,9 @@ void LuaManager::bind_api()
         },
         "HasItemInHangar", [](Station& self, int id) -> bool {
             return Station::hasiteminhangar(id);
+        },
+        "AddHangarShip", [](Station&, int id) {
+            Station::addhangarship(id);
         }
     );
 
@@ -169,12 +181,21 @@ void LuaManager::bind_api()
         },
         "GetText", [](Asset& self, int id) -> std::string {
             return Asset::gettext(id);
+        },
+        "CreateTexture", [](Asset& self, const std::string& path) -> int {
+            return Asset::createtexture(path);
+        },
+        "CreateMaterial", [](Asset& self, int diffuse, int normal, int shader) -> int {
+            return Asset::creatematerial(diffuse, normal, shader);
+        },
+        "CreateMesh", [](Asset& self, const std::string& path, int materialid) -> int {
+            return Asset::createmesh(path, materialid);
         }
     );
 
     lua_state.new_usertype<Item>("Item",
         sol::no_constructor,
-        "Create", [](Asset& self, const std::string& name, const std::string& description, sol::table iteminfo) -> int {
+        "Create", [](Item& self, const std::string& name, const std::string& description, sol::table iteminfo) -> int {
             return Item::create(name, description, iteminfo);
         }
     );

@@ -16,7 +16,7 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     freopen_s(&dummyfile, "CONOUT$", "w", stderr);
     freopen_s(&dummyfile, "CONIN$", "r", stdin);
     
-    std::cout << "[+] KaamoClubModAPI Loaded! | Version: 1.0.1" << std::endl;    
+    std::cout << "[+] KaamoClubModAPI Loaded! | Version: 1.0.2" << std::endl;    
     luamanager->init();
     luamanager->bind_api();
     EventManager::lua_manager = luamanager;
@@ -29,6 +29,7 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     Mission::init();
     Asset::init();
     //Item::init();
+    //Ship::init();
     Level::init(luamanager->getluastate());
     auto last_tick = std::chrono::steady_clock::now();
     while (1) {

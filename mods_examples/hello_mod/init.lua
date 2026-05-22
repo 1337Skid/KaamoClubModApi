@@ -85,12 +85,13 @@ end)
 RegisterEvent("OnStationDocked", function()
 	print("Docked on this station: " .. station.name)
 	--local shipinfo = {
-	--	id = 0,
+	--	id = 40,
 	--	price = 10
 	--}
 	--shipinfo["id"] = math.random(1,29)
 	--print(shipinfo["id"])
 	--station:SetHangarShipInfo(0, shipinfo)
+	--station:AddHangarShip(4)
 	--local shipinfo = {
 	--	maxcargo = 9999,
 	--	armor = 9999,
@@ -182,4 +183,9 @@ HookFunction("Level::createCampaignMission", function(ctx)
 	--	ctx:CreateFighter(math.random(0,41), 8) -- meshid, faction
 	--end
 	ctx:call() -- call original function
+end)
+
+HookFunction("Globals::init", function(ctx)
+	print("hello globals init")
+	-- ctx:call() doesn't exist there because it makes no sense to stop globals::init, your game will just crash if it was a thing
 end)

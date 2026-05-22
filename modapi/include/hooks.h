@@ -201,8 +201,13 @@ class Hooks {
         inline static playerego_calccollision old_playeregocalccollision = nullptr;
         static float* __stdcall playerego_calccollision_hook(int a1, float *a2);
 
+        using fileread_loadweaponpositions = unsigned int* (__stdcall*)(int);
+        inline static fileread_loadweaponpositions old_filereadloadweaponpositions = nullptr;
+        static unsigned int* __stdcall fileread_loadweaponpositions_hook(int a1);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
+        static void injectships(void);
     public:
         static void init(void);
 };

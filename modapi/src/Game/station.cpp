@@ -159,6 +159,32 @@ void Station::sethangarshipinfo(int id, sol::table shipinfo)
     }
 }
 
+void Station::addhangarship(int id)
+{
+    if ((*globals_status)->m_pStationInfo == nullptr || (*globals_status)->m_pStationInfo->m_pShipsInHangar == nullptr)
+        return;
+    auto* arr = reinterpret_cast<AEArray<ShipInfo*>*>((*globals_status)->m_pStationInfo->m_pShipsInHangar);
+    auto& global_ships = **reinterpret_cast<AEArray<ShipInfo*>**>(Offset::GLOBALS_SHIPS);
+    if (id < 0 || id >= static_cast<int>(global_ships.size))
+        return;
+    auto* ship = global_ships.data[id];
+    auto* newship = reinterpret_cast<ShipInfo*>(AbyssEngine::memory_allocate(sizeof(ShipInfo)));
+    std::memcpy(newship, ship, sizeof(ShipInfo));
+    if (ship->m_pShipSlots != nullptr) {
+        auto* newslots = reinterpret_cast<ShipSlots*>(AbyssEngine::memory_allocate(sizeof(ShipSlots)));
+        std::memcpy(newslots, ship->m_pShipSlots, sizeof(ShipSlots));
+        newship->m_pShipSlots = newslots;
+    }
+    int old = arr->size;
+    auto** newdata = reinterpret_cast<ShipInfo**>(AbyssEngine::memory_allocate(sizeof(ShipInfo*) * (old + 1)));
+    if (old > 0 && arr->data != nullptr)
+        std::memcpy(newdata, arr->data, sizeof(ShipInfo*) * old);
+    newdata[old] = newship;
+    arr->data = newdata;
+    arr->size = old + 1;
+    arr->size2 = old + 1;
+}
+
 int Station::getagentscount()
 {
     Sleep(1);

@@ -2,12 +2,21 @@
 #define OFFSET_H
 class Offset {
     public:
+        static constexpr uintptr_t SHIP_HANGAR_OFFSETS = 0x532940;
+        static constexpr uintptr_t SHIP_HANGAR_OFFSETS2 = 0x52F4F0;
+        static constexpr uintptr_t SHIP_MESHES = 0x530AA0;
+        static constexpr uintptr_t SHIP_MESHES_NO_LIGHT = 0x530AF8;
+        static constexpr uintptr_t SHIP_MESHES_ADD_LIGHTS = 0x530B50;
+        static constexpr uintptr_t SHIP_LODS = 0x530BA8;
+        static constexpr uintptr_t SHIP_LIGHT_LODS = 0x530DB8;
+
         static constexpr uintptr_t GLOBALS_STATUS = 0x60AD6C;
         static constexpr uintptr_t GLOBALS_APPMANAGER = 0x60AEFC;
         static constexpr uintptr_t GLOBALS_CANVAS = 0x60AE68;
         static constexpr uintptr_t GLOBALS_INIT_ADDR = 0x0044B20C;
         static constexpr uintptr_t GLOBALS_GALAXY = 0x60AF3C;
         static constexpr uintptr_t GLOBALS_ITEMS = 0x60AEA4;
+        static constexpr uintptr_t GLOBALS_SHIPS = 0x60AE90;
         static constexpr uintptr_t GLOBALS_GETDIALOGUESOUNDID = 0x44DAC3;
         static constexpr uintptr_t GLOBALS_GETSHIPGROUP = 0x44CF2E;
         static constexpr uintptr_t GLOBALS_FONT = 0x60ADCC;
@@ -19,6 +28,7 @@ class Offset {
        
         static constexpr uintptr_t FILEREAD_LOADSTATIONBINARYFROMID = 0x408880;
         static constexpr uintptr_t FILEREAD_LOADSTATIONBIRARY = 0x408C4B;
+        static constexpr uintptr_t FILEREAD_LOADWEAPONPOSITIONS = 0x409C65;
         
         static constexpr uintptr_t STANDING_ISENEMY = 0x4CE34B;
         
@@ -46,6 +56,8 @@ class Offset {
         static constexpr uintptr_t LEVEL_INIT = 0x467061;
         static constexpr uintptr_t LEVEL_CREATECAMPAIGNMISSION = 0x46D9E9;
         static constexpr uintptr_t LEVEL_CREATERADIOMESSAGE = 0x479678;
+        static constexpr uintptr_t LEVEL_CREATEPLAYER = 0x468F99;
+        static constexpr uintptr_t LEVEL_CREATESCENE = 0x472B96;
         
         static constexpr uintptr_t IMAGEFACTORY_DRAWCHAR = 0x45F4C5;
         static constexpr uintptr_t IMAGEFACTORY_LOADCHAR = 0x45F31A;
@@ -65,6 +77,8 @@ class Offset {
 
         static constexpr uintptr_t CUTSCENE_CUTSCENE = 0x404971;
         static constexpr uintptr_t CUTSCENE_RENDER3D = 0x405CDC;
+        static constexpr uintptr_t CUTSCENE_CHECKFORTURRET = 0x40516E;
+        static constexpr uintptr_t CUTSCENE_REPLACEPLAYERSHIP = 0x405096;
 
         static constexpr uintptr_t TARGETFOLLOWCAMERA_SETPOSITION = 0x4DBBDB;
         static constexpr uintptr_t TARGETFOLLOWCAMERA_TRANSLATE = 0x4DBBFF;
@@ -85,6 +99,10 @@ class Offset {
         static constexpr uintptr_t KIPLAYER_ADDGUN = 0x4A9BD4;
 
         static constexpr uintptr_t SHIP_HASJUMPDRIVE = 0x004C2F11;
+        static constexpr uintptr_t SHIP_SHIP = 0x4C2E2;
+        static constexpr uintptr_t SHIP_REFRESHVALUE = 0x4C33AD;
+
+        static constexpr uintptr_t ITEM_GETATTRIBTUTE = 0x45F69A;
 
         static constexpr uintptr_t PLAYEREGO_SETPOSITION = 0x4AC590;
         static constexpr uintptr_t PLAYEREGO_TOGGLECLOAKING = 0x004ABA3B;
@@ -131,5 +149,7 @@ class Offset {
 
         static constexpr uintptr_t MODSTATION_LEAVESTATION = 0x4A0367;
         static constexpr uintptr_t MODSTATION_ONUPDATE = 0x49E1BD;
+
+        static constexpr uintptr_t LISTITEMWINDOW_UPDATE = 0x4837A3;
 };
 #endif

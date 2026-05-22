@@ -216,6 +216,13 @@ struct SingleAgent {
     int field_80;
 };
 
+struct ShipSlots {
+    int m_nPrimaryWeapons;
+    int m_nSecondaryWeapons;
+    int m_nTurrets;
+    int m_nEquipments;  
+};
+
 struct ShipInfo {
     int m_nID;
     int m_nMaxHealth;
@@ -245,7 +252,7 @@ struct ShipInfo {
     int field_5C;
     int field_60;
     int field_64;
-    int* m_pShipInformation;
+    ShipSlots* m_pShipSlots;
     AEArray<SingleItem>* m_pShipEquipment;
     AEArray<SingleItem>* m_pShipItems;
 };
