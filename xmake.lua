@@ -35,6 +35,8 @@ target("kaamoclubmodapi")
     add_packages("lua", "sol2", "minhook")
     add_syslinks("user32")
     set_languages("c++20")
+    --set_symbols("debug")
+    --set_optimize("none")
 
     after_build(function (target)
         os.cp(target:targetfile(), "build")

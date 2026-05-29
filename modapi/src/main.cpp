@@ -31,6 +31,7 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     //Item::init();
     //Ship::init();
     Level::init(luamanager->getluastate());
+    SetUnhandledExceptionFilter(ModApiUtils::crashhandler);
     auto last_tick = std::chrono::steady_clock::now();
     while (1) {
         auto current_tick = std::chrono::steady_clock::now();
@@ -50,7 +51,7 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH: {
-        DisableThreadLibraryCalls(hModule);        
+        DisableThreadLibraryCalls(hModule);
         HANDLE hThread = CreateThread(NULL, 0, MainThread, hModule, 0, NULL);
         if (hThread)
             CloseHandle(hThread);

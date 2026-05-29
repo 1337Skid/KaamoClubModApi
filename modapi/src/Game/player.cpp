@@ -63,6 +63,10 @@ sol::table Player::getshipinfo()
     sol::state_view lua(lstate);
     sol::table shipinfo = lua.create_table();
 
+    if (globals_status == nullptr || *globals_status == nullptr)
+        return shipinfo;
+    if ((*globals_status)->m_pShipInfo == nullptr)
+        return shipinfo;
     shipinfo["id"] = (*globals_status)->m_pShipInfo->m_nID;
     shipinfo["maxhealth"] = (*globals_status)->m_pShipInfo->m_nMaxHealth;
     shipinfo["baseprice"] = (*globals_status)->m_pShipInfo->m_nBasePrice;

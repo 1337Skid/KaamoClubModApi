@@ -10,6 +10,10 @@
 #include <sol/sol.hpp>
 #include <map>
 #include <string>
+#include <DbgHelp.h>
+#include <chrono>
+#include <sstream>
+#include <fstream>
 #include "modapi_utils.h"
 #include "luamanager.h"
 #include "memoryutils.h"
@@ -20,12 +24,15 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
+#pragma comment(lib, "DbgHelp.lib")
+
 class ModApiUtils {
     private:
-        static DWORD getmainthreadid(void);
+        static std::string gettimestamp(void);
+        static std::string getexception_name(DWORD code);
     public:
-        static void suspendgame(bool suspend);
         static void load_mods(LuaManager *luamanager);
         static std::string w2s(const std::wstring& wstr);
+        static LONG WINAPI crashhandler(EXCEPTION_POINTERS *ep);
 };
 #endif

@@ -137,6 +137,8 @@ void EventManager::enemiekilled_event()
 
 void EventManager::cargochanged_event()
 {
+    if (Player::getshipinfo().empty())
+        return;
     static int old = Player::getshipinfo()["cargo"];
     int current = Player::getshipinfo()["cargo"];
 

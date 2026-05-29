@@ -12,6 +12,7 @@
 #include "modapi_utils.h"
 #include "luamanager.h"
 #include "memoryutils.h"
+#include <iomanip>
 #include "eventmanager.h"
 #include "abyssengine.h"
 #include <Game/player.h>
@@ -20,58 +21,109 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-DWORD ModApiUtils::getmainthreadid() 
+std::string ModApiUtils::gettimestamp()
 {
-    DWORD pid = GetCurrentProcessId();
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-    THREADENTRY32 te32;
-    DWORD mainthreadid = 0;
-    unsigned long long oldestTime = (unsigned long long)-1;
+    auto now = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(now);
 
-    if (hSnapshot == INVALID_HANDLE_VALUE)
-        return 0;
-
-    te32.dwSize = sizeof(THREADENTRY32);
-    if (Thread32First(hSnapshot, &te32)) {
-        do {
-            if (te32.th32OwnerProcessID == pid) {
-                HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
-                if (hThread) {
-                    FILETIME ftCreation, ftExit, ftKernel, ftUser;
-                    if (GetThreadTimes(hThread, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
-                        unsigned long long time = ((unsigned long long)ftCreation.dwHighDateTime << 32) | ftCreation.dwLowDateTime;
-                        if (time < oldestTime) {
-                            oldestTime = time;
-                            mainthreadid = te32.th32ThreadID;
-                        }
-                    }
-                    CloseHandle(hThread);
-                }
-            }
-        } while (Thread32Next(hSnapshot, &te32));
-    }
-    CloseHandle(hSnapshot);
-    return mainthreadid;
+    std::tm tmp{};
+    localtime_s(&tmp, &time);
+    std::ostringstream oss;
+    oss << std::put_time(&tmp, "%Y-%m-%d_%H-%M-%S");
+    return oss.str();
 }
 
-void ModApiUtils::suspendgame(bool suspend)
+std::string ModApiUtils::getexception_name(DWORD code)
 {
-    DWORD mainthreadid = getmainthreadid();
-
-    if (mainthreadid == 0)
-        return;
-
-    HANDLE hMainThread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, mainthreadid);
-
-    if (hMainThread) {
-        if (suspend)
-            SuspendThread(hMainThread);
-        else 
-            while (ResumeThread(hMainThread) > 1);
-        CloseHandle(hMainThread);
-    } else {
-        std::cout << "[-] Couldn't open main game thread??? black magic????" << std::endl;
+    switch (code) {
+        case EXCEPTION_ACCESS_VIOLATION: return "ACCESS_VIOLATION";
+        case EXCEPTION_STACK_OVERFLOW: return "STACK_OVERFLOW";
+        case EXCEPTION_ILLEGAL_INSTRUCTION: return "ILLEGAL_INSTRUCTION";
+        case EXCEPTION_INT_DIVIDE_BY_ZERO: return "DIVIDE_BY_ZERO";
+        case EXCEPTION_BREAKPOINT: return "BREAKPOINT";
+        case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "ARRAY_BOUNDS_EXCEEDED";
+        case EXCEPTION_FLT_DIVIDE_BY_ZERO: return "FLT_DIVIDE_BY_ZERO";
+        case EXCEPTION_INT_OVERFLOW: return "INT_OVERFLOW";
+        default: return "what thee helllll";
     }
+}
+
+LONG WINAPI ModApiUtils::crashhandler(EXCEPTION_POINTERS* ep)
+{
+    static volatile LONG guard = 0;
+
+    if (InterlockedExchange(&guard, 1) != 0)
+        return EXCEPTION_EXECUTE_HANDLER;
+    std::string ts = gettimestamp();
+    std::ostringstream log;
+    log << "========================================\n";
+    log << "  KaamoClubModAPI - crash\n";
+    log << "  Version: 1.0.2\n";
+    log << "========================================\n\n";
+    DWORD code = ep->ExceptionRecord->ExceptionCode;
+    log << "[Exception]\n";
+    log << "  Code: " << getexception_name(code) << "\n";
+    log << "  Address: 0x" << std::hex << reinterpret_cast<uintptr_t>(ep->ExceptionRecord->ExceptionAddress) << std::dec << "\n";
+    if (code == EXCEPTION_ACCESS_VIOLATION && ep->ExceptionRecord->NumberParameters >= 2) {
+        log << "  Type: " << (ep->ExceptionRecord->ExceptionInformation[0] == 1 ? "WRITE" : "READ") << "\n";
+        log << "  Target: 0x" << std::hex << ep->ExceptionRecord->ExceptionInformation[1] << std::dec << "\n";
+    }
+    CONTEXT* ctx = ep->ContextRecord;
+    log << "\n[Registers]\n" << std::hex;
+    log << "  EAX=" << ctx->Eax << "  EBX=" << ctx->Ebx << "  ECX=" << ctx->Ecx << "  EDX=" << ctx->Edx << "\n";
+    log << "  ESI=" << ctx->Esi << "  EDI=" << ctx->Edi << "  ESP=" << ctx->Esp << "  EBP=" << ctx->Ebp << "\n";
+    log << "  EIP=" << ctx->Eip << "  EFlags=" << ctx->EFlags << "\n" << std::dec;
+    log << "\n[Module at Crash Address]\n";
+    HMODULE handlemodule = nullptr;
+    if (GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCTSTR>(ep->ExceptionRecord->ExceptionAddress), &handlemodule)) {
+        char modulepath[MAX_PATH];
+        GetModuleFileNameA(handlemodule, modulepath, MAX_PATH);
+        uintptr_t base = reinterpret_cast<uintptr_t>(handlemodule);
+        uintptr_t offset = reinterpret_cast<uintptr_t>(ep->ExceptionRecord->ExceptionAddress) - base;
+        log << "  Name: " << modulepath << "\n";
+        log << "  Base: 0x" << std::hex << base << "\n";
+        log << "  Offset: 0x" << offset << std::dec << "\n";
+        FreeLibrary(handlemodule);
+    } else {
+        log << "  which module crashed???\n";
+    }
+    log << "\n[Stack Trace]\n";
+    SymInitialize(GetCurrentProcess(), nullptr, TRUE);
+    CONTEXT ctxCopy = *ctx;
+    STACKFRAME64 sf = {};
+    sf.AddrPC.Offset = ctx->Eip; sf.AddrPC.Mode = AddrModeFlat;
+    sf.AddrFrame.Offset = ctx->Ebp; sf.AddrFrame.Mode = AddrModeFlat;
+    sf.AddrStack.Offset = ctx->Esp; sf.AddrStack.Mode = AddrModeFlat;
+    for (int i = 0; i < 32; i++) {
+        if (!StackWalk64(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, &ctxCopy, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+            break;
+        if (sf.AddrPC.Offset == 0)
+            break;
+        log << "  [" << i << "] 0x" << std::hex << sf.AddrPC.Offset;
+        char symbuf[sizeof(SYMBOL_INFO) + 256] = {};
+        SYMBOL_INFO* sym = reinterpret_cast<SYMBOL_INFO*>(symbuf);
+        sym->SizeOfStruct = sizeof(SYMBOL_INFO);
+        sym->MaxNameLen = 255;
+        DWORD64 disp64 = 0;
+        if (SymFromAddr(GetCurrentProcess(), sf.AddrPC.Offset, &disp64, sym))
+            log << "  " << sym->Name << " +0x" << disp64;
+        IMAGEHLP_LINE64 line = {}; line.SizeOfStruct = sizeof(line);
+        DWORD linedisplay = 0;
+        if (SymGetLineFromAddr64(GetCurrentProcess(), sf.AddrPC.Offset, &linedisplay, &line))
+            log << "  (" << line.FileName << ":" << std::dec << line.LineNumber << ")";
+        log << "\n";
+    }
+    SymCleanup(GetCurrentProcess());
+    if (!std::filesystem::exists("crashlogs"))
+        std::filesystem::create_directory("crashlogs");
+    std::string logpath = "crashlogs/crash_" + ts + ".txt";
+    std::ofstream file(logpath);
+    if (file.is_open()) {
+        file << log.str();
+        file.flush();
+        file.close();
+    }
+    return EXCEPTION_EXECUTE_HANDLER;
 }
 
 void ModApiUtils::load_mods(LuaManager *luamanager)
