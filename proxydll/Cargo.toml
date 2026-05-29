@@ -7,7 +7,7 @@ build = "build.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-winapi = {version = "0.3.9", features = ["consoleapi", "minwindef", "d3d9", "libloaderapi", "winnt"] } 
+winapi = {version = "0.3.9", features = ["consoleapi", "minwindef", "d3d9", "libloaderapi", "winnt", "processthreadsapi", "synchapi", "handleapi"] }
 
 [lib]
 name = "d3d9"

@@ -1,19 +1,19 @@
 #![cfg(windows)]
-
 extern crate core;
-
 use winapi::shared::minwindef;
 use winapi::shared::minwindef::{BOOL, DWORD, HINSTANCE, LPVOID, UINT, MAX_PATH};
 use winapi::shared::d3d9;
-use winapi::um::winnt::{LPCSTR};
+use winapi::shared::d3d9::IDirect3D9;
+use winapi::um::winnt::LPCSTR;
 use winapi::um::libloaderapi::{LoadLibraryA, GetProcAddress, GetModuleFileNameA};
 use winapi::um::consoleapi;
+use winapi::um::processthreadsapi::CreateThread;
+use winapi::um::synchapi::Sleep;
 use std::ptr;
 use std::ffi::CString;
 use std::mem;
-use winapi::shared::d3d9::IDirect3D9;
 
-type _D3DCreate9 =  extern "stdcall" fn(UINT) -> *mut d3d9::IDirect3D9;
+type _D3DCreate9 = extern "stdcall" fn(UINT) -> *mut d3d9::IDirect3D9;
 type _D3DPERF_SetOptions = extern "stdcall" fn(DWORD);
 
 static mut hOriginal: HINSTANCE = ptr::null_mut();
@@ -36,6 +36,58 @@ pub unsafe extern "stdcall" fn Direct3DCreate9(SDKVersion: UINT) -> *mut IDirect
     }
 }
 
+unsafe extern "system" fn load_payload(_: LPVOID) -> DWORD {
+    consoleapi::AllocConsole();
+    println!("[*] Loading KaamoClubModAPI...");
+    println!("[*] Loading core modapi dll...");
+
+    let payload_path = match CString::new("kaamoclubmodapi.dll") {
+        Ok(s) => s,
+        Err(_) => {
+            println!("[-] CString creation failed");
+            return 1;
+        }
+    };
+    let coremodapi = LoadLibraryA(payload_path.as_ptr());
+    if coremodapi.is_null() {
+        println!("[-] Failed to load the core modapi dll");
+    } else {
+        println!("[+] Successfully loaded core modapi dll at: {:?}", coremodapi);
+    }
+
+    0
+}
+
+fn initialize() {
+    unsafe {
+        hOriginal = LoadLibraryA(CString::new("C:\\Windows\\System32\\d3d9.dll").unwrap().as_ptr());
+        if !hOriginal.is_null() {
+            pDirect3DCreate9 = Some(mem::transmute(
+                GetProcAddress(hOriginal, CString::new("Direct3DCreate9").unwrap().as_ptr())
+            ));
+            pD3DPERF_SetOptions = Some(mem::transmute(
+                GetProcAddress(hOriginal, CString::new("D3DPERF_SetOptions").unwrap().as_ptr())
+            ));
+        } else {
+            panic!("Couldn't find d3d9.dll on the system");
+        }
+        let mut buffer = [0i8; MAX_PATH];
+        let len = GetModuleFileNameA(ptr::null_mut(), buffer.as_mut_ptr(), MAX_PATH as u32);
+        if len > 0 {
+            let slice = std::slice::from_raw_parts(buffer.as_ptr() as *const u8, len as usize);
+            let path_str = String::from_utf8_lossy(slice).to_lowercase();
+            if path_str.contains("gof2launcher.exe") {
+                return;
+            }
+        }
+        let thread = CreateThread(ptr::null_mut(), 0, Some(load_payload), ptr::null_mut(), 0, ptr::null_mut(),);
+        if thread.is_null() {
+            panic!("[-] Failed to create loader thread");
+        }
+        winapi::um::handleapi::CloseHandle(thread);
+    }
+}
+
 #[no_mangle]
 #[allow(non_snake_case, unused_variables)]
 extern "system" fn DllMain(dll_module: HINSTANCE, call_reason: DWORD, reserved: LPVOID) -> BOOL {
@@ -49,48 +101,4 @@ extern "system" fn DllMain(dll_module: HINSTANCE, call_reason: DWORD, reserved: 
     }
 
     minwindef::TRUE
-}
-
-fn initialize() {
-    unsafe {
-        hOriginal = LoadLibraryA(CString::new("C:\\Windows\\System32\\d3d9.dll").unwrap().as_ptr());
-        
-        if !hOriginal.is_null() {
-            pDirect3DCreate9 = Some(mem::transmute(GetProcAddress(hOriginal, CString::new("Direct3DCreate9").unwrap().as_ptr())));
-            pD3DPERF_SetOptions = Some(mem::transmute(GetProcAddress(hOriginal, CString::new("D3DPERF_SetOptions").unwrap().as_ptr())));
-        } else {
-            panic!("Couldn't find d3d9.dll on the system");
-        }
-
-        let mut buffer = [0i8; MAX_PATH];
-        let len = GetModuleFileNameA(ptr::null_mut(), buffer.as_mut_ptr(), MAX_PATH as u32);
-        
-        if len > 0 {
-            let slice = std::slice::from_raw_parts(buffer.as_ptr() as *const u8, len as usize);
-            let path_str = String::from_utf8_lossy(slice).to_lowercase();
-
-            if path_str.contains("gof2launcher.exe") {
-                return;
-            }
-        }
-
-        consoleapi::AllocConsole();
-        println!("[*] Loading KaamoClubModAPI...");
-
-        let payload_path: CString;
-        match CString::new("kaamoclubmodapi.dll") {
-            Ok(o) => payload_path = o,
-            Err(_) => panic!("[-] CString creation failed")
-        }
-        
-        println!("[*] Loading core modapi dll...");
-        
-        let coremodapi = LoadLibraryA(payload_path.as_ptr());
-
-        if coremodapi.is_null() {
-            println!("[-] Failed to load the core modapi dll");
-        } else {
-            println!("[+] Successfully loaded core modapi dll at: {:?}", coremodapi);
-        }
-    }
 }
