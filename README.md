@@ -44,7 +44,7 @@ KaamoClubModApi is a modding api for **Galaxy on Fire 2** on PC. It injects via 
 
 ## Making Mods
 
-Full documentation is in progress. In the meantime the best reference is the examples mods in the [`mods_examples/`](https://github.com/1337Skid/KaamoClubModApi/tree/main/mods_examples) folder. They cover the basics of events,hooking and are kept up to date with the latest api changes.
+A full documentation is at https://gof2modding.memoryleak.space. The documentation cover the basics of events,hooking and are kept up to date with the latest api changes.
 
 ---
 
