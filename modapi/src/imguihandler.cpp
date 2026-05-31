@@ -291,8 +291,7 @@ void ImGuiHandler::init(LuaManager *luamanager)
     MH_CreateHook(GetProcAddress(user32module, "GetKeyState"), reinterpret_cast<void*>(getkeystate_hook), reinterpret_cast<void**>(&old_getkeystate));
     MH_CreateHook(GetProcAddress(user32module, "ShowCursor"), reinterpret_cast<void*>(showcursor_hook), reinterpret_cast<void**>(&old_showcursor));
     MH_CreateHook(reinterpret_cast<void*>(addr), reinterpret_cast<void*>(endscene_hook), reinterpret_cast<void**>(&old_endscene));
-    if (resetaddr)
-        MH_CreateHook(reinterpret_cast<void*>(resetaddr), reinterpret_cast<void*>(reset_hook), reinterpret_cast<void**>(&old_reset));
+    MH_CreateHook(reinterpret_cast<void*>(resetaddr), reinterpret_cast<void*>(reset_hook), reinterpret_cast<void**>(&old_reset));
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

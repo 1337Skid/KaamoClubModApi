@@ -51,8 +51,6 @@ unsafe extern "system" fn load_payload(_: LPVOID) -> DWORD {
     let coremodapi = LoadLibraryA(payload_path.as_ptr());
     if coremodapi.is_null() {
         println!("[-] Failed to load the core modapi dll");
-    } else {
-        println!("[+] Successfully loaded core modapi dll at: {:?}", coremodapi);
     }
 
     0
