@@ -13,6 +13,9 @@
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 typedef HRESULT(WINAPI *EndScene_define)(IDirect3DDevice9*);
 static EndScene_define old_endscene = nullptr;
+typedef HRESULT(WINAPI *Reset_define)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*);
+static Reset_define old_reset = nullptr;
+static uintptr_t resetaddr = 0;
 typedef SHORT(WINAPI *GetAsyncKeyState_define)(int);
 static GetAsyncKeyState_define old_getasynckeystate = nullptr;
 typedef SHORT(WINAPI *GetKeyState_define)(int);
@@ -42,6 +45,8 @@ bool ImGuiHandler::isluawindowopen()
 
 bool ImGuiHandler::blockinput()
 {
+    if (handle_hwnd && GetForegroundWindow() != handle_hwnd)
+        return false;
     return std::any_of(windows.begin(), windows.end(), [](const LuaWindow& w) { 
         return w.isopen && w.lockinput; 
     });
@@ -87,8 +92,6 @@ BOOL WINAPI clipcursor_hook(const RECT *rect)
 
 int WINAPI showcursor_hook(BOOL show)
 {
-    if (ImGuiHandler::blockinput())
-        return show ? 1 : -1;
     return old_showcursor(show);
 }
 
@@ -146,14 +149,23 @@ static LRESULT WINAPI wndproc_hook(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lp
             case WM_MOUSEWHEEL:
             case WM_KEYDOWN:
             case WM_KEYUP:
-            case WM_SYSKEYDOWN:
-            case WM_SYSKEYUP:
             case WM_CHAR:
                 return 1;
         }
     }
 
     return CallWindowProcW(original_wndproc, hwnd, msg, wparam, lparam);
+}
+
+static HRESULT WINAPI reset_hook(IDirect3DDevice9 *dev, D3DPRESENT_PARAMETERS *params)
+{
+    if (!ImGuiHandler::isinit)
+        return old_reset(dev, params);
+    ImGui_ImplDX9_InvalidateDeviceObjects();
+    HRESULT hr = old_reset(dev, params);
+    if (SUCCEEDED(hr))
+        ImGui_ImplDX9_CreateDeviceObjects();
+    return hr;
 }
 
 static HRESULT WINAPI endscene_hook(IDirect3DDevice9 *dev)
@@ -242,8 +254,9 @@ static uintptr_t get_endscene()
     params.Windowed = TRUE;
     IDirect3DDevice9 *dev = nullptr;
     uintptr_t addr = 0;
-    if (SUCCEEDED(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, tmp, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &params, &dev)) && dev) {
+    if (SUCCEEDED(d3d->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_NULLREF, tmp, D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_DISABLE_DRIVER_MANAGEMENT, &params, &dev)) && dev) {
         addr = (*reinterpret_cast<uintptr_t**>(dev))[42];
+        resetaddr = (*reinterpret_cast<uintptr_t**>(dev))[16];
         dev->Release();
     }
     d3d->Release();
@@ -278,6 +291,8 @@ void ImGuiHandler::init(LuaManager *luamanager)
     MH_CreateHook(GetProcAddress(user32module, "GetKeyState"), reinterpret_cast<void*>(getkeystate_hook), reinterpret_cast<void**>(&old_getkeystate));
     MH_CreateHook(GetProcAddress(user32module, "ShowCursor"), reinterpret_cast<void*>(showcursor_hook), reinterpret_cast<void**>(&old_showcursor));
     MH_CreateHook(reinterpret_cast<void*>(addr), reinterpret_cast<void*>(endscene_hook), reinterpret_cast<void**>(&old_endscene));
+    if (resetaddr)
+        MH_CreateHook(reinterpret_cast<void*>(resetaddr), reinterpret_cast<void*>(reset_hook), reinterpret_cast<void**>(&old_reset));
     MH_EnableHook(MH_ALL_HOOKS);
 }
 
