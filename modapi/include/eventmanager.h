@@ -32,7 +32,7 @@ class EventManager {
                 return;
             for (auto& func : listeners[eventname]) {
                 // basically the async events
-                if (eventname == "OnAsteroidDestroyed" || eventname == "OnSystemChanged" || eventname == "OnStationChanged" || eventname == "OnStationDocked" || eventname == "OnEnemieKilled") {
+                if (eventname != "EarlyInit") {
                     sol::state_view lua(lua_manager->getluastate());
                     sol::thread thread = sol::thread::create(lua);
                     sol::coroutine cor(thread.state(), func);

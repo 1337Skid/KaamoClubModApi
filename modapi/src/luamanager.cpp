@@ -9,6 +9,7 @@
 #include <map>
 #include <string>
 #include "modapi_utils.h"
+#include "imguihandler.h"
 #include "luamanager.h"
 #include "memoryutils.h"
 #include "hookcontext.h"
@@ -244,12 +245,87 @@ void LuaManager::bind_api()
         }
     );
 
+    lua_state.new_usertype<ImGuiHandler>("ImGui",
+        sol::no_constructor,
+        "Text", [](ImGuiHandler&, const std::string& text) {
+            ImGui::Text("%s", text.c_str());
+        },
+        "ColoredText", [](ImGuiHandler&, const std::string& text, float r, float g, float b, float a) {
+            ImGui::TextColored(ImVec4(r, g, b, a), "%s", text.c_str());
+        },
+        "Button", [](ImGuiHandler&, const std::string& label) -> bool {
+            return ImGui::Button(label.c_str());
+        },
+        "Checkbox", [](ImGuiHandler&, const std::string& text, bool value) -> bool {
+            ImGui::Checkbox(text.c_str(), &value);
+            return value;
+        },
+        "SliderFloat", [](ImGuiHandler&, const std::string& text, float value, float min, float max) -> float {
+            ImGui::SliderFloat(text.c_str(), &value, min, max);
+            return value;
+        },
+        "SliderInt", [](ImGuiHandler&, const std::string& text, int value, int min, int max) -> int {
+            ImGui::SliderInt(text.c_str(), &value, min, max);
+            return value;
+        },
+        "InputText", [](ImGuiHandler&, const std::string& text, const std::string& value) -> std::string {
+            std::string buf = value;
+            buf.resize(256);
+            ImGui::InputText(text.c_str(), buf.data(), buf.size());
+            buf.resize(strlen(buf.data()));
+            return buf;
+        },
+        "InputFloat", [](ImGuiHandler&, const std::string& text, float value) -> float {
+            ImGui::InputFloat(text.c_str(), &value);
+            return value;
+        },
+        "InputInt", [](ImGuiHandler&, const std::string& text, int value) -> int {
+            ImGui::InputInt(text.c_str(), &value);
+            return value;
+        },
+        "Separator", [](ImGuiHandler&) {
+            ImGui::Separator();
+        },
+        "SameLine", [](ImGuiHandler&) {
+            ImGui::SameLine();
+        },
+        "Spacing", [](ImGuiHandler&) {
+            ImGui::Spacing();
+        },
+        "SetWindowOpen", [](ImGuiHandler&, const std::string& title, bool isopen) {
+            ImGuiHandler::set_windowopen(title, isopen);
+        },
+        "IsWindowOpen", [](ImGuiHandler&, const std::string& title) -> bool {
+            return ImGuiHandler::is_windowopen(title);
+        }
+    );
+
     lua_state.set_function("RegisterEvent", [&](std::string name, sol::protected_function callback) {
         EventManager::addlistener(name, callback);
     });
 
     lua_state.set_function("HookFunction", [&](std::string name, sol::protected_function callback) {
         EventManager::addhook(name, callback);
+    });
+
+    lua_state.set_function("RegisterWindow", [&](const std::string& title, sol::protected_function draw, int togglekey, sol::object lockinput) {
+        if (!globalscope) {
+            std::cout << "[ImGui Lua] error: RegisterWindow is only available in the global scope!" << std::endl;
+            return;
+        }
+        bool lock = true;
+        if (lockinput.is<bool>()) {
+            lock = lockinput.as<bool>();
+        } else if (lockinput.is<int>()) {
+            lock = (lockinput.as<int>() != 0);
+        }
+        ImGuiHandler::add_window(title, [draw]() {
+            auto result = draw();
+            if (!result.valid()) {
+                sol::error err = result;
+                std::cout << "[ImGui Lua] error: " << err.what() << std::endl;
+            }
+        }, togglekey, lock);
     });
 
     lua_state["player"] = Player();
@@ -260,6 +336,7 @@ void LuaManager::bind_api()
     lua_state["item"] = Item();
     lua_state["level"] = Level();
     lua_state["memoryutils"] = MemoryUtils();
+    lua_state["imgui"] = ImGuiHandler();
 }
 
 void LuaManager::handle_coroutine(sol::thread script, sol::coroutine cor, const sol::protected_function_result& result, std::function<void()> on_complete, std::vector<sol::object> args)
@@ -295,7 +372,9 @@ void LuaManager::execute_script(const std::string& filepath)
             std::cout << "[LuaManager] Load error: " << err.what() << std::endl;
             return;
         }
+        globalscope = true;
         sol::protected_function_result result = loaded_script();
+        globalscope = false;
         if (!result.valid()) {
             sol::error err = result;
             std::cout << "[LuaManager] runtime error: " << err.what() << std::endl;

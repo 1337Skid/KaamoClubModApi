@@ -58,11 +58,14 @@ void Hooks::injectships()
     std::memcpy(lightlods, reinterpret_cast<void*>(Offset::SHIP_LIGHT_LODS), 12 * old);
     std::memcpy(ui_meshes_1, reinterpret_cast<void*>(0x0052F288), sizeof(WORD) * old);
     std::memcpy(ui_meshes_2, reinterpret_cast<void*>(0x0052F2E0), sizeof(WORD) * old);
-    auto* copyship_example = ships.data[0]; // we copy the first ship for a good example (we'll edit the stats etc...)
+    auto* copyship_example = reinterpret_cast<ShipInfo*>(ships.data[0]); // we copy the first ship for a good example (we'll edit the stats etc...)
     for (int i = 0; i < Ship::created_ships.size(); i++) {
         int shipid = old + static_cast<int>(i);
         ShipInfo* newship = reinterpret_cast<ShipInfo*>(AbyssEngine::memory_allocate(120));
         std::memcpy(newship, copyship_example, 120);
+        ShipSlots* newslots = reinterpret_cast<ShipSlots*>(AbyssEngine::memory_allocate(sizeof(ShipSlots)));
+        std::memcpy(newslots, copyship_example->m_pShipSlots, sizeof(ShipSlots));
+        newship->m_pShipSlots = newslots;
         newship->m_nID = shipid;
         newship->m_nMaxHealth = Ship::created_ships[i].armor;
         newship->m_nBasePrice = Ship::created_ships[i].baseprice;
@@ -76,22 +79,22 @@ void Hooks::injectships()
         newship_data[shipid] = reinterpret_cast<int*>(newship);
         newhangaroffsets_one[shipid] = Ship::created_ships[i].hangar_y;
         newhangaroffsets_two[shipid] = Ship::created_ships[i].hangar_y;
-        ui_meshes_1[shipid] = Ship::created_ships[i].lod0; 
+        ui_meshes_1[shipid] = Ship::created_ships[i].lod0;
         ui_meshes_2[shipid] = Ship::created_ships[i].lod0;
-        meshes[shipid] = Ship::created_ships[i].lod0; 
+        meshes[shipid] = Ship::created_ships[i].lod0;
         nolights[shipid] = -1;
         addlights[shipid] = -1;
         auto* current_lod = lods + (shipid * 12);
         *reinterpret_cast<DWORD*>(current_lod + 0) = Ship::created_ships[i].lod0;
         *reinterpret_cast<DWORD*>(current_lod + 4) = Ship::created_ships[i].lod1;
         *reinterpret_cast<DWORD*>(current_lod + 8) = Ship::created_ships[i].lod2;
-        auto* current_lighlods = lightlods + (shipid * 12);
-        *reinterpret_cast<WORD*>(current_lighlods + 0) = -1;
-        *reinterpret_cast<WORD*>(current_lighlods + 2) = 0;
-        *reinterpret_cast<WORD*>(current_lighlods + 4) = -1;
-        *reinterpret_cast<WORD*>(current_lighlods + 6) = 0;
-        *reinterpret_cast<WORD*>(current_lighlods + 8) = -1;
-        *reinterpret_cast<WORD*>(current_lighlods + 10) = 0;
+        auto* current_lightlods = lightlods + (shipid * 12);
+        *reinterpret_cast<WORD*>(current_lightlods + 0)  = -1;
+        *reinterpret_cast<WORD*>(current_lightlods + 2)  = 0;
+        *reinterpret_cast<WORD*>(current_lightlods + 4)  = -1;
+        *reinterpret_cast<WORD*>(current_lightlods + 6)  = 0;
+        *reinterpret_cast<WORD*>(current_lightlods + 8)  = -1;
+        *reinterpret_cast<WORD*>(current_lightlods + 10) = 0;
     }
     ships.data = newship_data;
     ships.size = total;
@@ -1336,19 +1339,38 @@ int __cdecl Hooks::status_getcampaignmission_hook()
 
 int __cdecl Hooks::status_getfreelancemission_hook()
 {
+    // TODO: what if we have a real campaign mission? then for the getcampaignmission what if we have a real freelance mission? make your own array with every ongoing missions (hook the accept mission idk)
+    int* a1;
+    int returnvalue;
     void* returnaddr = nullptr;
 
     __asm {
-        mov edx, [ebp + 4]
-        mov returnaddr, edx
+        mov a1, eax
+        mov eax, [ebp+4]
+        mov returnaddr, eax
+        pushad
+        pushfd
+    }
+    __asm {
+        popfd
+        popad
     }
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4D0452 && Mission::created_missions.size() > 0) {
         for (const auto& custom_mission : Mission::created_missions) {
-            if (custom_mission.enabled && custom_mission.type == 0)
+            if (custom_mission.enabled && custom_mission.type == 0) {
+                __asm {
+                    mov eax, 0
+                }
                 return 0;
+            }
         }
     }
-    return old_statusgetfreelancemission();
+    __asm {
+        mov eax, a1
+        call old_statusgetfreelancemission
+        mov returnvalue, eax
+    }
+    return returnvalue;
 }
 
 int __cdecl Hooks::starmap_dtor_hook()
@@ -1410,7 +1432,7 @@ int __thiscall Hooks::modstation_onupdate_hook(ModStation *a1)
 
 void __thiscall Hooks::mgame_onupdate_hook(MGame *a1)
 {
-    // this is needed because if we create a custom mission and then click on "close" or "skip" the real mission id will increments lol
+    // this is needed because if we create a custom mission and then click on "close" or "skip" in a dialogue window then the real mission id will be incremented lol
     if (Mission::created_missions.size() > 0 && *(bool*)((uintptr_t)a1 + 0x5e)) {
         for (const auto& custom_mission : Mission::created_missions) {
             if (custom_mission.entered_mission) {

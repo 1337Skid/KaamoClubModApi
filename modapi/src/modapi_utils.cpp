@@ -58,7 +58,7 @@ LONG WINAPI ModApiUtils::crashhandler(EXCEPTION_POINTERS* ep)
     std::ostringstream log;
     log << "========================================\n";
     log << "  KaamoClubModAPI - crash\n";
-    log << "  Version: 1.0.2\n";
+    log << "  Version: 1.0.3\n";
     log << "========================================\n\n";
     DWORD code = ep->ExceptionRecord->ExceptionCode;
     log << "[Exception]\n";
@@ -91,9 +91,12 @@ LONG WINAPI ModApiUtils::crashhandler(EXCEPTION_POINTERS* ep)
     SymInitialize(GetCurrentProcess(), nullptr, TRUE);
     CONTEXT ctxCopy = *ctx;
     STACKFRAME64 sf = {};
-    sf.AddrPC.Offset = ctx->Eip; sf.AddrPC.Mode = AddrModeFlat;
-    sf.AddrFrame.Offset = ctx->Ebp; sf.AddrFrame.Mode = AddrModeFlat;
-    sf.AddrStack.Offset = ctx->Esp; sf.AddrStack.Mode = AddrModeFlat;
+    sf.AddrPC.Offset = ctx->Eip;
+    sf.AddrPC.Mode = AddrModeFlat;
+    sf.AddrFrame.Offset = ctx->Ebp;
+    sf.AddrFrame.Mode = AddrModeFlat;
+    sf.AddrStack.Offset = ctx->Esp;
+    sf.AddrStack.Mode = AddrModeFlat;
     for (int i = 0; i < 32; i++) {
         if (!StackWalk64(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &sf, &ctxCopy, nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
             break;
@@ -107,7 +110,8 @@ LONG WINAPI ModApiUtils::crashhandler(EXCEPTION_POINTERS* ep)
         DWORD64 disp64 = 0;
         if (SymFromAddr(GetCurrentProcess(), sf.AddrPC.Offset, &disp64, sym))
             log << "  " << sym->Name << " +0x" << disp64;
-        IMAGEHLP_LINE64 line = {}; line.SizeOfStruct = sizeof(line);
+        IMAGEHLP_LINE64 line = {};
+        line.SizeOfStruct = sizeof(line);
         DWORD linedisplay = 0;
         if (SymGetLineFromAddr64(GetCurrentProcess(), sf.AddrPC.Offset, &linedisplay, &line))
             log << "  (" << line.FileName << ":" << std::dec << line.LineNumber << ")";
@@ -123,6 +127,7 @@ LONG WINAPI ModApiUtils::crashhandler(EXCEPTION_POINTERS* ep)
         file.flush();
         file.close();
     }
+    MessageBoxW(NULL, L"Uh oh, looks like the game crashed.\n\n" L"Crash logs have been saved in the folder \"crashlogs\".", L"Game crash", MB_OK | MB_ICONERROR);
     return EXCEPTION_EXECUTE_HANDLER;
 }
 

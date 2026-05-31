@@ -19,6 +19,7 @@ class LuaManager {
         };
         sol::state lua_state;
         std::vector<LuaTask> tasks;
+        bool globalscope = false;
     public:
         void init();
         void bind_api();

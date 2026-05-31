@@ -2,6 +2,8 @@
 #define OFFSET_H
 class Offset {
     public:
+        static constexpr uintptr_t WNDPROC_GOF2 = 0x4E1400; // for imgui hook
+
         static constexpr uintptr_t SHIP_HANGAR_OFFSETS = 0x532940;
         static constexpr uintptr_t SHIP_HANGAR_OFFSETS2 = 0x52F4F0;
         static constexpr uintptr_t SHIP_MESHES = 0x530AA0;

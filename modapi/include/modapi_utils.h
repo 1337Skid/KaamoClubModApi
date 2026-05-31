@@ -24,8 +24,6 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-#pragma comment(lib, "DbgHelp.lib")
-
 class ModApiUtils {
     private:
         static std::string gettimestamp(void);

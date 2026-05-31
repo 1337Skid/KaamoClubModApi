@@ -4,19 +4,22 @@
 #include "eventmanager.h"
 #include "patches.h"
 #include "hooks.h"
+#include "imguihandler.h"
 #include <Game/system.h>
 #include <Game/level.h>
 #include <chrono>
 
-DWORD WINAPI MainThread(LPVOID lpParam) {
+DWORD WINAPI MainThread(LPVOID lpParam)
+{
     // TODO: CLEAN THE GOD DAMN HEADERS!!!!!!!!!!!!!
+    HWND gamehwnd = nullptr;
     LuaManager *luamanager = new LuaManager();
     FILE* dummyfile;
     freopen_s(&dummyfile, "CONOUT$", "w", stdout);
     freopen_s(&dummyfile, "CONOUT$", "w", stderr);
     freopen_s(&dummyfile, "CONIN$", "r", stdin);
     
-    std::cout << "[+] KaamoClubModAPI Loaded! | Version: 1.0.2" << std::endl;    
+    std::cout << "[+] KaamoClubModAPI Loaded! | Version: 1.0.3" << std::endl;    
     luamanager->init();
     luamanager->bind_api();
     EventManager::lua_manager = luamanager;
@@ -31,24 +34,32 @@ DWORD WINAPI MainThread(LPVOID lpParam) {
     //Item::init();
     //Ship::init();
     Level::init(luamanager->getluastate());
+    ImGuiHandler::init(luamanager);
     SetUnhandledExceptionFilter(ModApiUtils::crashhandler);
-    auto last_tick = std::chrono::steady_clock::now();
-    while (1) {
-        auto current_tick = std::chrono::steady_clock::now();
-        std::chrono::duration<float> ticks = current_tick - last_tick;
-        float dt = ticks.count();
-        last_tick = current_tick;
-        luamanager->update(dt);
-        EventManager::trigger_events();
-        Sleep(10); // cpu won't fry with this one :fire:
+    // a thread waiting to be closed
+    while (true) {
+        if (!gamehwnd)
+            gamehwnd = FindWindowA("GOF2", nullptr);
+        if (ImGuiHandler::isinit && ImGuiHandler::handle_hwnd)
+            gamehwnd = ImGuiHandler::handle_hwnd;
+        if (ImGuiHandler::isshuttingdown)
+            break;
+        if (gamehwnd && !IsWindow(gamehwnd))
+            break;
+        Sleep(10);
     }
+    MH_DisableHook(MH_ALL_HOOKS);
+    ImGuiHandler::shutdown();
+    MH_Uninitialize();
     if (dummyfile)
         fclose(dummyfile);
-    FreeLibraryAndExitThread((HMODULE)lpParam, 0);
+    delete luamanager;
+    ExitProcess(0);
     return 0;
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved)
+{
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH: {
         DisableThreadLibraryCalls(hModule);

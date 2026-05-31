@@ -46,7 +46,7 @@ void EventManager::joingame_event()
     if (!joinedgame && globals_appmanager && ((*globals_appmanager)->m_nCurrentModule == 5 || (*globals_appmanager)->m_nCurrentModule == 2)) {
         Item::refreshitemsprices();
         Level::created_radiomessages.clear(); // TODO: ~RadioMessages() is only being call in Level::~Level() so uhm how to clean this after the radiomessage being show mmh
-        Level::created_cutscenepts.clear(); // TODO: destructor?
+        Level::created_dialoguemessages.clear();
         joinedgame = true;
         trigger("OnJoinGame");
     }
@@ -80,7 +80,7 @@ void EventManager::stationchanged_event()
 
     if (current != old) {
         Level::created_radiomessages.clear();
-        Level::created_cutscenepts.clear();
+        Level::created_dialoguemessages.clear();
         Globals_status** globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
         SingleMission *m = reinterpret_cast<SingleMission*>((*globals_status)->m_pMission);
         for (auto& custom_mission : Mission::created_missions) {
