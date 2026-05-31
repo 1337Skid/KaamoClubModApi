@@ -21,13 +21,13 @@ void Hooks::injectitems()
     memcpy(new_array->data, old_array->data, sizeof(SingleItem*) * old_array->size);
     for (int i = 0; i < static_cast<int>(Item::created_items.size()); i++) {
         SingleItem* item = (SingleItem*)AbyssEngine::memory_allocate(sizeof(SingleItem));        
-        *item = Item::created_items[i].item;        
+        *item = Item::created_items[i].item;
         new_array->data[old_array->size + i] = item;
     }
     itemsarray->items = new_array;
     // I'm not freeing old_array->data[i]->m_pItemInfo array because I did a memcpy of old array to new array and I don't want to realloc every item info it's kinda useless
     AbyssEngine::memory_free(old_array->data);
-    AbyssEngine::memory_free(old_array);    
+    AbyssEngine::memory_free(old_array);
 }
 
 void Hooks::injectships()
@@ -89,11 +89,11 @@ void Hooks::injectships()
         *reinterpret_cast<DWORD*>(current_lod + 4) = Ship::created_ships[i].lod1;
         *reinterpret_cast<DWORD*>(current_lod + 8) = Ship::created_ships[i].lod2;
         auto* current_lightlods = lightlods + (shipid * 12);
-        *reinterpret_cast<WORD*>(current_lightlods + 0)  = -1;
-        *reinterpret_cast<WORD*>(current_lightlods + 2)  = 0;
-        *reinterpret_cast<WORD*>(current_lightlods + 4)  = -1;
-        *reinterpret_cast<WORD*>(current_lightlods + 6)  = 0;
-        *reinterpret_cast<WORD*>(current_lightlods + 8)  = -1;
+        *reinterpret_cast<WORD*>(current_lightlods + 0) = -1;
+        *reinterpret_cast<WORD*>(current_lightlods + 2) = 0;
+        *reinterpret_cast<WORD*>(current_lightlods + 4) = -1;
+        *reinterpret_cast<WORD*>(current_lightlods + 6) = 0;
+        *reinterpret_cast<WORD*>(current_lightlods + 8) = -1;
         *reinterpret_cast<WORD*>(current_lightlods + 10) = 0;
     }
     ships.data = newship_data;
