@@ -361,43 +361,31 @@ void Item::refreshblueprints()
 void Item::unlockblueprint(int id)
 {
     AEArray<int*>* blueprints = (*globals_status)->m_pBlueprints;
-    bool found = false;
-
+    
     for (uint32_t i = 0; i < blueprints->size; i++) {
-        uintptr_t blueprint_ptr = reinterpret_cast<uintptr_t>(blueprints->data[i]);
-        if (blueprint_ptr == 0)
+        BlueprintItem *entry = reinterpret_cast<BlueprintItem*>(blueprints->data[i]);
+        if (!entry)
             continue;
-        int blueprint_id = *reinterpret_cast<int*>(blueprint_ptr + 0x1c);
-        if (blueprint_id == id) {
-            *reinterpret_cast<unsigned char*>(blueprint_ptr + 8) = 1;
-            found = true;
-            break;
+        if (entry->m_nItemID == id) {
+            entry->m_bUnlocked = 1;
+            return;
         }
     }
-    if (!found) {
-        std::cout << "[-] Blueprint " << id << " doesn't exist" << std::endl;
-        return;
-    }
+    std::cout << "[-] Blueprint " << id << " doesn't exist" << std::endl;
 }
 
 void Item::lockblueprint(int id)
 {
     AEArray<int*>* blueprints = (*globals_status)->m_pBlueprints;
-    bool found = false;
-
+    
     for (uint32_t i = 0; i < blueprints->size; i++) {
-        uintptr_t blueprint_ptr = reinterpret_cast<uintptr_t>(blueprints->data[i]);
-        if (blueprint_ptr == 0)
+        BlueprintItem *entry = reinterpret_cast<BlueprintItem*>(blueprints->data[i]);
+        if (!entry)
             continue;
-        int blueprint_id = *reinterpret_cast<int*>(blueprint_ptr + 0x1c);
-        if (blueprint_id == id) {
-            *reinterpret_cast<unsigned char*>(blueprint_ptr + 8) = 0;
-            found = true;
-            break;
+        if (entry->m_nItemID == id) {
+            entry->m_bUnlocked = 0;
+            return;
         }
     }
-    if (!found) {
-        std::cout << "[-] Blueprint " << id << " doesn't exist" << std::endl;
-        return; 
-    }
+    std::cout << "[-] Blueprint " << id << " doesn't exist" << std::endl;
 }
