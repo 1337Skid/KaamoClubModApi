@@ -89,8 +89,8 @@ struct SingleItem {
     int m_nOccurance;
     int m_nMinPrice;
     int m_nMaxPrice;
-    int m_nAmount;
-    int m_nStationAmount;
+    AEArray<int>* m_pBlueprintIngredientsIDs;
+    AEArray<int>* m_pBlueprintCounts;
     AEArray<ItemInfo>* m_pItemInfo;
     int field_34;
     int field_38;
@@ -112,6 +112,22 @@ struct SingleSystem {
     uint8_t unk1[0x4];
     AEArray<uint32_t>* linked_system_ids;
     bool starts_unlocked;
+};
+
+struct BlueprintItem {
+    int field_00;
+    int field_04;
+    uint8_t m_bUnlocked;
+    uint8_t field_09[3];
+    int field_0C;
+    int field_10;
+    int field_14;
+    int field_18;
+    int m_nItemID;
+    int field_20;
+    int field_24;
+    int field_28;
+    AEArray<int>* m_pBlueprintCounts;
 };
 
 struct AgentTextureFaceInfo {
@@ -1072,7 +1088,7 @@ struct LevelScript {
 
 struct Globals_status {
     int* field_0;
-    int* field_4;
+    AEArray<int*>* m_pBlueprints;
     int field_8;
     int* field_C; //custom array, field_C -> 0 = count, 4 = pointer
     int field_10;

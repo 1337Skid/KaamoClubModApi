@@ -334,8 +334,9 @@ AEString* __fastcall Hooks::gametext_gettext_hook()
     }
     // The return addresses of every GameText::GetText() items name, useful to not overwrite in others strings
     // TODO: find in game npc cargo hold returnaddr
+    // TODO: find crafting done returnaddr
     // Custom items texts
-    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x483331 || reinterpret_cast<uintptr_t>(returnaddr) == 0x454c4e || reinterpret_cast<uintptr_t>(returnaddr) == 0x44edae || reinterpret_cast<uintptr_t>(returnaddr) == 0x4c9725 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4cc0bc || reinterpret_cast<uintptr_t>(returnaddr) == 0x48d8b1 || reinterpret_cast<uintptr_t>(returnaddr) == 0x458618 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4585C1) {
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x483331 || reinterpret_cast<uintptr_t>(returnaddr) == 0x454c4e || reinterpret_cast<uintptr_t>(returnaddr) == 0x44edae || reinterpret_cast<uintptr_t>(returnaddr) == 0x4c9725 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4cc0bc || reinterpret_cast<uintptr_t>(returnaddr) == 0x48d8b1 || reinterpret_cast<uintptr_t>(returnaddr) == 0x458618 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4585C1 || reinterpret_cast<uintptr_t>(returnaddr) == 0x455854 || reinterpret_cast<uintptr_t>(returnaddr) == 0x453644) {
         for (const auto& item : Item::created_items) {
             if (id == item.id + 1247) { // + 1247 bcz the game decided so don't ask me why
                 static AEString customstring;

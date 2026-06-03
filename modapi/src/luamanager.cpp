@@ -198,6 +198,12 @@ void LuaManager::bind_api()
         sol::no_constructor,
         "Create", [](Item& self, const std::string& name, const std::string& description, sol::table iteminfo) -> int {
             return Item::create(name, description, iteminfo);
+        },
+        "UnlockBlueprint", [](Item& self, int id) {
+            Item::unlockblueprint(id);
+        },
+        "LockBlueprint", [](Item& self, int id) {
+            Item::lockblueprint(id);
         }
     );
 

@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <chrono>
 
+// TODO: fix crash when doing alt f4 on the main menu
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM, LPARAM);
 typedef HRESULT(WINAPI *EndScene_define)(IDirect3DDevice9*);
 static EndScene_define old_endscene = nullptr;

@@ -1,11 +1,35 @@
 #include <Game/item.h>
 
+void Item::init()
+{
+    globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+}
+
+void Item::create_blueprint(SingleItem& item, const std::vector<int>& ingredients, const std::vector<int>& ingredients_nb)
+{
+    int size = static_cast<int>(ingredients.size());
+    AEArray<int>* ingredients_id = reinterpret_cast<AEArray<int>*>(AbyssEngine::memory_allocate(sizeof(AEArray<int>)));
+    ingredients_id->size = size;
+    ingredients_id->size2 = size;
+    ingredients_id->data = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * size));
+    for (int i = 0; i < size; ++i)
+        ingredients_id->data[i] = ingredients[i];
+    AEArray<int>* ingredients_count = reinterpret_cast<AEArray<int>*>(AbyssEngine::memory_allocate(sizeof(AEArray<int>)));
+    ingredients_count->size = size;
+    ingredients_count->size2 = size;
+    ingredients_count->data = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * size));
+    for (int i = 0; i < size; ++i)
+        ingredients_count->data[i] = ingredients_nb[i];
+    item.m_pBlueprintIngredientsIDs = ingredients_id;
+    item.m_pBlueprintCounts = ingredients_count;
+}
+
 void Item::create_commodity_item(ModdedItem m)
 {
     AEArray<ItemInfo>* iteminfoarr = (AEArray<ItemInfo>*)AbyssEngine::memory_allocate(sizeof(AEArray<ItemInfo>));
     iteminfoarr->size = 20;
     iteminfoarr->size2 = 20;
-    iteminfoarr->data = (ItemInfo*)AbyssEngine::memory_allocate(sizeof(ItemInfo));
+    iteminfoarr->data = reinterpret_cast<ItemInfo*>(AbyssEngine::memory_allocate(sizeof(ItemInfo)));
     memset(iteminfoarr->data, 0, sizeof(ItemInfo));
     ItemInfo* info = &iteminfoarr->data[0];
     info->field_0 = 0;
@@ -34,10 +58,10 @@ void Item::create_commodity_item(ModdedItem m)
 
 void Item::create_cloak_item(ModdedItem m, int effect, int loadingspeed, int energyconsumption)
 {
-    AEArray<ItemInfo>* iteminfoarr = (AEArray<ItemInfo>*)AbyssEngine::memory_allocate(sizeof(AEArray<ItemInfo>));
+    AEArray<ItemInfo>* iteminfoarr = reinterpret_cast<AEArray<ItemInfo>*>(AbyssEngine::memory_allocate(sizeof(AEArray<ItemInfo>)));
     iteminfoarr->size = 28;
     iteminfoarr->size2 = 28;
-    iteminfoarr->data = (ItemInfo*)AbyssEngine::memory_allocate(sizeof(ItemInfo));
+    iteminfoarr->data = reinterpret_cast<ItemInfo*>(AbyssEngine::memory_allocate(sizeof(ItemInfo)));
     memset(iteminfoarr->data, 0, sizeof(ItemInfo));
     ItemInfo* info = &iteminfoarr->data[0];
     info->field_0 = 0;
@@ -225,6 +249,20 @@ int Item::create(const std::string& name, const std::string& description, sol::t
         );
     else if (m.item.m_nType == 4)
         create_commodity_item(m);
+    if (iteminfo["blueprint_ingredient_ids"] && iteminfo["blueprint_ingredient_counts"]) {
+        sol::table blueprintids_table = iteminfo["blueprint_ingredient_ids"];
+        sol::table blueprintcounts_table = iteminfo["blueprint_ingredient_counts"];
+        std::vector<int> blueprint_ids;
+        std::vector<int> blueprint_counts;
+        for (auto& v : blueprintids_table)
+            blueprint_ids.push_back(v.second.as<int>());
+        for (auto& v : blueprintcounts_table)
+            blueprint_counts.push_back(v.second.as<int>());
+        if (!blueprint_ids.empty() && blueprint_ids.size() == blueprint_counts.size())
+            create_blueprint(created_items.back().item, blueprint_ids, blueprint_counts);
+        else
+            std::cout << "[-] blueprint_ingredient_ids and blueprint_counts must be non-empty and the same length" << std::endl;
+    }
     return m.id;
 }
 
@@ -284,4 +322,82 @@ void Item::refreshitemsprices() {
     globals_status->m_pItemHighestPricesSystem = newhighsys;
     AbyssEngine::memory_free(oldhighsys->data);
     AbyssEngine::memory_free(oldhighsys);
+}
+
+void Item::refreshblueprints()
+{
+    AEArray<int*>* old_blueprints = (*globals_status)->m_pBlueprints; 
+    int blueprintmade = 0;
+
+    for (const auto& m : created_items) {
+        if (m.item.m_pBlueprintIngredientsIDs != nullptr)
+            blueprintmade++;
+    }
+    if (blueprintmade == 0)
+        return;
+    int newsize = old_blueprints->size + blueprintmade;
+    AEArray<int*>* blueprints = reinterpret_cast<AEArray<int*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<int*>)));
+    blueprints->data = reinterpret_cast<int**>(AbyssEngine::memory_allocate(sizeof(int*) * newsize));
+    blueprints->size = newsize;
+    blueprints->size2 = newsize;
+    std::memcpy(blueprints->data, old_blueprints->data, sizeof(int*) * old_blueprints->size);
+    int id = old_blueprints->size;
+    for (const auto& m : created_items) {
+        if (m.item.m_pBlueprintIngredientsIDs == nullptr)
+            continue;
+        BlueprintItem *entry = reinterpret_cast<BlueprintItem*>(AbyssEngine::memory_allocate(sizeof(BlueprintItem)));
+        memset(entry, 0, sizeof(BlueprintItem));
+        entry->m_bUnlocked = 0;
+        entry->m_nItemID = m.item.m_nID;
+        entry->m_pBlueprintCounts = m.item.m_pBlueprintCounts;
+        blueprints->data[id] = reinterpret_cast<int*>(entry);
+        id++;
+    }
+    (*globals_status)->m_pBlueprints = blueprints;
+    AbyssEngine::memory_free(old_blueprints->data);
+    AbyssEngine::memory_free(old_blueprints);
+}
+
+void Item::unlockblueprint(int id)
+{
+    AEArray<int*>* blueprints = (*globals_status)->m_pBlueprints;
+    bool found = false;
+
+    for (uint32_t i = 0; i < blueprints->size; i++) {
+        uintptr_t blueprint_ptr = reinterpret_cast<uintptr_t>(blueprints->data[i]);
+        if (blueprint_ptr == 0)
+            continue;
+        int blueprint_id = *reinterpret_cast<int*>(blueprint_ptr + 0x1c);
+        if (blueprint_id == id) {
+            *reinterpret_cast<unsigned char*>(blueprint_ptr + 8) = 1;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        std::cout << "[-] Blueprint " << id << " doesn't exist" << std::endl;
+        return;
+    }
+}
+
+void Item::lockblueprint(int id)
+{
+    AEArray<int*>* blueprints = (*globals_status)->m_pBlueprints;
+    bool found = false;
+
+    for (uint32_t i = 0; i < blueprints->size; i++) {
+        uintptr_t blueprint_ptr = reinterpret_cast<uintptr_t>(blueprints->data[i]);
+        if (blueprint_ptr == 0)
+            continue;
+        int blueprint_id = *reinterpret_cast<int*>(blueprint_ptr + 0x1c);
+        if (blueprint_id == id) {
+            *reinterpret_cast<unsigned char*>(blueprint_ptr + 8) = 0;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        std::cout << "[-] Blueprint " << id << " doesn't exist" << std::endl;
+        return; 
+    }
 }

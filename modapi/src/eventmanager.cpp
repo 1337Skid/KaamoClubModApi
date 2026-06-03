@@ -69,8 +69,14 @@ void EventManager::earlyinit_event()
 
 void EventManager::mainmenu_event()
 {
-    if (Mission::getid() == 0)
+    static bool refreshed = false;
+    if (Mission::getid() == 0) {
         trigger("IsInMainMenu");
+        if (!refreshed) {
+            Item::refreshblueprints();
+            refreshed = true;
+        }
+    }
 }
 
 void EventManager::stationchanged_event()

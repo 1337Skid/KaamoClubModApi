@@ -31,7 +31,7 @@ DWORD WINAPI MainThread(LPVOID lpParam)
     Station::init();
     Mission::init();
     Asset::init();
-    //Item::init();
+    Item::init();
     //Ship::init();
     Level::init(luamanager->getluastate());
     ImGuiHandler::init(luamanager);
