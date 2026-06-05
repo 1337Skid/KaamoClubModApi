@@ -31,6 +31,7 @@ class ModApiUtils {
     public:
         static void load_mods(LuaManager *luamanager);
         static std::string w2s(const std::wstring& wstr);
+        static std::wstring s2w(const std::string& str);
         static LONG WINAPI crashhandler(EXCEPTION_POINTERS *ep);
 };
 #endif

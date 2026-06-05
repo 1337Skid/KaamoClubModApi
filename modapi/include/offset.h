@@ -40,6 +40,7 @@ class Offset {
         static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_TRANSFORMGETLOCAL = 0x4EAAE0;
         static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_GETTEXTWIDTH = 0x4EB440;
         static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_DRAWSTRING = 0x4E8130;
+        static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_IMAGE2DCREATE = 0x4E9600;
         static constexpr uintptr_t ABYSSENGINE_ENGINE_ENGINE = 0x4E77B0;
         
         static constexpr uintptr_t GAMETEXT_GETTEXT = 0x4F38B0;

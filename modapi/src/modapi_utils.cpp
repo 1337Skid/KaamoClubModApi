@@ -154,3 +154,10 @@ std::string ModApiUtils::w2s(const std::wstring& wstr)
     std::wstring_convert<convert_typeX, wchar_t> converterX;
     return converterX.to_bytes(wstr);
 }
+
+std::wstring ModApiUtils::s2w(const std::string& str)
+{
+    using convert_typeX = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_typeX, wchar_t> converterX;
+    return converterX.from_bytes(str);
+}

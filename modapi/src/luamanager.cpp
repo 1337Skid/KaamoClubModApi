@@ -43,9 +43,6 @@ void LuaManager::bind_api()
     lua_state.new_usertype<MissionContext>("MissionContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),
-        "call", [](MissionContext* self) {
-            self->call();
-        },
         "CreateFighter", [](MissionContext* self, int meshid, int faction) {
             self->createfighter(meshid, faction);
         },
@@ -59,6 +56,17 @@ void LuaManager::bind_api()
         sol::base_classes, sol::bases<HookContext>(),
         "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
             return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
+        }
+    );
+
+    lua_state.new_usertype<Render2DContext>("Render2DContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<HookContext>(),
+        "DrawString", [](Render2DContext* self, const std::string& text, int x, int y, int r, int g, int b, int a) {
+            self->drawstring(text, x, y, r, g, b, a);
+        },
+        "DrawImage2D", [](Render2DContext* self, unsigned int id, int x, int y, int r, int g, int b, int a) {
+            self->drawimage2d(id, x, y, r, g, b, a);
         }
     );
  
@@ -191,6 +199,12 @@ void LuaManager::bind_api()
         },
         "CreateMesh", [](Asset& self, const std::string& path, int materialid) -> int {
             return Asset::createmesh(path, materialid);
+        },
+        "Image2DCreate", [](Asset& self, uint16_t id) -> int {
+            return Asset::image2dcreate(id);
+        },
+        "CreateSprite", [](Asset& self, int textureid, int regionid) -> int {
+            return Asset::createsprite(textureid, regionid);
         }
     );
 

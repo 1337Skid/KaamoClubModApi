@@ -12,6 +12,7 @@ void Asset::init()
 {
     // Canvas is the last thing to load and I need to sleep if canvas is still nullptr
     uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
+
     while (globals_canvas == 0) {
         globals_canvas = *reinterpret_cast<Globals_Canvas**>(Offset::GLOBALS_CANVAS);
         if (globals_canvas == nullptr) 
@@ -32,7 +33,7 @@ void Asset::setassetfilepath(unsigned int id, const std::string value)
 std::string Asset::gettext(int id)
 {
     AEString* returned_str = nullptr;
-    uintptr_t address = 0x004F38B0;
+    uintptr_t address = Offset::GAMETEXT_GETTEXT;
 
     __asm {
         mov eax, id
@@ -67,6 +68,33 @@ int Asset::createtexture(const std::string& path)
     newdata[old] = res;
     resources.data  = newdata;
     resources.size  = (old + 1);
+    resources.size2 = (old + 1);
+    return id;
+}
+
+int Asset::createsprite(int textrueid, int regionid)
+{
+    Globals_Canvas *canvas = *reinterpret_cast<Globals_Canvas**>(Offset::GLOBALS_CANVAS);
+    auto& resources = canvas->m_pResources;
+    int id = next_sprite_id++;
+    auto *ref = reinterpret_cast<short*>(AbyssEngine::memory_allocate(4));
+    
+    ref[0] = static_cast<short>(textrueid);
+    ref[1] = static_cast<short>(regionid);
+    auto *res = reinterpret_cast<Resource*>(AbyssEngine::memory_allocate(sizeof(Resource)));
+    std::memset(res, 0, sizeof(Resource));
+    res->m_nResourceId = static_cast<unsigned short>(id);
+    res->field_2 = 0;
+    res->field_4 = 0;
+    res->field_8 = -1;
+    res->m_pResourceInfo = reinterpret_cast<ResourceInfo*>(ref);
+    int old = resources.size;
+    auto **newdata = reinterpret_cast<Resource**>(AbyssEngine::memory_allocate(sizeof(Resource*) * (old + 1)));
+    if (old > 0 && resources.data != nullptr)
+        std::memcpy(newdata, resources.data, sizeof(Resource*) * old);
+    newdata[old] = res;
+    resources.data = newdata;
+    resources.size = (old + 1);
     resources.size2 = (old + 1);
     return id;
 }
@@ -135,4 +163,72 @@ int Asset::creatematerial(int diffuse, int normal, int shader)
     resources.size  = (old + 1);
     resources.size2 = (old + 1);
     return id;
+}
+
+void Asset::drawstring(const std::string& text, int x, int y)
+{
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+    int font = *reinterpret_cast<int*>(Offset::GLOBALS_FONT);
+    std::wstring wtext = ModApiUtils::s2w(text);
+    uintptr_t addr_drawstring = Offset::ABYSSENGINE_PAINTCANVAS_DRAWSTRING;
+
+    AEString mystring;
+    mystring.text = const_cast<wchar_t*>(wtext.c_str()); 
+    mystring.size = wtext.length();
+    AEString* pstring = &mystring;
+    __asm {
+        push y
+        push x
+        push pstring
+        push font
+        push canvas
+        call addr_drawstring
+    }
+}
+
+void Asset::setcolor(int r, int g, int b, int a)
+{
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+    unsigned int color = ((a & 0xFF) << 24) | ((b & 0xFF) << 16) | ((g & 0xFF) << 8) | (r & 0xFF);
+    uintptr_t addr_setcolor = Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR;
+    
+    __asm {
+        mov eax, color
+        mov ecx, canvas
+        call addr_setcolor
+    }
+}
+
+void Asset::drawimage2d(unsigned int id, int x, int y)
+{
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+    uintptr_t addr_drawimage2d = Offset::ABYSSENGINE_PAINTCANVAS_DRAWIMAGE2D;
+    uint8_t flags = 0;
+    
+    __asm {
+        movzx eax, flags
+        push eax
+        push y
+        push x
+        push id
+        push canvas
+        mov eax, addr_drawimage2d
+        call eax
+    }
+}
+
+int Asset::image2dcreate(uint16_t id)
+{
+    unsigned int slot = -1;
+    unsigned int* pslot = &slot;
+    uintptr_t addr_image2dcreate = Offset::ABYSSENGINE_PAINTCANVAS_IMAGE2DCREATE;
+
+    __asm {
+        xor eax, eax
+        mov ax, id
+        push pslot
+        mov edx, addr_image2dcreate
+        call edx
+    }
+    return slot;
 }

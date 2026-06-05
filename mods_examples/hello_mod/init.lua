@@ -1,6 +1,8 @@
 -- even if some code is commented the bindings exist don't worry
 
 assetchanged = false
+mytextureid = 0
+mysprite = 0
 
 function get_every_assets_filepath()
 	local filepath
@@ -11,6 +13,13 @@ function get_every_assets_filepath()
 		if filepath ~= "" then print(filepath .. " index: " .. i) end
 	end
 end
+
+HookFunction("Globals::init", function()
+	mytextureid = asset:CreateTexture("mods/hello_mod/my_assets/Trollface.aei")
+	mysprite = asset:CreateSprite(mytextureid, 0)
+	print("SPRITE ID INJECTED : " .. mysprite)
+	-- ctx:call() doesn't exist there because it makes no sense to stop globals::init, your game will just crash if it was a thing
+end)
 
 RegisterEvent("IsInGame", function()
 	-- is in game ticks
@@ -185,7 +194,26 @@ HookFunction("Level::createCampaignMission", function(ctx)
 	ctx:call() -- call original function
 end)
 
-HookFunction("Globals::init", function(ctx)
-	print("hello globals init")
-	-- ctx:call() doesn't exist there because it makes no sense to stop globals::init, your game will just crash if it was a thing
+HookFunction("ModMainMenu::OnRender2D", function(ctx)
+	ctx:DrawString("Hello main menu !!", 30, 30, 255, 255, 255, 255)
+	sprite = asset:Image2DCreate(mysprite) -- put our sprite in the textures pool (it's recommended to put it outside of a loop but it's just an example so it's fine)
+	ctx:DrawImage2D(sprite, 20, 200, 255, 255, 255, 255)
+	ctx:call()
+end)
+
+local full_text = "Hello MGame!!! yes you can animate your string !"
+local current_length = 0
+local frame_counter = 0
+HookFunction("MGame::OnRender2D", function(ctx)    
+    if current_length < string.len(full_text) then
+        frame_counter = frame_counter + 1
+        if frame_counter >= 4 then
+            current_length = current_length + 1
+            frame_counter = 0
+        end
+    end
+    local display = string.sub(full_text, 1, current_length)
+    display = display .. "_"
+    ctx:DrawString(display, 500, 30, 255, 0, 0, 255)
+    ctx:call()
 end)

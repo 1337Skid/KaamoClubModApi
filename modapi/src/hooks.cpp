@@ -990,11 +990,11 @@ void __stdcall Hooks::level_update_hook(int a2, int a3, int a4)
     }
 }
 
+// TODO: bro wtf my function just looks so bad i'll def rewrite it lmao, same for createcampaignmission
 void __thiscall Hooks::level_createmission_hook(void *a1)
 {
     MissionContext ctx = EventManager::trigger_hook<MissionContext>("Level::createMission");
     int* level = reinterpret_cast<int*>(a1);
-    int calloriginal = 1;
     uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
     uintptr_t address_createstaticobject = Offset::LEVEL_CREATESTATICOBJECT;
     uintptr_t address_setposition = Offset::PLAYERFIXEDOBJECT_SETPOSITION;
@@ -1172,51 +1172,10 @@ int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
 
 void __thiscall Hooks::modmainmenu_onrender2d_hook(int *a1)
 {
-    old_modmainmenuonrender2d(a1);
-    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
-    unsigned int color = 0x44ffffff;
-    unsigned int imageid = 65; // gof2 logo is 65 for example
-    int flag1 = 0x0;
-    int flag2 = 0x0;
+    Render2DContext ctx = EventManager::trigger_hook<Render2DContext>("ModMainMenu::OnRender2D");
 
-    uintptr_t addr_setcolor = Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR;
-    __asm {
-        mov eax, color
-        mov ecx, canvas
-        call addr_setcolor
-    }
-    uintptr_t addr_drawimage = Offset::ABYSSENGINE_PAINTCANVAS_DRAWIMAGE2D_2;
-    __asm {
-        push flag1
-        push flag2
-        push 0
-        push imageid
-        mov eax, 0
-        call addr_drawimage
-    }
-    color = 0xff44ffff;
-    __asm {
-        mov eax, color
-        mov ecx, canvas
-        call addr_setcolor
-    }
-    static wchar_t text[] = L"Hello worldd";
-    static AEString mystring;
-    mystring.text = text;
-    mystring.size = 12;
-    AEString* pstring = &mystring;
-    int font   = *reinterpret_cast<int*>(Offset::GLOBALS_FONT);
-    int x = 400;
-    int y = 800;
-    uintptr_t addr_drawstring = Offset::ABYSSENGINE_PAINTCANVAS_DRAWSTRING;
-    __asm {
-        push y
-        push x
-        push pstring
-        push font
-        push canvas
-        call addr_drawstring
-    }
+    if (ctx.call_original)
+        old_modmainmenuonrender2d(a1);
 }
 
 int* __stdcall Hooks::level_createstaticobject_hook(int a1, int *a2, int a3)
@@ -1227,32 +1186,10 @@ int* __stdcall Hooks::level_createstaticobject_hook(int a1, int *a2, int a3)
 
 void __thiscall Hooks::mgame_onrender2d_hook(int *a1)
 {
-    old_mgameonrender2d(a1);
-    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
-    unsigned int color = 0xff44ffff;
-    uintptr_t addr_setcolor = Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR;
-    __asm {
-        mov eax, color
-        mov ecx, canvas
-        call addr_setcolor
-    }
-    static wchar_t text[] = L"Hello worldd";
-    static AEString mystring;
-    mystring.text = text;
-    mystring.size = 12;
-    AEString* pstring = &mystring;
-    int font   = *reinterpret_cast<int*>(Offset::GLOBALS_FONT);
-    int x = 400;
-    int y = 800;
-    uintptr_t addr_drawstring = Offset::ABYSSENGINE_PAINTCANVAS_DRAWSTRING;
-    __asm {
-        push y
-        push x
-        push pstring
-        push font
-        push canvas
-        call addr_drawstring
-    }
+    Render2DContext ctx = EventManager::trigger_hook<Render2DContext>("MGame::OnRender2D");
+
+    if (ctx.call_original)
+        old_mgameonrender2d(a1);
 }
 
 unsigned int __stdcall Hooks::level_createspace_hook(int *a1)
@@ -1639,9 +1576,9 @@ void Hooks::init()
     //MH_CreateHook((LPVOID)Offset::GLOBALS_GETSHIPGROUP, (LPVOID)&globals_getshipgroup_hook, (LPVOID*)&old_globalsgetshipgroup);
     //MH_CreateHook((LPVOID)Offset::LEVEL_UPDATE, (LPVOID)&level_update_hook, (LPVOID*)&old_levelupdate);
     MH_CreateHook((LPVOID)Offset::LEVEL_CREATEMISSION, (LPVOID)&level_createmission_hook, (LPVOID*)&old_levelcreatemission);
-    //MH_CreateHook((LPVOID)Offset::MODMAINMENU_ONRENDER2D, (LPVOID)&modmainmenu_onrender2d_hook, (LPVOID*)&old_modmainmenuonrender2d);
+    MH_CreateHook((LPVOID)Offset::MODMAINMENU_ONRENDER2D, (LPVOID)&modmainmenu_onrender2d_hook, (LPVOID*)&old_modmainmenuonrender2d);
     //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESTATICOBJECT, (LPVOID)&level_createstaticobject_hook, (LPVOID*)&old_levelcreatestaticobject);
-    //MH_CreateHook((LPVOID)Offset::MGAME_ONRENDER2D, (LPVOID)&mgame_onrender2d_hook, (LPVOID*)&old_mgameonrender2d);
+    MH_CreateHook((LPVOID)Offset::MGAME_ONRENDER2D, (LPVOID)&mgame_onrender2d_hook, (LPVOID*)&old_mgameonrender2d);
     //MH_CreateHook((LPVOID)Offset::LEVEL_CREATESPACE, (LPVOID)&level_createspace_hook, (LPVOID*)&old_levelcreatespace);
     //MH_CreateHook((LPVOID)Offset::STATUS_NEXTCAMPAIGNMISSION, (LPVOID)&status_nextcampaignmission_hook, (LPVOID*)&old_statusnextcampaignmission);
     MH_CreateHook((LPVOID)Offset::STARMAP_INIT, (LPVOID)&starmap_init_hook, (LPVOID*)&old_starmapinit);

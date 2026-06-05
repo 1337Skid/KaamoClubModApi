@@ -23,3 +23,15 @@ int GlobalsInitContext::createship(const std::string& name, const std::string& d
 {
     return Ship::create(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
 }
+
+void Render2DContext::drawstring(const std::string& text, int x, int y, int r, int g, int b, int a)
+{
+    Asset::setcolor(r, g, b, a);
+    Asset::drawstring(text, x, y);
+}
+
+void Render2DContext::drawimage2d(unsigned int id, int x, int y, int r, int g, int b, int a)
+{
+    Asset::setcolor(r, g, b, a);
+    Asset::drawimage2d(id, x, y);
+}
