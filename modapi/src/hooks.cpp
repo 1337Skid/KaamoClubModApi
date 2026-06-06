@@ -271,7 +271,17 @@ uintptr_t __stdcall Hooks::globals_init_hook(uintptr_t a, uintptr_t b, uintptr_t
             EventManager::trigger_hook<GlobalsInitContext>("Globals::init"); // no ctx:call() on the lua side because the game will crash if globals::init is stopped so it makes no sense to do that
             Hooks::injectships();
             Hooks::injectsystemsandstations();
-            return 0;
+            for (auto& asset : Asset::created_earlyassets) {
+                if (!asset.path.empty()) {
+                    Asset::next_texture_id = asset.id;
+                    Asset::createtexture(asset.path);
+                } else {
+                    Asset::next_sprite_id = asset.id;
+                    Asset::createsprite(asset.textureid, asset.regionid);
+                }
+            }
+            Asset::created_earlyassets.clear();
+        return 0;
         }, nullptr, 0, nullptr);
     }
     return old;
@@ -562,9 +572,23 @@ void __stdcall Hooks::imagepart_draw_hook(unsigned int a1, int a2, int a3, int a
     return old_imagepartdraw(a1, a2, a3, a4, a5, a6, a7, a8);
 }
 
-void __stdcall Hooks::abyssengine_paintcanvas_drawimage2d_hook(int a1, unsigned int a2, int a3, int a4, int a5)
+void __stdcall Hooks::abyssengine_paintcanvas_drawimage2d_hook(int a1, int a2, int a3, int a4, int a5)
 {
-    // useful for position
+    //if (reinterpret_cast<uintptr_t>(returnaddr) != 0x464D4D && reinterpret_cast<uintptr_t>(returnaddr) != 0x464F5D && reinterpret_cast<uintptr_t>(returnaddr) != 0x4DD46B && reinterpret_cast<uintptr_t>(returnaddr) != 0x464F25)
+    //  std::cout << std::hex << returnaddr << std::endl;
+    void* returnaddr = nullptr;
+
+    __asm {
+        mov edx, [ebp + 4]
+        mov returnaddr, edx
+    }
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x45F5BC) {
+        if (a2 == -1) {
+            std::cout << a5 << std::endl;
+            int a = Asset::image2dcreate(9872);
+            return old_abyssenginepaintcanvasdrawimage2d(a1, a, a3, a4, a5);
+        }
+    }
     return old_abyssenginepaintcanvasdrawimage2d(a1, a2, a3, a4, a5);
 }
 
@@ -1542,6 +1566,30 @@ unsigned int* __stdcall Hooks::fileread_loadweaponpositions_hook(int a1)
     return result;
 }
 
+void __stdcall Hooks::imagefactory_drawitem_hook(int a3, unsigned int a4)
+{
+    int a1;
+    int a2;
+
+    __asm {
+        mov a1, ebx
+        mov a2, edi
+    }
+    if (a3 >= 196) {
+        for (const auto& item : Item::created_items) {
+            if (a3 == item.id)
+                a3 = item.spriteicon - 3824; // 3824 bcz the game decided
+        }
+    }
+    __asm {
+        push a4
+        push a3
+        mov ebx, a1
+        mov edi, a2
+        call old_imagefactorydrawitem
+    }
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1595,6 +1643,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::STARMAP_DEPART, (LPVOID)&starmap_depart_hook, (LPVOID*)&old_starmapdepart);
     //MH_CreateHook((LPVOID)Offset::PLAYEREGO_CALCCOLLISION, (LPVOID)&playerego_calccollision_hook, (LPVOID*)&old_playeregocalccollision);
     MH_CreateHook((LPVOID)Offset::FILEREAD_LOADWEAPONPOSITIONS, (LPVOID)&fileread_loadweaponpositions_hook, (LPVOID*)&old_filereadloadweaponpositions);
+    MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWITEM, (LPVOID)&imagefactory_drawitem_hook, (LPVOID*)&old_imagefactorydrawitem);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

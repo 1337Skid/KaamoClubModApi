@@ -19,6 +19,9 @@ RegisterEvent("EarlyInit", function()
 	local stationid2 = station:Create("test 2", 1, 3, systemid)
 	local stationid3 = station:Create("test 3", 2, 2, systemid)
 	local stationid4 = station:Create("test 4", 3, 1, systemid)
+	local mytextureid = asset:CreateTexture("mods/second_mod/item.aei")
+	local mysprite = asset:CreateSprite(mytextureid, 0)
+	print("MYSPRITE ID: " .. mysprite)
 	testitem = {
 	type = "Laser",
 	techlevel = 9,
@@ -42,6 +45,7 @@ RegisterEvent("EarlyInit", function()
 	loadingspeed = 1300,
 	range = 1000,
 	speed = 3000,
+	spriteicon = mysprite,
 	blueprint_ingredient_ids = {8, 2, 5, 4, 9, 111},
 	blueprint_ingredient_counts = {1234, 1234, 3, 4, 1, 2}
 	}

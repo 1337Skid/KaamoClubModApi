@@ -33,6 +33,7 @@ class Item {
             std::string type;
             std::wstring name;
             std::wstring description;
+            int spriteicon;
             SingleItem item;
         };
     public:

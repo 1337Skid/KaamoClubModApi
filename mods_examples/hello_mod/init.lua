@@ -1,8 +1,8 @@
 -- even if some code is commented the bindings exist don't worry
 
-assetchanged = false
-mytextureid = 0
-mysprite = 0
+local assetchanged = false
+local mytextureid = 0
+local mysprite = 0
 
 function get_every_assets_filepath()
 	local filepath
@@ -196,7 +196,7 @@ end)
 
 HookFunction("ModMainMenu::OnRender2D", function(ctx)
 	ctx:DrawString("Hello main menu !!", 30, 30, 255, 255, 255, 255)
-	sprite = asset:Image2DCreate(mysprite) -- put our sprite in the textures pool (it's recommended to put it outside of a loop but it's just an example so it's fine)
+	sprite = asset:Image2DCreate(mysprite) -- put our sprite in the textures pool
 	ctx:DrawImage2D(sprite, 20, 200, 255, 255, 255, 255)
 	ctx:call()
 end)

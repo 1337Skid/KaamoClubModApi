@@ -49,9 +49,9 @@ class Hooks {
         inline static imagepart_draw old_imagepartdraw = nullptr;
         static void __stdcall imagepart_draw_hook(unsigned int a1, int a2, int a3, int a4, int a5, int a6, int a7, int a8);
 
-        using abyssengine_paintcanvas_drawimage2d = void (__stdcall*)(int, unsigned int, int, int, int);
+        using abyssengine_paintcanvas_drawimage2d = void (__stdcall*)(int, int, int, int, int);
         inline static abyssengine_paintcanvas_drawimage2d old_abyssenginepaintcanvasdrawimage2d = nullptr;
-        static void __stdcall abyssengine_paintcanvas_drawimage2d_hook(int a1, unsigned int a2, int a3, int a4, int a5);
+        static void __stdcall abyssengine_paintcanvas_drawimage2d_hook(int a1, int a2, int a3, int a4, int a5);
 
         using radiomessage_radiomessage = int (__stdcall*)(int, int);
         inline static radiomessage_radiomessage old_radiomessageradiomessage = nullptr;
@@ -204,6 +204,10 @@ class Hooks {
         using fileread_loadweaponpositions = unsigned int* (__stdcall*)(int);
         inline static fileread_loadweaponpositions old_filereadloadweaponpositions = nullptr;
         static unsigned int* __stdcall fileread_loadweaponpositions_hook(int a1);
+
+        using imagefactory_drawitem = void (__stdcall*)(int, unsigned int);
+        inline static imagefactory_drawitem old_imagefactorydrawitem = nullptr;
+        static void __stdcall imagefactory_drawitem_hook(int a3, unsigned int a4);
 
         static void injectsystemsandstations(void);
         static void injectitems(void);

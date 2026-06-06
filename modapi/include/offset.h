@@ -64,6 +64,7 @@ class Offset {
         
         static constexpr uintptr_t IMAGEFACTORY_DRAWCHAR = 0x45F4C5;
         static constexpr uintptr_t IMAGEFACTORY_LOADCHAR = 0x45F31A;
+        static constexpr uintptr_t IMAGEFACTORY_DRAWITEM = 0x45F555;
 
         static constexpr uintptr_t IMAGEPART_DRAW = 0x4E8990;
 

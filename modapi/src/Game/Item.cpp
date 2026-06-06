@@ -198,6 +198,7 @@ int Item::create(const std::string& name, const std::string& description, sol::t
     m.id = static_cast<int>(created_items.size() + 196);
     m.name = namews;
     m.description = descriptionws;
+    m.spriteicon = iteminfo["spriteicon"] ? iteminfo["spriteicon"] : 0;
     memset(&m.item, 0, sizeof(SingleItem));
     m.item.m_nID = m.id;
     m.type = iteminfo["type"].get<std::string>();
