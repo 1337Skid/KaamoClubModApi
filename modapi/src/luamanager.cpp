@@ -23,6 +23,7 @@
 #include <Game/structs.h>
 #include <Game/kiplayer.h>
 #include <Game/ship.h>
+#include <Game/touchbutton.h>
 
 void LuaManager::init()
 {
@@ -56,6 +57,9 @@ void LuaManager::bind_api()
         sol::base_classes, sol::bases<HookContext>(),
         "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
             return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
+        },
+        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, int ismenutouchwindow, sol::main_protected_function onclick) -> TouchButton {
+            return self->createtouchbutton(text, subtext, x, y, textcolor, state, ismenutouchwindow, onclick);
         }
     );
 
@@ -256,6 +260,14 @@ void LuaManager::bind_api()
             self.setroute(route.ptr);
         },
         sol::meta_function::to_string, &KIPlayer::tostring
+    );
+
+    lua_state.new_usertype<TouchButton>("TouchButton",
+        sol::no_constructor,
+        "SetText", [](TouchButton& self, const std::string &text) {
+            self.settext(text);
+        },
+        sol::meta_function::to_string, &TouchButton::tostring
     );
     
     lua_state.new_usertype<MemoryUtils>("MemoryUtils",

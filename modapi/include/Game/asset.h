@@ -9,7 +9,7 @@ class Asset {
             int textureid;
             int regionid;
         };
-        static inline Globals_Canvas* globals_canvas = 0;
+        static inline Globals_Canvas *globals_canvas = 0;
     public:
         static inline int next_texture_id = 333701; // we are going to inject our textures there so it's really far from the real texture id
         static inline int next_material_id = 233701; // same thing for this
@@ -28,5 +28,6 @@ class Asset {
         static void drawimage2d(unsigned int id, int x, int y);
         static int image2dcreate(uint16_t id);
         static int createsprite(int textureid, int regionid);
+        static void fmodsound_play(int attachsound, unsigned int a3);
 };
 #endif

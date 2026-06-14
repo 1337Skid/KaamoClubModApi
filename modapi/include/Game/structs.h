@@ -197,6 +197,56 @@ struct SingleLevel {
     int field_D8;
 };
 
+struct SingleTouchButton {
+    int m_nId;
+    int m_pFont;
+    wchar_t* m_sText;
+    int m_nTextSize;
+    int field_10;
+    wchar_t* m_sTextRight;
+    int m_nTextMode;
+    wchar_t* m_sTextNumber;
+    int m_nTextNumberEnable;
+    int m_nIconSide;
+    int m_nSpritePressed;
+    int m_nSpriteMidPressed;
+    int m_nSpriteRightPressed;
+    int m_nSpriteNormal;
+    int m_nSpriteMidNormal;
+    int m_nSpriteRightNormal;
+    int m_nSpriteHighlighted;
+    int m_nSpriteMidHighlighted;
+    int m_nSpriteRightHighlighted;
+    int m_nSpriteBg;
+    int m_nSpriteOverlay;
+    int m_nIcon;
+    int field_58;
+    int m_nBtnType;
+    int field_60;
+    int m_nX;
+    int m_nY;
+    int field_6C;
+    int field_70;
+    int m_nHeight;
+    int field_78;
+    int m_nWidth;
+    int m_nLeftWidth;
+    int field_84;
+    int m_nRightWidth;
+    int m_nMidWidth;
+    int m_nTextOffsetX;
+    int m_nTextOffsetY;
+    int m_nTextColor;
+    bool m_bIsPressed;
+    bool m_bIsHighlighted;
+    bool m_bIsVisible;
+    bool m_bIsDisabled;
+    int m_nTextColor2;
+    float m_fProgress;
+    int field_A8;
+    int field_AC;
+};
+
 struct SingleAgent {
     AEString m_sName;
     int field_08;

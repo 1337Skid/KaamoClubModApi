@@ -2,6 +2,7 @@
 #define HOOKCONTEXT_H
 #include <string>
 #include <sol/sol.hpp>
+#include <Game/touchbutton.h>
 
 class HookContext {
     public:
@@ -18,6 +19,7 @@ class MissionContext : public HookContext {
 class GlobalsInitContext : public HookContext {
     public:
         int createship(const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2);
+        TouchButton createtouchbutton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, int ismenutouchwindow, sol::main_protected_function onclick);
 };
 
 class Render2DContext : public HookContext {

@@ -22,6 +22,7 @@ class Offset {
         static constexpr uintptr_t GLOBALS_GETDIALOGUESOUNDID = 0x44DAC3;
         static constexpr uintptr_t GLOBALS_GETSHIPGROUP = 0x44CF2E;
         static constexpr uintptr_t GLOBALS_FONT = 0x60ADCC;
+        static constexpr uintptr_t GLOBALS_SOUND = 0x60AF70;
         static constexpr uintptr_t GLOBALS_W = 0x60AF00;
         static constexpr uintptr_t GLOBALS_H = 0x60AE80;
 
@@ -135,6 +136,7 @@ class Offset {
         static constexpr uintptr_t PARTICLESYSTEMMANAGER_UPDATE = 0x4A6A14;
 
         static constexpr uintptr_t MODMAINMENU_ONRENDER2D = 0x499DCD;
+        static constexpr uintptr_t MODMAINMENU_ONINITIALIZE = 0x499AEB;
 
         static constexpr uintptr_t STATUS_NEXTCAMPAIGNMISSION = 0x4D605F;
         static constexpr uintptr_t STATUS_SETCAMPAIGNMISSION = 0x4D5FAD;
@@ -155,5 +157,13 @@ class Offset {
         static constexpr uintptr_t MODSTATION_ONUPDATE = 0x49E1BD;
 
         static constexpr uintptr_t LISTITEMWINDOW_UPDATE = 0x4837A3;
+
+        static constexpr uintptr_t MENUTOUCHWINDOW_ONTOUCHBEGIN = 0x48C162;
+        static constexpr uintptr_t MENUTOUCHWINDOW_ONTOUCHEND = 0x48D0D2;
+        static constexpr uintptr_t MENUTOUCHWINDOW_DRAW = 0x487FE5;
+
+        static constexpr uintptr_t FMODSOUND_PLAY = 0x4E2909;
+
+        static constexpr uintptr_t TOUCHBUTTON_DRAW = 0x4DD233;
 };
 #endif

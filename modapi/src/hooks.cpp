@@ -5,6 +5,7 @@
 #include <Game/system.h>
 #include <Game/level.h>
 #include <Game/ship.h>
+#include <Game/touchbutton.h>
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -1590,6 +1591,96 @@ void __stdcall Hooks::imagefactory_drawitem_hook(int a3, unsigned int a4)
     }
 }
 
+int __stdcall Hooks::menutouchwindow_draw_hook(int a1)
+{
+    int returnvalue;
+    int state = *reinterpret_cast<int*>(a1 + 0x164);
+    
+    __asm {
+        push a1
+        call old_menutouchwindowdraw
+        mov returnvalue, eax
+    }
+    for (auto& custom : TouchButton::created_buttons) {
+        if (custom.state != -1 && custom.state != state)
+            continue;
+        if (custom.ptr)
+            TouchButton::draw(custom.ptr);
+    }
+    return returnvalue;
+}
+
+char __thiscall Hooks::menutouchwindow_ontouchend_hook(void *a1, unsigned int a2, int a3, int a4)
+{
+    int state = *reinterpret_cast<int*>(a2 + 0x164);
+
+    for (auto& custom : TouchButton::created_buttons) {
+        if (!custom.ptr)
+            continue;
+        if (custom.state != -1 && custom.state != state)
+            continue;
+        SingleTouchButton *btn = custom.ptr;
+        btn->m_bIsPressed = 0;
+        if (a3 > btn->m_nX && a3 < btn->m_nX + btn->m_nWidth &&
+            a4 > btn->m_nY && a4 < btn->m_nY + btn->m_nHeight) {
+            Asset::fmodsound_play(a4, 0x7Bu);
+            if (custom.onclick)
+                custom.onclick();
+        }
+    }
+    return old_menutouchwindowontouchend(a1, a2, a3, a4);
+}
+
+char __stdcall Hooks::menutouchwindow_ontouchbegin_hook(int a2, int a3, int a4)
+{
+    int a1;
+    char returnvalue;
+    __asm {
+        mov a1, eax
+    }
+    int state = *reinterpret_cast<int*>(a2 + 0x164);
+    for (auto& custom : TouchButton::created_buttons) {
+        if (!custom.ptr)
+            continue;
+        if (custom.state != -1 && custom.state != state)
+            continue;
+        SingleTouchButton *btn = custom.ptr;
+        if (a3 > btn->m_nX && a3 < btn->m_nX + btn->m_nWidth &&
+            a1 > btn->m_nY && a1 < btn->m_nY + btn->m_nHeight) {
+            Asset::fmodsound_play(a4, 0x7Cu);
+            btn->m_bIsPressed = 1;
+        }
+    }
+    __asm {
+        push a4
+        push a3
+        push a2
+        mov eax, a1
+        call old_menutouchwindowontouchbegin
+        mov returnvalue, al
+    }
+    return returnvalue;
+}
+
+int __cdecl Hooks::modmainmenu_oninitalize_hook()
+{
+    int *a1;
+    int a2;
+    int returnvalue;
+
+    __asm {
+        mov a1, ecx
+        mov a2, edi
+    }
+    __asm {
+        mov ecx, a1
+        mov edi, a2
+        call old_modmainmenuoninitalize
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1644,6 +1735,10 @@ void Hooks::init()
     //MH_CreateHook((LPVOID)Offset::PLAYEREGO_CALCCOLLISION, (LPVOID)&playerego_calccollision_hook, (LPVOID*)&old_playeregocalccollision);
     MH_CreateHook((LPVOID)Offset::FILEREAD_LOADWEAPONPOSITIONS, (LPVOID)&fileread_loadweaponpositions_hook, (LPVOID*)&old_filereadloadweaponpositions);
     MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWITEM, (LPVOID)&imagefactory_drawitem_hook, (LPVOID*)&old_imagefactorydrawitem);
+    MH_CreateHook((LPVOID)Offset::MENUTOUCHWINDOW_ONTOUCHEND, (LPVOID)&menutouchwindow_ontouchend_hook, (LPVOID*)&old_menutouchwindowontouchend);
+    MH_CreateHook((LPVOID)Offset::MENUTOUCHWINDOW_DRAW, (LPVOID)&menutouchwindow_draw_hook, (LPVOID*)&old_menutouchwindowdraw);
+    MH_CreateHook((LPVOID)Offset::MENUTOUCHWINDOW_ONTOUCHBEGIN, (LPVOID)&menutouchwindow_ontouchbegin_hook, (LPVOID*)&old_menutouchwindowontouchbegin);
+    //MH_CreateHook((LPVOID)Offset::MODMAINMENU_ONINITIALIZE, (LPVOID)&modmainmenu_oninitalize_hook, (LPVOID*)&old_modmainmenuoninitalize);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

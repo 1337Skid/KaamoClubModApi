@@ -246,3 +246,21 @@ int Asset::image2dcreate(uint16_t id)
     }
     return slot;
 }
+
+void Asset::fmodsound_play(int attachsound, unsigned int a3)
+{
+    int a1 = attachsound;
+    int a2 = *reinterpret_cast<int*>(Offset::GLOBALS_SOUND);
+    uintptr_t address = Offset::FMODSOUND_PLAY;
+    float a5 = 0.0f;
+    int a4 = 0;
+
+    __asm {
+        push a5
+        push a4
+        push a3
+        mov esi, a2
+        mov edi, a1
+        call address
+    }
+}

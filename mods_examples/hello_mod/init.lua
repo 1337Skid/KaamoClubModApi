@@ -3,6 +3,7 @@
 local assetchanged = false
 local mytextureid = 0
 local mysprite = 0
+local mybutton = 0
 
 function get_every_assets_filepath()
 	local filepath
@@ -119,7 +120,7 @@ RegisterEvent("IsInMainMenu", function()
 	if assetchanged then return end
 	--get_every_assets_filepath()
 	print("Asset changed!")
-	--asset:SetAssetFilePath(2050, "mods/hello_mod/my_assets/custom_gof2_interface.aei") -- feel free to custom the gof2 interface with any tools (I don't know if we have any) also you can call this setassetfilepath function while the game is running BUT it won't be edited instantly, for the asset to be edited you need to 'reload' the game aka going to a station, changing system etc..
+	asset:SetAssetFilePath(2050, "mods/hello_mod/my_assets/custom_gof2_interface.aei") -- feel free to custom the gof2 interface with any tools (I don't know if we have any) also you can call this setassetfilepath function while the game is running BUT it won't be edited instantly, for the asset to be edited you need to 'reload' the game aka going to a station, changing system etc..
 	assetchanged = true
 end)
 
@@ -199,6 +200,12 @@ HookFunction("ModMainMenu::OnRender2D", function(ctx)
 	sprite = asset:Image2DCreate(mysprite) -- put our sprite in the textures pool
 	ctx:DrawImage2D(sprite, 20, 200, 255, 255, 255, 255)
 	ctx:call()
+end)
+
+HookFunction("Globals::init", function(ctx)
+	mybutton = ctx:CreateTouchButton("Hello world", "7.", 800, 900, -1, 0, 1, function()
+		mybutton:SetText("Clicked!")
+	end)
 end)
 
 local full_text = "Hello MGame!!! yes you can animate your string !"

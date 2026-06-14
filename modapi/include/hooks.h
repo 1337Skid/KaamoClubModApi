@@ -209,6 +209,22 @@ class Hooks {
         inline static imagefactory_drawitem old_imagefactorydrawitem = nullptr;
         static void __stdcall imagefactory_drawitem_hook(int a3, unsigned int a4);
 
+        using menutouchwindow_ontouchend = char (__thiscall*)(void*, unsigned int, int, int);
+        inline static menutouchwindow_ontouchend old_menutouchwindowontouchend = nullptr;
+        static char __thiscall menutouchwindow_ontouchend_hook(void *a1, unsigned int a2, int a3, int a4);
+
+        using menutouchwindow_draw = int (__stdcall*)(int);
+        inline static menutouchwindow_draw old_menutouchwindowdraw = nullptr;
+        static int __stdcall menutouchwindow_draw_hook(int a1);
+
+        using menutouchwindow_ontouchbegin = char (__thiscall*)(int, int, int);
+        inline static menutouchwindow_ontouchbegin old_menutouchwindowontouchbegin = nullptr;
+        static char __stdcall menutouchwindow_ontouchbegin_hook(int a2, int a3, int a4);
+
+        using modmainmenu_oninitalize = int (__cdecl*)();
+        inline static modmainmenu_oninitalize old_modmainmenuoninitalize = nullptr;
+        static int __cdecl modmainmenu_oninitalize_hook();
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);
