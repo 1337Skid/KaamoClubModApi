@@ -67,6 +67,7 @@ Thanks to everyone who helped make this happen:
 - **1337Skid** — Main dev
 - **Elcapor** — contributor (a proof of concept of a custom system and station)
 - **RuslanchikX** — contributor (The idea to use structs instead of raw reading a pointer)
+- **tengospust** — contributor (a proof of concept of custom meshes and custom textures)
 
 PRs and issues are welcome. If you make a mod using this api feel free to share it!
 
