@@ -1711,9 +1711,9 @@ char __stdcall Hooks::hangarwindow_ontouchbegin_hook(int a1, int a2, int a3)
     for (auto &custom : TouchButton::created_buttons) {
         if (!custom.ptr)
             continue;
-        bool matching = (hangarlist[1] == 1 && custom.state == 996) ||
+        bool matching = (hangarlist[1] == 0 && custom.state == 998) ||
+                        (hangarlist[1] == 1 && custom.state == 996) ||
                         (hangarlist[1] == 2 && custom.state == 997) ||
-                        (hangarlist[1] == 3 && custom.state == 998) ||
                         (hangarlist[1] == 4 && custom.state == 999);
         if (matching) {
             SingleTouchButton *btn = custom.ptr;
@@ -1735,10 +1735,9 @@ char __stdcall Hooks::hangarwindow_ontouchend_hook(int a1, int *a2, int a3)
     for (auto &custom : TouchButton::created_buttons) {
         if (!custom.ptr)
             continue;
-        std::cout << hangarlist[1] << std::endl;
-        bool matching = (hangarlist[1] == 1 && custom.state == 996) ||
-                        (hangarlist[1] == 1 && custom.state == 997) ||
-                        (hangarlist[1] == 2 && custom.state == 998) ||
+        bool matching = (hangarlist[1] == 0 && custom.state == 998) ||
+                        (hangarlist[1] == 1 && custom.state == 996) ||
+                        (hangarlist[1] == 2 && custom.state == 997) ||
                         (hangarlist[1] == 4 && custom.state == 999);
         if (matching) {
             SingleTouchButton *btn = custom.ptr;
