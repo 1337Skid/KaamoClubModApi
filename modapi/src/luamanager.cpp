@@ -58,8 +58,8 @@ void LuaManager::bind_api()
         "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
             return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
         },
-        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, int ismenutouchwindow, sol::main_protected_function onclick) -> TouchButton {
-            return self->createtouchbutton(text, subtext, x, y, textcolor, state, ismenutouchwindow, onclick);
+        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick) -> TouchButton {
+            return self->createtouchbutton(text, subtext, x, y, textcolor, state, onclick);
         }
     );
 

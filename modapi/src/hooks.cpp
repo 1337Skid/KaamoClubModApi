@@ -1595,12 +1595,14 @@ int __stdcall Hooks::menutouchwindow_draw_hook(int a1)
 {
     int returnvalue;
     int state = *reinterpret_cast<int*>(a1 + 0x164);
-    
+
     __asm {
         push a1
         call old_menutouchwindowdraw
         mov returnvalue, eax
     }
+    int *btnarray = *reinterpret_cast<int**>(a1 + 4);
+    TouchButton::refreshbtnsprites(btnarray);
     for (auto& custom : TouchButton::created_buttons) {
         if (custom.state != -1 && custom.state != state)
             continue;
@@ -1621,8 +1623,7 @@ char __thiscall Hooks::menutouchwindow_ontouchend_hook(void *a1, unsigned int a2
             continue;
         SingleTouchButton *btn = custom.ptr;
         btn->m_bIsPressed = 0;
-        if (a3 > btn->m_nX && a3 < btn->m_nX + btn->m_nWidth &&
-            a4 > btn->m_nY && a4 < btn->m_nY + btn->m_nHeight) {
+        if (a3 > btn->m_nX && a3 < btn->m_nX + btn->m_nWidth && a4 > btn->m_nY && a4 < btn->m_nY + btn->m_nHeight) {
             Asset::fmodsound_play(a4, 0x7Bu);
             if (custom.onclick)
                 custom.onclick();
@@ -1635,6 +1636,7 @@ char __stdcall Hooks::menutouchwindow_ontouchbegin_hook(int a2, int a3, int a4)
 {
     int a1;
     char returnvalue;
+
     __asm {
         mov a1, eax
     }
@@ -1645,8 +1647,7 @@ char __stdcall Hooks::menutouchwindow_ontouchbegin_hook(int a2, int a3, int a4)
         if (custom.state != -1 && custom.state != state)
             continue;
         SingleTouchButton *btn = custom.ptr;
-        if (a3 > btn->m_nX && a3 < btn->m_nX + btn->m_nWidth &&
-            a1 > btn->m_nY && a1 < btn->m_nY + btn->m_nHeight) {
+        if (a3 > btn->m_nX && a3 < btn->m_nX + btn->m_nWidth && a1 > btn->m_nY && a1 < btn->m_nY + btn->m_nHeight) {
             Asset::fmodsound_play(a4, 0x7Cu);
             btn->m_bIsPressed = 1;
         }
@@ -1676,6 +1677,98 @@ int __cdecl Hooks::modmainmenu_oninitalize_hook()
         mov ecx, a1
         mov edi, a2
         call old_modmainmenuoninitalize
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+int __thiscall Hooks::hangarwindow_render_hook(unsigned int *a1)
+{
+    int result = old_hangarwindowrender(a1);
+    int *hangarlist = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 20);
+    int *btnarray = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 36);
+    
+    TouchButton::refreshbtnsprites(btnarray);
+    for (auto &custom : TouchButton::created_buttons) {
+        if (!custom.ptr)
+            continue;
+        bool matching = (hangarlist[1] == 1 && custom.state == 996) ||
+                        (hangarlist[1] == 2 && custom.state == 997) ||
+                        (hangarlist[1] == 3 && custom.state == 998) ||
+                        (hangarlist[1] == 4 && custom.state == 999);
+        if (matching)
+            TouchButton::draw(custom.ptr);
+    }
+    return result;
+}
+
+char __stdcall Hooks::hangarwindow_ontouchbegin_hook(int a1, int a2, int a3)
+{
+    int *hangarlist = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 20);
+    int x = a2;
+    int y = a3;
+
+    for (auto &custom : TouchButton::created_buttons) {
+        if (!custom.ptr)
+            continue;
+        bool matching = (hangarlist[1] == 1 && custom.state == 996) ||
+                        (hangarlist[1] == 2 && custom.state == 997) ||
+                        (hangarlist[1] == 3 && custom.state == 998) ||
+                        (hangarlist[1] == 4 && custom.state == 999);
+        if (matching) {
+            SingleTouchButton *btn = custom.ptr;
+            if (x > btn->m_nX && x < btn->m_nX + btn->m_nWidth && y > btn->m_nY && y < btn->m_nY + btn->m_nHeight) {
+                Asset::fmodsound_play(y, 0x7Cu);
+                btn->m_bIsPressed = 1;
+            }
+        }
+    }
+    return old_hangarwindowontouchbegin(a1, a2, a3);
+}
+
+char __stdcall Hooks::hangarwindow_ontouchend_hook(int a1, int *a2, int a3)
+{
+    int *hangarlist = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 20);
+    int x = reinterpret_cast<int>(a2);
+    int y = a3;
+
+    for (auto &custom : TouchButton::created_buttons) {
+        if (!custom.ptr)
+            continue;
+        std::cout << hangarlist[1] << std::endl;
+        bool matching = (hangarlist[1] == 1 && custom.state == 996) ||
+                        (hangarlist[1] == 1 && custom.state == 997) ||
+                        (hangarlist[1] == 2 && custom.state == 998) ||
+                        (hangarlist[1] == 4 && custom.state == 999);
+        if (matching) {
+            SingleTouchButton *btn = custom.ptr;
+            btn->m_bIsPressed = 0;
+            if (x > btn->m_nX && x < btn->m_nX + btn->m_nWidth && y > btn->m_nY && y < btn->m_nY + btn->m_nHeight) {                
+                Asset::fmodsound_play(y, 0x7Bu);
+                if (custom.onclick)
+                    custom.onclick();
+            }
+        }
+    }
+    return old_hangarwindowontouchend(a1, a2, a3);
+}
+
+int __thiscall Hooks::layout_drawheader_hook(void *a1)
+{
+    return old_layoutdrawheader(a1);
+}
+
+unsigned int __cdecl Hooks::hangarwindow_initialize_hook()
+{
+    int a1;
+    int returnvalue;
+
+    __asm {
+        mov a1, ebx
+    }
+    __asm {
+        mov ebx, a1
+        call old_hangarwindowinitialize
         mov returnvalue, eax
     }
     return returnvalue;
@@ -1739,6 +1832,11 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::MENUTOUCHWINDOW_DRAW, (LPVOID)&menutouchwindow_draw_hook, (LPVOID*)&old_menutouchwindowdraw);
     MH_CreateHook((LPVOID)Offset::MENUTOUCHWINDOW_ONTOUCHBEGIN, (LPVOID)&menutouchwindow_ontouchbegin_hook, (LPVOID*)&old_menutouchwindowontouchbegin);
     //MH_CreateHook((LPVOID)Offset::MODMAINMENU_ONINITIALIZE, (LPVOID)&modmainmenu_oninitalize_hook, (LPVOID*)&old_modmainmenuoninitalize);
+    MH_CreateHook((LPVOID)Offset::HANGARWINDOW_RENDER, (LPVOID)&hangarwindow_render_hook, (LPVOID*)&old_hangarwindowrender);
+    //MH_CreateHook((LPVOID)Offset::LAYOUT_DRAWHEADER, (LPVOID)&layout_drawheader_hook, (LPVOID*)&old_layoutdrawheader);
+    //MH_CreateHook((LPVOID)Offset::HANGARWINDOW_INITIALIZE, (LPVOID)&hangarwindow_initialize_hook, (LPVOID*)&old_hangarwindowinitialize);
+    MH_CreateHook((LPVOID)Offset::HANGARWINDOW_ONTOUCHBEGIN, (LPVOID)&hangarwindow_ontouchbegin_hook, (LPVOID*)&old_hangarwindowontouchbegin);
+    MH_CreateHook((LPVOID)Offset::HANGARWINDOW_ONTOUCHEND, (LPVOID)&hangarwindow_ontouchend_hook, (LPVOID*)&old_hangarwindowontouchend);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

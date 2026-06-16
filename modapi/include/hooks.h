@@ -225,6 +225,26 @@ class Hooks {
         inline static modmainmenu_oninitalize old_modmainmenuoninitalize = nullptr;
         static int __cdecl modmainmenu_oninitalize_hook();
 
+        using hangarwindow_render = int (__thiscall*)(unsigned int*);
+        inline static hangarwindow_render old_hangarwindowrender = nullptr;
+        static int __thiscall hangarwindow_render_hook(unsigned int *a1);
+
+        using layout_drawheader = int (__thiscall*)(void*);
+        inline static layout_drawheader old_layoutdrawheader = nullptr;
+        static int __thiscall layout_drawheader_hook(void *a1);
+
+        using hangarwindow_initialize = unsigned int (__cdecl*)();
+        inline static hangarwindow_initialize old_hangarwindowinitialize = nullptr;
+        static unsigned int __cdecl hangarwindow_initialize_hook();
+
+        using hangarwindow_ontouchbegin = char (__stdcall*)(int, int, int);
+        inline static hangarwindow_ontouchbegin old_hangarwindowontouchbegin = nullptr;
+        static char __stdcall hangarwindow_ontouchbegin_hook(int a1, int a2, int a3);
+
+        using hangarwindow_ontouchend = char (__stdcall*)(int, int*, int);
+        inline static hangarwindow_ontouchend old_hangarwindowontouchend = nullptr;
+        static char __stdcall hangarwindow_ontouchend_hook(int a1, int *a2, int a3);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

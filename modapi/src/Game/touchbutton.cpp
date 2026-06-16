@@ -13,7 +13,7 @@
 #include "offset.h"
 #include "abyssengine.h"
 
-TouchButton::TouchButton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, int ismenutouchwindow, sol::main_protected_function onclick)
+TouchButton::TouchButton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick)
 {
     SingleTouchButton *btn = reinterpret_cast<SingleTouchButton*>(AbyssEngine::memory_allocate(sizeof(SingleTouchButton)));
     int text_len = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, nullptr, 0);
@@ -42,17 +42,17 @@ TouchButton::TouchButton(const std::string &text, const std::string &subtext, in
     btn->m_sTextRight = nullptr;
     btn->m_nTextMode = -1;
     btn->m_nIconSide = -1;
-    btn->m_nSpritePressed = 67;
-    btn->m_nSpriteMidPressed = 37;
-    btn->m_nSpriteRightPressed = 38;
-    btn->m_nSpriteNormal = 66;
-    btn->m_nSpriteMidNormal = 34;
-    btn->m_nSpriteRightNormal = 35;
-    btn->m_nSpriteHighlighted = 67;
-    btn->m_nSpriteMidHighlighted = 37;
-    btn->m_nSpriteRightHighlighted = 38;
-    btn->m_nSpriteBg = 0;
-    btn->m_nSpriteOverlay = 0;
+    btn->m_nSpritePressed = 1; // TOOD: do custom button sprites
+    btn->m_nSpriteMidPressed = 1;
+    btn->m_nSpriteRightPressed = 1;
+    btn->m_nSpriteNormal = 1;
+    btn->m_nSpriteMidNormal = 1;
+    btn->m_nSpriteRightNormal = 1;
+    btn->m_nSpriteHighlighted = 1;
+    btn->m_nSpriteMidHighlighted = 1;
+    btn->m_nSpriteRightHighlighted = 1;
+    btn->m_nSpriteBg = 1;
+    btn->m_nSpriteOverlay = 1;
     btn->m_nIcon = 0;
     btn->field_58 = 200;
     btn->m_nBtnType = 0;
@@ -107,4 +107,41 @@ void TouchButton::settext(const std::string &text)
     AbyssEngine::memory_free(_ptr->m_sText);
     _ptr->m_sText = text_buf;
     _ptr->m_nTextSize = static_cast<uint32_t>(text_len - 1);
+}
+
+void TouchButton::refreshbtnsprites(int *btnarray)
+{
+    if (!btnarray)
+        return;
+    int count = btnarray[0];    
+    SingleTouchButton **data = reinterpret_cast<SingleTouchButton**>(btnarray[1]);
+    if (count <= 0 || !data)
+        return;
+    SingleTouchButton *ref = data[0];
+    for (auto &custom : created_buttons) {
+        if (!custom.ptr)
+            continue;
+        SingleTouchButton *btn = custom.ptr;
+        if (count == 17) {
+            btn->m_nSpriteNormal = 64;
+            btn->m_nSpritePressed = 65;
+            btn->m_nSpriteMidPressed = 37;
+            btn->m_nSpriteRightPressed = 38;
+            btn->m_nSpriteMidNormal = 34;
+            btn->m_nSpriteRightNormal = 35;
+            btn->m_nSpriteHighlighted = 67;
+            btn->m_nSpriteMidHighlighted = 37;
+            btn->m_nSpriteRightHighlighted = 38;
+        } else {
+            btn->m_nSpriteNormal = ref->m_nSpriteNormal;
+            btn->m_nSpriteMidNormal = ref->m_nSpriteMidNormal;
+            btn->m_nSpriteRightNormal = ref->m_nSpriteRightNormal;
+            btn->m_nSpritePressed = ref->m_nSpritePressed;
+            btn->m_nSpriteMidPressed = ref->m_nSpriteMidPressed;
+            btn->m_nSpriteRightPressed = ref->m_nSpriteRightPressed;
+            btn->m_nSpriteHighlighted = ref->m_nSpriteHighlighted;
+            btn->m_nSpriteMidHighlighted = ref->m_nSpriteMidHighlighted;
+            btn->m_nSpriteRightHighlighted = ref->m_nSpriteRightHighlighted;
+        }
+    }
 }

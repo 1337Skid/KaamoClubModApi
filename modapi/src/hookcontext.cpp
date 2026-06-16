@@ -25,9 +25,9 @@ int GlobalsInitContext::createship(const std::string& name, const std::string& d
     return Ship::create(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
 }
 
-TouchButton GlobalsInitContext::createtouchbutton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, int ismenutouchwindow, sol::main_protected_function onclick)
+TouchButton GlobalsInitContext::createtouchbutton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick)
 {
-    return TouchButton(text, subtext, x, y, textcolor, state, ismenutouchwindow, onclick);
+    return TouchButton(text, subtext, x, y, textcolor, state, onclick);
 }
 
 void Render2DContext::drawstring(const std::string& text, int x, int y, int r, int g, int b, int a)

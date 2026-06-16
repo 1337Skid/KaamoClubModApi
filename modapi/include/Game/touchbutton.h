@@ -15,10 +15,11 @@ class TouchButton {
         };
     public:
         static inline std::vector<CustomButton> created_buttons;
-        TouchButton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, int ismenutouchwindow, sol::main_protected_function onclick);
+        TouchButton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick);
         ~TouchButton();
         std::string tostring(void);
         void settext(const std::string &text);
         static void draw(SingleTouchButton *btn);
+        static void refreshbtnsprites(int* btnContainer);
 };
 #endif

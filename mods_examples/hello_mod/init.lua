@@ -4,6 +4,7 @@ local assetchanged = false
 local mytextureid = 0
 local mysprite = 0
 local mybutton = 0
+local mybutton2 = 0
 
 function get_every_assets_filepath()
 	local filepath
@@ -15,10 +16,17 @@ function get_every_assets_filepath()
 	end
 end
 
-HookFunction("Globals::init", function()
+HookFunction("Globals::init", function(ctx)
 	mytextureid = asset:CreateTexture("mods/hello_mod/my_assets/Trollface.aei")
 	mysprite = asset:CreateSprite(mytextureid, 0)
 	print("SPRITE ID INJECTED : " .. mysprite)
+	mybutton = ctx:CreateTouchButton("Hello world", "7.", 800, 900, -1, 0, function()
+		mybutton:SetText("Clicked!")
+	end)
+	-- 999 = when we click on a blueprint, 997 = blueprint menu 996 = shop tab, 998 = ship tab
+	mybutton2 = ctx:CreateTouchButton("Hello world", "", 800, 900, -1, 999, function()
+		mybutton2:SetText("Wow")
+	end)
 	-- ctx:call() doesn't exist there because it makes no sense to stop globals::init, your game will just crash if it was a thing
 end)
 
@@ -200,12 +208,6 @@ HookFunction("ModMainMenu::OnRender2D", function(ctx)
 	sprite = asset:Image2DCreate(mysprite) -- put our sprite in the textures pool
 	ctx:DrawImage2D(sprite, 20, 200, 255, 255, 255, 255)
 	ctx:call()
-end)
-
-HookFunction("Globals::init", function(ctx)
-	mybutton = ctx:CreateTouchButton("Hello world", "7.", 800, 900, -1, 0, 1, function()
-		mybutton:SetText("Clicked!")
-	end)
 end)
 
 local full_text = "Hello MGame!!! yes you can animate your string !"

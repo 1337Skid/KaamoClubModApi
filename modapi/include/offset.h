@@ -165,5 +165,13 @@ class Offset {
         static constexpr uintptr_t FMODSOUND_PLAY = 0x4E2909;
 
         static constexpr uintptr_t TOUCHBUTTON_DRAW = 0x4DD233;
+
+        static constexpr uintptr_t HANGARWINDOW_RENDER = 0x454821;
+        static constexpr uintptr_t HANGARWINDOW_INITIALIZE = 0x45399A;
+        static constexpr uintptr_t HANGARWINDOW_ONTOUCHEND = 0x45685B;
+        static constexpr uintptr_t HANGARWINDOW_ONTOUCHBEGIN = 0x456330;
+        
+        static constexpr uintptr_t LAYOUT_DRAWHEADER = 0x4652CF;
+        static constexpr uintptr_t LAYOUT_DRAWHEADER_2 = 0x465348;
 };
 #endif
