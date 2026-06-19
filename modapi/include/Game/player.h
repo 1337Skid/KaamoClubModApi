@@ -31,5 +31,7 @@ class Player {
         static bool hasjumpdrive(void);
         static void togglecloaking(void);
         static void setposition(float x, float y, float z);
+        static void resetgame(void);
+        static void setstation(int id);
 };
 #endif

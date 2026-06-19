@@ -10,7 +10,7 @@
 
 void Asset::init()
 {
-    // Canvas is the last thing to load and I need to sleep if canvas is still nullptr
+    // Canvas is the last global to load and I need to wait for canvas to be init
     uintptr_t base = MemoryUtils::GetModuleBase("GoF2.exe");
 
     while (globals_canvas == 0) {

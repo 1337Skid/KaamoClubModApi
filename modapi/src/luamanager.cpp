@@ -24,6 +24,7 @@
 #include <Game/kiplayer.h>
 #include <Game/ship.h>
 #include <Game/touchbutton.h>
+#include <Game/engine.h>
 
 void LuaManager::init()
 {
@@ -58,8 +59,20 @@ void LuaManager::bind_api()
         "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
             return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
         },
-        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick) -> TouchButton {
-            return self->createtouchbutton(text, subtext, x, y, textcolor, state, onclick);
+        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::protected_function onclick, sol::this_state s) -> TouchButton {
+            sol::state_view lua(s);
+            auto coroutine_wrapper = [onclick](sol::variadic_args args) {
+                sol::state_view lua(EventManager::lua_manager->getluastate());
+                sol::thread thread = sol::thread::create(lua);
+                sol::coroutine cor(thread.state(), onclick);
+                std::vector<sol::object> vecargs;
+                for (auto arg : args)
+                    vecargs.push_back(arg);
+                auto result = cor(sol::as_args(vecargs));
+                EventManager::lua_manager->handle_coroutine(std::move(thread), std::move(cor), result, nullptr, std::move(vecargs));
+            };
+            sol::protected_function wrapped = sol::make_object(lua, coroutine_wrapper).as<sol::protected_function>();
+            return self->createtouchbutton(text, subtext, x, y, textcolor, state, wrapped);
         }
     );
 
@@ -102,6 +115,12 @@ void LuaManager::bind_api()
         },
         "SetPosition", [](Player& self, float x, float y, float z) {
             Player::setposition(x, y, z);
+        },
+        "ResetGame", [](Player& self) {
+            Player::resetgame();
+        },
+        "SetStation", [](Player& self, int id) {
+            Player::setstation(id);
         }
     );
 
@@ -247,6 +266,13 @@ void LuaManager::bind_api()
         }
     );
 
+    lua_state.new_usertype<Engine>("Engine",
+        sol::no_constructor,
+        "SetCurrentApplicationModule", [](Engine& self, int id)  {
+            Engine::setcurrentapplicationmodule(id);
+        }
+    );
+
     lua_state.new_usertype<LuaRoute>("Route",
         sol::no_constructor,
         "IsValid", [](LuaRoute& self) -> bool {
@@ -369,6 +395,7 @@ void LuaManager::bind_api()
     lua_state["level"] = Level();
     lua_state["memoryutils"] = MemoryUtils();
     lua_state["imgui"] = ImGuiHandler();
+    lua_state["engine"] = Engine();
 }
 
 void LuaManager::handle_coroutine(sol::thread script, sol::coroutine cor, const sol::protected_function_result& result, std::function<void()> on_complete, std::vector<sol::object> args)

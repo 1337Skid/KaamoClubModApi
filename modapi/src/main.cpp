@@ -7,6 +7,7 @@
 #include "imguihandler.h"
 #include <Game/system.h>
 #include <Game/level.h>
+#include <Game/engine.h>
 #include <chrono>
 
 DWORD WINAPI MainThread(LPVOID lpParam)
@@ -32,6 +33,7 @@ DWORD WINAPI MainThread(LPVOID lpParam)
     Mission::init();
     Asset::init();
     Item::init();
+    Engine::init();
     //Ship::init();
     Level::init(luamanager->getluastate());
     ImGuiHandler::init(luamanager);

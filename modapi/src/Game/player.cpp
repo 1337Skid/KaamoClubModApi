@@ -175,3 +175,35 @@ void Player::setasteroidsdestroyedcount(int value)
 {
     (*globals_status)->m_nAsteroidsDestroyed = value;
 }
+
+void Player::resetgame()
+{
+    uintptr_t address = Offset::STATUS_RESETGAME;
+
+    __asm {
+        call address
+    }
+}
+
+void Player::setstation(int id)
+{
+    Station *stationptr = nullptr;
+    Globals_status* status = *globals_status; 
+    uintptr_t getstation_address = Offset::GALAXY_GETSTATION;
+    uintptr_t setstation_address = Offset::STATUS_SETSTATION;
+
+    __asm {
+        push id
+        call getstation_address
+        mov stationptr, eax
+    }
+    if (!stationptr) {
+        std::cout << "[-] Station id " << id << " doesn't exist" << std::endl;
+        return;
+    }
+    __asm {
+        mov edx, stationptr
+        mov ebx, status
+        call setstation_address
+    }
+}

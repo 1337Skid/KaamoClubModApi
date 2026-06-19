@@ -22,6 +22,13 @@ HookFunction("Globals::init", function(ctx)
 	print("SPRITE ID INJECTED : " .. mysprite)
 	mybutton = ctx:CreateTouchButton("Hello world", "7.", 800, 900, -1, 0, function()
 		mybutton:SetText("Clicked!")
+		player:ResetGame()
+		player.money = 1337 -- starter money
+		mission.id = 78 -- valkyrie station animation mission id
+		player:SetStation(108)
+		engine:SetCurrentApplicationModule(2) -- set the game in the module MGame
+		wait(5)
+		print("async works")
 	end)
 	-- 999 = when we click on a blueprint, 997 = blueprint menu 996 = shop tab, 998 = ship tab
 	mybutton2 = ctx:CreateTouchButton("Hello world", "", 800, 900, -1, 999, function()

@@ -43,6 +43,7 @@ class Offset {
         static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_DRAWSTRING = 0x4E8130;
         static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_IMAGE2DCREATE = 0x4E9600;
         static constexpr uintptr_t ABYSSENGINE_ENGINE_ENGINE = 0x4E77B0;
+        static constexpr uintptr_t ABYSSENGINE_APPLICATIONMANAGER_SETCURRENTAPPLICATIONMODULE = 0x4F4510;
         
         static constexpr uintptr_t GAMETEXT_GETTEXT = 0x4F38B0;
         
@@ -142,6 +143,8 @@ class Offset {
         static constexpr uintptr_t STATUS_SETCAMPAIGNMISSION = 0x4D5FAD;
         static constexpr uintptr_t STATUS_GETCAMPAIGNMISSION = 0x4D5F9C;
         static constexpr uintptr_t STATUS_GETFREELANCEMISSION = 0x4D5F85;
+        static constexpr uintptr_t STATUS_RESETGAME = 0x4D858C;
+        static constexpr uintptr_t STATUS_SETSTATION = 0x4D7D17;
 
         static constexpr uintptr_t MISSION_MISSION = 0x4986DE;
 
@@ -173,5 +176,7 @@ class Offset {
         
         static constexpr uintptr_t LAYOUT_DRAWHEADER = 0x4652CF;
         static constexpr uintptr_t LAYOUT_DRAWHEADER_2 = 0x465348;
+
+        static constexpr uintptr_t GALAXY_GETSTATION = 0x40A28C;
 };
 #endif
