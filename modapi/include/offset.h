@@ -25,6 +25,7 @@ class Offset {
         static constexpr uintptr_t GLOBALS_SOUND = 0x60AF70;
         static constexpr uintptr_t GLOBALS_W = 0x60AF00;
         static constexpr uintptr_t GLOBALS_H = 0x60AE80;
+        static constexpr uintptr_t GLOBALS_LAYOUT = 0x60AF78;
 
         static constexpr uintptr_t CAMPAIGN_BRIEFING_LENGTHS = 0x5311E8;
         static constexpr uintptr_t CAMPAIGN_SUCCESS_LENGTHS = 0x5314F0;
@@ -80,6 +81,9 @@ class Offset {
         static constexpr uintptr_t MGAME_TOGGLEPAUSE = 0x497564;
         static constexpr uintptr_t MGAME_ONUPDATE = 0x492BB4;
         static constexpr uintptr_t MGAME_ONRENDER2D = 0x495537;
+        static constexpr uintptr_t MGAME_ONTOUCHEND = 0x491248;
+        static constexpr uintptr_t MGAME_ONTOUCHBEGIN = 0x4905C5;
+        static constexpr uintptr_t MGAME_PAUSESOUNDS = 0x49054C;
 
         static constexpr uintptr_t CUTSCENE_CUTSCENE = 0x404971;
         static constexpr uintptr_t CUTSCENE_RENDER3D = 0x405CDC;
@@ -178,5 +182,11 @@ class Offset {
         static constexpr uintptr_t LAYOUT_DRAWHEADER_2 = 0x465348;
 
         static constexpr uintptr_t GALAXY_GETSTATION = 0x40A28C;
+
+        static constexpr uintptr_t CHOICEWINDOW_ONTOUCHBEGIN = 0x404885;
+        static constexpr uintptr_t CHOICEWINDOW_ONTOUCHEND = 0x40491A;
+        static constexpr uintptr_t CHOICEWINDOW_DRAW = 0x404624;
+        static constexpr uintptr_t CHOICEWINDOW_SET = 0x404000;
+        static constexpr uintptr_t CHOICEWINDOW_CHOICEWINDOW = 0x403E89;
 };
 #endif

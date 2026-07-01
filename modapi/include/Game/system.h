@@ -22,6 +22,8 @@ class System {
         static void setmapcoordinatey(int value);
         static int getmapcoordinatez(void);
         static void setmapcoordinatez(int value);
+        static int gettextureid(void);
+        static void settextureid(int value);
         static std::string getname(void);
         static void setname(std::string value);
 

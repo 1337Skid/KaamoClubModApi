@@ -40,7 +40,7 @@ void System::setrisklevel(int value)
     (*globals_status)->m_pSystemInfo->risk = value;
 }
 
-int System::getfaction(void)
+int System::getfaction()
 {
     if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
@@ -54,7 +54,7 @@ void System::setfaction(int value)
     (*globals_status)->m_pSystemInfo->faction = value;
 }
 
-int System::getjumpgatestationid(void)
+int System::getjumpgatestationid()
 {
     if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
@@ -68,7 +68,7 @@ void System::setjumpgatestationid(int value)
     (*globals_status)->m_pSystemInfo->jumpgate_station_id = value;
 }
 
-int System::getmapcoordinatex(void)
+int System::getmapcoordinatex()
 {
     if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
@@ -82,7 +82,7 @@ void System::setmapcoordinatex(int value)
     (*globals_status)->m_pSystemInfo->pos.x = value;
 }
 
-int System::getmapcoordinatey(void)
+int System::getmapcoordinatey()
 {
     if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
@@ -96,7 +96,7 @@ void System::setmapcoordinatey(int value)
     (*globals_status)->m_pSystemInfo->pos.y = value;
 }
 
-int System::getmapcoordinatez(void)
+int System::getmapcoordinatez()
 {
     if ((*globals_status)->m_pSystemInfo == nullptr)
         return 0;
@@ -108,6 +108,20 @@ void System::setmapcoordinatez(int value)
     if ((*globals_status)->m_pSystemInfo == nullptr)
         return;
     (*globals_status)->m_pSystemInfo->pos.z = value;
+}
+
+int System::gettextureid()
+{
+    if ((*globals_status)->m_pSystemInfo == nullptr)
+        return 0;
+    return (*globals_status)->m_pSystemInfo->texture_id;
+}
+
+void System::settextureid(int value)
+{
+    if ((*globals_status)->m_pSystemInfo == nullptr)
+        return;
+    (*globals_status)->m_pSystemInfo->texture_id = value;
 }
 
 std::string System::getname()

@@ -5,6 +5,8 @@ local mytextureid = 0
 local mysprite = 0
 local mybutton = 0
 local mybutton2 = 0
+local mybutton3 = 0
+local mychoicewindow = 0
 
 function get_every_assets_filepath()
 	local filepath
@@ -20,6 +22,16 @@ HookFunction("Globals::init", function(ctx)
 	mytextureid = asset:CreateTexture("mods/hello_mod/my_assets/Trollface.aei")
 	mysprite = asset:CreateSprite(mytextureid, 0)
 	print("SPRITE ID INJECTED : " .. mysprite)
+    	mychoicewindow = ctx:CreateChoiceWindow("Hello world", "Cool choice window", true, 
+        	function()
+            		print("ok")
+			wait(2)
+			print("choice window async")
+        	end, 
+        	function()
+            		print("bye")
+        	end
+	)
 	mybutton = ctx:CreateTouchButton("Hello world", "7.", 800, 900, -1, 0, function()
 		mybutton:SetText("Clicked!")
 		player:ResetGame()
@@ -33,6 +45,10 @@ HookFunction("Globals::init", function(ctx)
 	-- 999 = when we click on a blueprint, 997 = blueprint menu 996 = shop tab, 998 = ship tab
 	mybutton2 = ctx:CreateTouchButton("Hello world", "", 800, 900, -1, 999, function()
 		mybutton2:SetText("Wow")
+		mychoicewindow:Show()
+	end)
+	mybutton3 = ctx:CreateTouchButton("Show choice window", "8.", 1200, 300, -1, 0, function()
+		mychoicewindow:Show()
 	end)
 	-- ctx:call() doesn't exist there because it makes no sense to stop globals::init, your game will just crash if it was a thing
 end)
@@ -89,6 +105,7 @@ RegisterEvent("OnAsteroidDestroyed", function(count)
 	--for k, v in pairs(level:GetEntities()) do
 	--	print(v)
 	--end
+	mychoicewindow:Show()
 end)
 
 RegisterEvent("OnEnemieKilled", function(count)
@@ -134,8 +151,8 @@ end)
 RegisterEvent("IsInMainMenu", function()
 	if assetchanged then return end
 	--get_every_assets_filepath()
-	print("Asset changed!")
-	asset:SetAssetFilePath(2050, "mods/hello_mod/my_assets/custom_gof2_interface.aei") -- feel free to custom the gof2 interface with any tools (I don't know if we have any) also you can call this setassetfilepath function while the game is running BUT it won't be edited instantly, for the asset to be edited you need to 'reload' the game aka going to a station, changing system etc..
+	--print("Asset changed!")
+	--asset:SetAssetFilePath(2050, "mods/hello_mod/my_assets/custom_gof2_interface.aei") -- feel free to custom the gof2 interface with any tools (I don't know if we have any) also you can call this setassetfilepath function while the game is running BUT it won't be edited instantly, for the asset to be edited you need to 'reload' the game aka going to a station, changing system etc..
 	assetchanged = true
 end)
 
@@ -151,6 +168,7 @@ RegisterEvent("OnSystemChanged", function(id)
 	print("System map coordinate x : " .. system.mapcoordinate_x)
 	print("System map coordinate y : " .. system.mapcoordinate_y)
 	print("System map coordinate z : " .. system.mapcoordinate_z)
+	print("System texture id : " .. system.textureid)
 	print("Station name : " .. station.name)
 	print("Station level : " .. station.level)
 	print("Station id : " .. station.id)

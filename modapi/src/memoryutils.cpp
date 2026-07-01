@@ -18,11 +18,13 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 
-uintptr_t MemoryUtils::GetModuleBase(const char* modulename) {
+uintptr_t MemoryUtils::GetModuleBase(const char* modulename)
+{
     return (uintptr_t)GetModuleHandleA(modulename);
 }
 
-uintptr_t MemoryUtils::GetPointerAddress(uintptr_t startaddr, const std::vector<unsigned int>& offsets) {
+uintptr_t MemoryUtils::GetPointerAddress(uintptr_t startaddr, const std::vector<unsigned int>& offsets)
+{
     uintptr_t addr = startaddr;
 
     for (unsigned int i = 0; i < offsets.size(); ++i) {
@@ -32,4 +34,20 @@ uintptr_t MemoryUtils::GetPointerAddress(uintptr_t startaddr, const std::vector<
         addr += offsets[i];
     }
     return addr;
+}
+
+bool MemoryUtils::IsValidPointer(const void *ptr)
+{
+    MEMORY_BASIC_INFORMATION mbi;
+    const DWORD readable_flags = PAGE_READONLY | PAGE_READWRITE | PAGE_WRITECOPY |  PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY;
+
+    if (!ptr)
+        return false;
+    if (VirtualQuery(ptr, &mbi, sizeof(mbi)) == 0)
+        return false;
+    if (mbi.State != MEM_COMMIT)
+        return false;
+    if (mbi.Protect & (PAGE_GUARD | PAGE_NOACCESS))
+        return false;
+    return (mbi.Protect & readable_flags) != 0;
 }

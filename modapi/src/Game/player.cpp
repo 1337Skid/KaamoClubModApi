@@ -188,7 +188,7 @@ void Player::resetgame()
 void Player::setstation(int id)
 {
     Station *stationptr = nullptr;
-    Globals_status* status = *globals_status; 
+    Globals_status* status = *globals_status;
     uintptr_t getstation_address = Offset::GALAXY_GETSTATION;
     uintptr_t setstation_address = Offset::STATUS_SETSTATION;
 

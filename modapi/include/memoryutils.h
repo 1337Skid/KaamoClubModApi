@@ -25,6 +25,7 @@ class MemoryUtils {
     public:
         static uintptr_t GetModuleBase(const char* modulename);
         static uintptr_t GetPointerAddress(uintptr_t baseaddr, const std::vector<unsigned int>& offsets);
+        static bool IsValidPointer(const void *ptr);
         static std::wstring ReadRawString(uintptr_t address, size_t size = 256)
         {
             std::vector<wchar_t> buffer(size);

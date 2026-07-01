@@ -1213,6 +1213,8 @@ void __thiscall Hooks::mgame_onrender2d_hook(int *a1)
 {
     Render2DContext ctx = EventManager::trigger_hook<Render2DContext>("MGame::OnRender2D");
 
+    ChoiceWindow::active_mgamewindow = reinterpret_cast<uintptr_t>(a1);
+    ChoiceWindow::last_active_window = ChoiceWindow::MGAME_WINDOW;
     if (ctx.call_original)
         old_mgameonrender2d(a1);
 }
@@ -1593,16 +1595,19 @@ void __stdcall Hooks::imagefactory_drawitem_hook(int a3, unsigned int a4)
 
 int __stdcall Hooks::menutouchwindow_draw_hook(int a1)
 {
+    // TODO: one day i'll edit every a1, a2 etc.. to the correct thing lmao
+    MenuTouchWindow *menutouchwindow = reinterpret_cast<MenuTouchWindow*>(a1);
+    ChoiceWindow::active_menutouchwindow = a1;
+    ChoiceWindow::last_active_window = ChoiceWindow::MENU_TOUCH_WINDOW;
     int returnvalue;
-    int state = *reinterpret_cast<int*>(a1 + 0x164);
-
+    int state = menutouchwindow->m_nState;
     __asm {
-        push a1
+        push menutouchwindow
         call old_menutouchwindowdraw
         mov returnvalue, eax
     }
-    int *btnarray = *reinterpret_cast<int**>(a1 + 4);
-    TouchButton::refreshbtnsprites(btnarray);
+    AEArray<SingleTouchButton*>* btnarray = menutouchwindow->m_pButtons;
+    TouchButton::refreshbtnsprites(reinterpret_cast<int*>(btnarray));
     for (auto& custom : TouchButton::created_buttons) {
         if (custom.state != -1 && custom.state != state)
             continue;
@@ -1614,8 +1619,43 @@ int __stdcall Hooks::menutouchwindow_draw_hook(int a1)
 
 char __thiscall Hooks::menutouchwindow_ontouchend_hook(void *a1, unsigned int a2, int a3, int a4)
 {
-    int state = *reinterpret_cast<int*>(a2 + 0x164);
+    MenuTouchWindow *menutouchwindow = reinterpret_cast<MenuTouchWindow*>(static_cast<uintptr_t>(a2));
+    bool active = menutouchwindow->m_bChoiceWindowActive;
+    SingleChoiceWindow *customchoicewindow = menutouchwindow->m_pChoiceWindow;
 
+    if (active && customchoicewindow) {
+        bool is_custom = false;
+        for (auto &custom : ChoiceWindow::created_choicewindow) {
+            if (custom.ptr == customchoicewindow) {
+                is_custom = true;
+                break;
+            }
+        }
+        if (is_custom) {
+            int result = -1;
+            __asm {
+                mov ecx, customchoicewindow
+                mov eax, a4
+                push a3
+                mov edx, old_choicewindowontouchend
+                call edx
+                mov result, eax
+            }
+            for (auto &custom : ChoiceWindow::created_choicewindow) {
+                if (custom.ptr == customchoicewindow) {
+                    if (result == 0 && custom.onclick_yes)
+                        custom.onclick_yes();
+                    else if (result == 1 && custom.onclick_no)
+                        custom.onclick_no();
+                    break;
+                }
+            }
+            if (result == 0 || result == 1)
+                ChoiceWindow::restore_state(customchoicewindow);
+            return 0;
+        }
+    }
+    int state = menutouchwindow->m_nState;
     for (auto& custom : TouchButton::created_buttons) {
         if (!custom.ptr)
             continue;
@@ -1684,10 +1724,11 @@ int __cdecl Hooks::modmainmenu_oninitalize_hook()
 
 int __thiscall Hooks::hangarwindow_render_hook(unsigned int *a1)
 {
+    ChoiceWindow::active_hangarwindow = reinterpret_cast<uintptr_t>(a1);
+    ChoiceWindow::last_active_window = ChoiceWindow::HANGAR_WINDOW;
     int result = old_hangarwindowrender(a1);
     int *hangarlist = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 20);
     int *btnarray = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 36);
-    
     TouchButton::refreshbtnsprites(btnarray);
     for (auto &custom : TouchButton::created_buttons) {
         if (!custom.ptr)
@@ -1773,6 +1814,72 @@ unsigned int __cdecl Hooks::hangarwindow_initialize_hook()
     return returnvalue;
 }
 
+char __stdcall Hooks::choicewindow_ontouchbegin_hook(int a3)
+{
+    int a1;
+    int a2;
+    char returnvalue;
+
+    __asm {
+        mov a1, esi
+        mov a2, eax
+    }
+    __asm {
+        push a3
+        mov esi, a1
+        mov eax, a2
+        call old_choicewindowontouchbegin
+        mov returnvalue, al
+    }
+    return returnvalue;
+}
+
+int __stdcall Hooks::choicewindow_ontouchend_hook(int a3)
+{
+    int a1;
+    int a2;
+    int returnvalue;
+    bool iscustomchoicewindow = false;
+    __asm {
+        mov a1, ecx
+        mov a2, eax
+    }
+    __asm {
+        push a3
+        mov ecx, a1
+        mov eax, a2
+        mov edx, old_choicewindowontouchend
+        call edx
+        mov returnvalue, eax
+    }
+    for (auto &custom : ChoiceWindow::created_choicewindow) {
+        if (custom.ptr == reinterpret_cast<SingleChoiceWindow*>(a1)) {
+            iscustomchoicewindow = true;
+            if (returnvalue == 0 && custom.onclick_yes) {
+                custom.onclick_yes();
+            } else if (returnvalue == 1 && custom.onclick_no) {
+                custom.onclick_no();
+            }
+            break;
+        }
+    }
+    if (iscustomchoicewindow && (returnvalue == 0 || returnvalue == 1))
+        ChoiceWindow::restore_state(reinterpret_cast<SingleChoiceWindow*>(a1));
+    return returnvalue;
+}
+
+void __thiscall Hooks::mgame_ontouchbegin_hook(int *a1, unsigned int a2, unsigned int a3, int a4)
+{
+    std::cout << "touch" << std::endl;
+    old_mgameontouchbegin(a1, a2, a3, a4);
+}
+
+char __thiscall Hooks::mgame_ontouchend_hook(int a1, int a2, int a3, void *a4)
+{
+    std::cout << "touch end" << std::endl;
+    return old_mgameontouchend(a1, a2, a3, a4);
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1836,6 +1943,10 @@ void Hooks::init()
     //MH_CreateHook((LPVOID)Offset::HANGARWINDOW_INITIALIZE, (LPVOID)&hangarwindow_initialize_hook, (LPVOID*)&old_hangarwindowinitialize);
     MH_CreateHook((LPVOID)Offset::HANGARWINDOW_ONTOUCHBEGIN, (LPVOID)&hangarwindow_ontouchbegin_hook, (LPVOID*)&old_hangarwindowontouchbegin);
     MH_CreateHook((LPVOID)Offset::HANGARWINDOW_ONTOUCHEND, (LPVOID)&hangarwindow_ontouchend_hook, (LPVOID*)&old_hangarwindowontouchend);
+    //MH_CreateHook((LPVOID)Offset::CHOICEWINDOW_ONTOUCHBEGIN, (LPVOID)&choicewindow_ontouchbegin_hook, (LPVOID*)&old_choicewindowontouchbegin);
+    MH_CreateHook((LPVOID)Offset::CHOICEWINDOW_ONTOUCHEND, (LPVOID)&choicewindow_ontouchend_hook, (LPVOID*)&old_choicewindowontouchend);
+    //MH_CreateHook((LPVOID)Offset::MGAME_ONTOUCHBEGIN, (LPVOID)&mgame_ontouchbegin_hook, (LPVOID*)&old_mgameontouchbegin);
+    //MH_CreateHook((LPVOID)Offset::MGAME_ONTOUCHEND, (LPVOID)&mgame_ontouchend_hook, (LPVOID*)&old_mgameontouchend);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

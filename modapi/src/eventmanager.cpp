@@ -70,6 +70,7 @@ void EventManager::earlyinit_event()
 void EventManager::mainmenu_event()
 {
     static bool refreshed = false;
+    
     if (Mission::getid() == 0) {
         trigger("IsInMainMenu");
         if (!refreshed) {

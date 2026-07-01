@@ -245,6 +245,22 @@ class Hooks {
         inline static hangarwindow_ontouchend old_hangarwindowontouchend = nullptr;
         static char __stdcall hangarwindow_ontouchend_hook(int a1, int *a2, int a3);
 
+        using choicewindow_ontouchbegin = char (__stdcall*)(int);
+        inline static choicewindow_ontouchbegin old_choicewindowontouchbegin = nullptr;
+        static char __stdcall choicewindow_ontouchbegin_hook(int a3);
+
+        using choicewindow_ontouchend = int (__stdcall*)(int);
+        inline static choicewindow_ontouchend old_choicewindowontouchend = nullptr;
+        static int __stdcall choicewindow_ontouchend_hook(int a3);
+
+        using mgame_ontouchend = char (__thiscall*)(int, int, int, void*);
+        inline static mgame_ontouchend old_mgameontouchend = nullptr;
+        static char __thiscall mgame_ontouchend_hook(int a1, int a2, int a3, void *a4);
+
+        using mgame_ontouchbegin = void (__thiscall*)(int*, unsigned int, unsigned int, int);
+        inline static mgame_ontouchbegin old_mgameontouchbegin = nullptr;
+        static void __thiscall mgame_ontouchbegin_hook(int *a1, unsigned int a2, unsigned int a3, int a4);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

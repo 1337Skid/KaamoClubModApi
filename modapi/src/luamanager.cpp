@@ -59,9 +59,9 @@ void LuaManager::bind_api()
         "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
             return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
         },
-        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::protected_function onclick, sol::this_state s) -> TouchButton {
+        "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick, sol::this_state s) -> TouchButton {
             sol::state_view lua(s);
-            auto coroutine_wrapper = [onclick](sol::variadic_args args) {
+            auto wrapper = [onclick](sol::variadic_args args) {
                 sol::state_view lua(EventManager::lua_manager->getluastate());
                 sol::thread thread = sol::thread::create(lua);
                 sol::coroutine cor(thread.state(), onclick);
@@ -71,8 +71,34 @@ void LuaManager::bind_api()
                 auto result = cor(sol::as_args(vecargs));
                 EventManager::lua_manager->handle_coroutine(std::move(thread), std::move(cor), result, nullptr, std::move(vecargs));
             };
-            sol::protected_function wrapped = sol::make_object(lua, coroutine_wrapper).as<sol::protected_function>();
+            sol::main_protected_function wrapped = sol::make_object(lua, wrapper).as<sol::main_protected_function>();
             return self->createtouchbutton(text, subtext, x, y, textcolor, state, wrapped);
+        },
+        "CreateChoiceWindow", [](GlobalsInitContext *self, const std::string &title, const std::string &description, bool show_buttons, sol::main_protected_function on_yes, sol::main_protected_function on_no, sol::this_state s) -> ChoiceWindow {
+            sol::state_view lua(s);
+            auto wrap_yes = [on_yes](sol::variadic_args args) {
+                sol::state_view lua(EventManager::lua_manager->getluastate());
+                sol::thread thread = sol::thread::create(lua);
+                sol::coroutine cor(thread.state(), on_yes);
+                std::vector<sol::object> vecargs;
+                for (auto arg : args)
+                    vecargs.push_back(arg);
+                auto result = cor(sol::as_args(vecargs));
+                EventManager::lua_manager->handle_coroutine(std::move(thread), std::move(cor), result, nullptr, std::move(vecargs));
+            };
+            auto wrap_no = [on_no](sol::variadic_args args) {
+                sol::state_view lua(EventManager::lua_manager->getluastate());
+                sol::thread thread = sol::thread::create(lua);
+                sol::coroutine cor(thread.state(), on_no);
+                std::vector<sol::object> vecargs;
+                for (auto arg : args)
+                    vecargs.push_back(arg);
+                auto result = cor(sol::as_args(vecargs));
+                EventManager::lua_manager->handle_coroutine(std::move(thread), std::move(cor), result, nullptr, std::move(vecargs));
+            };
+            sol::main_protected_function wrappedyes = sol::make_object(lua, wrap_yes).as<sol::main_protected_function>();
+            sol::main_protected_function wrappedno = sol::make_object(lua, wrap_no).as<sol::main_protected_function>();
+            return self->createchoicewindow(title, description, show_buttons, wrappedyes, wrappedno);
         }
     );
 
@@ -134,6 +160,7 @@ void LuaManager::bind_api()
         "mapcoordinate_x", sol::property(&System::getmapcoordinatex, &System::setmapcoordinatex),
         "mapcoordinate_y", sol::property(&System::getmapcoordinatey, &System::setmapcoordinatey),
         "mapcoordinate_z", sol::property(&System::getmapcoordinatez, &System::setmapcoordinatez),
+        "textureid", sol::property(&System::gettextureid, &System::settextureid),
         "Create", [](System& self, const std::string& str, int x, int y, int z, int faction, int risk, int textureid, int linkedsystemid) {
             return System::create(str, x, y, z, faction, risk, textureid, linkedsystemid);
         },
@@ -242,6 +269,17 @@ void LuaManager::bind_api()
         "LockBlueprint", [](Item& self, int id) {
             Item::lockblueprint(id);
         }
+    );
+
+    lua_state.new_usertype<ChoiceWindow>("ChoiceWindow",
+        sol::no_constructor,
+        "Show", [](ChoiceWindow& self) {
+            self.show();
+        },
+        "Hide", [](ChoiceWindow& self) {
+            self.hide();
+        },
+        sol::meta_function::to_string, &ChoiceWindow::tostring
     );
 
     lua_state.new_usertype<Level>("Level",
