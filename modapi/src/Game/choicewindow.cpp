@@ -71,13 +71,11 @@ void ChoiceWindow::show()
         hangarwindow = reinterpret_cast<HangarWindow*>(ChoiceWindow::active_hangarwindow);
         if (!hangarwindow || !MemoryUtils::IsValidPointer(hangarwindow))
             return;
-    } 
-    else if (ChoiceWindow::last_active_window == ChoiceWindow::MGAME_WINDOW) {
+    } else if (ChoiceWindow::last_active_window == ChoiceWindow::MGAME_WINDOW) {
         mgame = reinterpret_cast<MGame*>(ChoiceWindow::active_mgamewindow);
         if (!mgame || !MemoryUtils::IsValidPointer(mgame))
             return;
-    } 
-    else if (ChoiceWindow::last_active_window == ChoiceWindow::MENU_TOUCH_WINDOW) {
+    } else if (ChoiceWindow::last_active_window == ChoiceWindow::MENU_TOUCH_WINDOW) {
         menutouchwindow = reinterpret_cast<MenuTouchWindow*>(ChoiceWindow::active_menutouchwindow);
         if (!menutouchwindow || !MemoryUtils::IsValidPointer(menutouchwindow))
             return;
@@ -110,8 +108,7 @@ void ChoiceWindow::show()
             if (m_pButtons->size > 0 && MemoryUtils::IsValidPointer(m_pButtons->data))
                 ref = m_pButtons->data[0];
         }
-    } 
-    else if (mgame) {
+    } else if (mgame) {
         if (orig_window && MemoryUtils::IsValidPointer(orig_window)) {
             if (orig_window->m_pBtnYes && MemoryUtils::IsValidPointer(orig_window->m_pBtnYes))
                 ref = orig_window->m_pBtnYes;
@@ -156,8 +153,7 @@ void ChoiceWindow::show()
             btn->m_nSpriteRightPressed = 38;
             btn->m_nSpriteMidHighlighted = 37;
             btn->m_nSpriteRightHighlighted = 38;
-        } 
-        else if (windowtype == ChoiceWindow::MGAME_WINDOW) {
+        } else if (windowtype == ChoiceWindow::MGAME_WINDOW) {
             if (ref) {
                 btn->m_nSpriteNormal = ref->m_nSpriteNormal;
                 btn->m_nSpritePressed = ref->m_nSpritePressed;
@@ -179,8 +175,7 @@ void ChoiceWindow::show()
                 btn->m_nSpriteMidHighlighted = 37;
                 btn->m_nSpriteRightHighlighted = 38;
             }
-        } 
-        else if (ref) {
+        } else if (ref) {
             btn->m_nSpriteNormal = ref->m_nSpriteNormal;
             btn->m_nSpriteMidNormal = ref->m_nSpriteMidNormal;
             btn->m_nSpriteRightNormal = ref->m_nSpriteRightNormal;
@@ -201,8 +196,7 @@ void ChoiceWindow::show()
         entry->prev_active = hangarwindow->m_bChoiceWindowActive;
         hangarwindow->m_pChoiceWindow2 = _ptr;
         hangarwindow->m_bChoiceWindowActive = true;
-    } 
-    else if (mgame) {
+    } else if (mgame) {
         entry->prev_active = mgame->m_bChoiceWindowActive;
         mgame->m_pChoiceWindow = _ptr;
         mgame->m_bChoiceWindowActive = true;
@@ -229,8 +223,7 @@ void ChoiceWindow::show()
             pop edx
             pop ecx
         }
-    } 
-    else if (menutouchwindow) {
+    } else if (menutouchwindow) {
         entry->prev_active = menutouchwindow->m_bChoiceWindowActive;
         menutouchwindow->m_pChoiceWindow = _ptr;
         menutouchwindow->m_bChoiceWindowActive = true;
@@ -265,8 +258,7 @@ void ChoiceWindow::restore_state(SingleChoiceWindow *customchoicewindow)
                 hangarwindow->m_bChoiceWindowActive = false;
             }
         }
-    }
-    else if (ChoiceWindow::last_active_window == ChoiceWindow::MGAME_WINDOW) {
+    } else if (ChoiceWindow::last_active_window == ChoiceWindow::MGAME_WINDOW) {
         if (!ChoiceWindow::active_mgamewindow)
             return;
         MGame *mgame = reinterpret_cast<MGame*>(ChoiceWindow::active_mgamewindow);
@@ -302,8 +294,7 @@ void ChoiceWindow::restore_state(SingleChoiceWindow *customchoicewindow)
             auto release_touches = reinterpret_cast<MGame_ReleaseTouches_t>(0x49058C);
             release_touches();
         }
-    }
-    else if (ChoiceWindow::last_active_window == ChoiceWindow::MENU_TOUCH_WINDOW) {
+    } else if (ChoiceWindow::last_active_window == ChoiceWindow::MENU_TOUCH_WINDOW) {
         if (!ChoiceWindow::active_menutouchwindow)
             return;
         MenuTouchWindow *menutouchwindow = reinterpret_cast<MenuTouchWindow*>(ChoiceWindow::active_menutouchwindow);
