@@ -12,7 +12,7 @@
 #include "offset.h"
 #include "abyssengine.h"
 
-KIPlayer::KIPlayer(int* ptr) : _ptr(ptr) {};
+KIPlayer::KIPlayer(int *ptr) : _ptr(ptr) {};
 KIPlayer::~KIPlayer() {};
 
 std::string KIPlayer::tostring(void)
@@ -23,7 +23,7 @@ std::string KIPlayer::tostring(void)
 }
 
 // TODO: check if it's playerfighter because only playerfighter can have a route (well it will crash for others players class)
-void KIPlayer::setroute(int* routeptr)
+void KIPlayer::setroute(int *routeptr)
 {
     uintptr_t address = Offset::KIPLAYER_SETROUTE;
     

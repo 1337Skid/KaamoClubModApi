@@ -59,6 +59,11 @@ end)
 
 RegisterEvent("OnJoinGame", function()
 	print("joined game")
+	--for i = 0, 20 do
+	--	system:Get(i).mapcoordinate_x = math.random(30,150)
+	--	system:Get(i).mapcoordinate_y = math.random(30,150)
+	--	system:Get(i).mapcoordinate_z = math.random(30,150)
+	--end
 end)
 
 RegisterEvent("OnAsteroidDestroyed", function(count)

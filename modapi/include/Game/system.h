@@ -4,32 +4,39 @@
 
 class System {
     private:
-        static inline Globals_status** globals_status = 0;
+        static inline Globals_status **globals_status = 0;
+        SingleSystem *_ptr = nullptr;
     public:
+        System();
+        System(SingleSystem *ptr);
+        ~System();
+
         static inline std::vector<SingleSystem> created_systems;
+        SingleSystem *getstruct(void) const;
         static void init(void);
-        static int getid(void);
-        static void setid(int value);
-        static int getrisklevel(void);
-        static void setrisklevel(int value);
-        static int getfaction(void);
-        static void setfaction(int value);
-        static int getjumpgatestationid(void);
-        static void setjumpgatestationid(int value);
-        static int getmapcoordinatex(void);
-        static void setmapcoordinatex(int value);
-        static int getmapcoordinatey(void);
-        static void setmapcoordinatey(int value);
-        static int getmapcoordinatez(void);
-        static void setmapcoordinatez(int value);
-        static int gettextureid(void);
-        static void settextureid(int value);
-        static std::string getname(void);
-        static void setname(std::string value);
+        int getid(void);
+        void setid(int value);
+        int getrisklevel(void);
+        void setrisklevel(int value);
+        int getfaction(void);
+        void setfaction(int value);
+        int getjumpgatestationid(void);
+        void setjumpgatestationid(int value);
+        int getmapcoordinatex(void);
+        void setmapcoordinatex(int value);
+        int getmapcoordinatey(void);
+        void setmapcoordinatey(int value);
+        int getmapcoordinatez(void);
+        void setmapcoordinatez(int value);
+        int gettextureid(void);
+        void settextureid(int value);
+        std::string getname(void);
+        void setname(std::string value);
 
         static int create(const std::string& str, int x, int y, int z, int faction, int risk, int textureid, int linkedsystemid);
         static bool isvisible(int systemid);
         static void setvisible(int systemid, bool visible);
+        static SingleSystem *getsystembyid(int id);
 };
 
 #endif

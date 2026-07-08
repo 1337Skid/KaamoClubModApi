@@ -7,138 +7,167 @@
 #include <Game/asset.h>
 #include "offset.h"
 
+System::System() : _ptr(nullptr) {}
+System::System(SingleSystem *ptr) : _ptr(ptr) {};
+System::~System() {};
+
 void System::init()
 {
     globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
 }
 
+SingleSystem *System::getstruct() const
+{
+    if (_ptr != nullptr)
+        return _ptr;
+    if (globals_status && *globals_status)
+        return (*globals_status)->m_pSystemInfo;
+    return nullptr;
+}
+
 int System::getid()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->id;
+    return s->id;
 }
 
 void System::setid(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->id = value;
+    s->id = value;
 }
 
 int System::getrisklevel()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->risk;
+    return s->risk;
 }
 
 void System::setrisklevel(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->risk = value;
+    s->risk = value;
 }
 
 int System::getfaction()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->faction;
+    return s->faction;
 }
 
 void System::setfaction(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->faction = value;
+    s->faction = value;
 }
 
 int System::getjumpgatestationid()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->jumpgate_station_id;
+    return s->jumpgate_station_id;
 }
 
 void System::setjumpgatestationid(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->jumpgate_station_id = value;
+    s->jumpgate_station_id = value;
 }
 
 int System::getmapcoordinatex()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->pos.x;
+    return s->pos.x;
 }
 
 void System::setmapcoordinatex(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->pos.x = value;
+    s->pos.x = value;
 }
 
 int System::getmapcoordinatey()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->pos.y;
+    return s->pos.y;
 }
 
 void System::setmapcoordinatey(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->pos.y = value;
+    s->pos.y = value;
 }
 
 int System::getmapcoordinatez()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->pos.z;
+    return s->pos.z;
 }
 
 void System::setmapcoordinatez(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->pos.z = value;
+    s->pos.z = value;
 }
 
 int System::gettextureid()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pSystemInfo->texture_id;
+    return s->texture_id;
 }
 
 void System::settextureid(int value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pSystemInfo->texture_id = value;
+    s->texture_id = value;
 }
 
 std::string System::getname()
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return "";
-    uintptr_t strptr = reinterpret_cast<uintptr_t>((*globals_status)->m_pSystemInfo->name.text);
-
+    uintptr_t strptr = reinterpret_cast<uintptr_t>(s->name.text);
     return MemoryUtils::ReadWideString(strptr);
 }
 
 void System::setname(std::string value)
 {
-    if ((*globals_status)->m_pSystemInfo == nullptr)
+    SingleSystem *s = getstruct();
+    if (s == nullptr)
         return;
-    uintptr_t strptr = reinterpret_cast<uintptr_t>((*globals_status)->m_pSystemInfo->name.text);
-
+    uintptr_t strptr = reinterpret_cast<uintptr_t>(s->name.text);
     MemoryUtils::WriteWideString(strptr, value);
 }
 
@@ -188,4 +217,15 @@ void System::setvisible(int systemid, bool visible)
         return;
     uint8_t* data = reinterpret_cast<uint8_t*>((*globals_status)->m_pSystemVisibilities->data);    
     data[systemid] = static_cast<uint8_t>(visible);
+}
+
+SingleSystem *System::getsystembyid(int id)
+{
+    auto *galaxy = *reinterpret_cast<Galaxy**>(Offset::GLOBALS_GALAXY);
+    if (!galaxy || !galaxy->systems)
+        return nullptr;
+    auto* systems = galaxy->systems;
+    if (id >= 0 && id < static_cast<int>(systems->size))
+        return systems->data[id];
+    return nullptr;
 }

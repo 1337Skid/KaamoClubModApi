@@ -109,8 +109,8 @@ void EventManager::stationchanged_event()
 
 void EventManager::systemchanged_event()
 {
-    static int old = System::getid();
-    int current = System::getid();
+    static int old = System().getid();
+    int current = System().getid();
 
     if (current != old) {
         trigger("OnSystemChanged", current);

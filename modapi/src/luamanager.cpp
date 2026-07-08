@@ -169,6 +169,12 @@ void LuaManager::bind_api()
         },
         "SetVisible", [](System& self, int systemid, bool visible) {
             return System::setvisible(systemid, visible);
+        },
+        "Get", [](System& self, int id) -> sol::optional<System> {
+            SingleSystem *ptr = System::getsystembyid(id);
+            if (ptr == nullptr)
+                return sol::nullopt;
+            return System(ptr);
         }
     );
 
