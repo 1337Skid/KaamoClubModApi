@@ -216,6 +216,16 @@ HookFunction("Level::createMission", function(ctx)
 	--for i = 0, 100 do
 	--	ctx:CreateFighter(math.random(0,41), 8) -- meshid, faction
 	--end
+	--local mykiplayer = ctx:CreateFighter(math.random(0,41), 5) -- meshid, faction
+	--local route = level:CreateRoute({
+    	--	{ 100000.0, 0.0, 100000.0 },
+    	--	{ 200000.0, 0.0, 200000.0 },
+    	--	{ 300000.0, 0.0, 100000.0 },
+	--})
+	--mykiplayer:SetRoute(route)
+	--print(mykiplayer)
+	--local object = ctx:CreateStaticObject(0, 55000, 5000, 10000)
+	--print(object)
 	ctx:call() -- call original function
 end)
 

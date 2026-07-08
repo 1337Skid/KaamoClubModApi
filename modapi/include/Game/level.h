@@ -33,22 +33,12 @@ class Level {
             float shakeamount;
             int shakefrequency;
         };
-        struct CustomPlayerFighter {
-            int meshid;
-            int faction;
-        };
-        struct CustomStaticObject {
-            int type;
-            float x;
-            float y;
-            float z;
-        };
     public:
         static inline std::vector<CustomRadioMsg> created_radiomessages;
         static inline std::vector<CustomDialogueMsg> created_dialoguemessages;
         static inline std::vector<CustomCutscenePoint> created_cutscenepts;
-        static inline std::vector<CustomPlayerFighter> created_playerfighters;
-        static inline std::vector<CustomStaticObject> created_staticobjects;
+        static inline std::vector<int*> created_playerfighters;
+        static inline std::vector<int*> created_staticobjects;
         static inline int current_dialogue_id = 0;
         static inline int created_cutscene = 0;
         static inline float cutscene_timer = 0.0f;
@@ -65,7 +55,7 @@ class Level {
         static int* createroute(sol::table pospoints);
         static sol::table getentities(void);
         static void createasteroid(float x, float y, float z, float scale, int meshid);
-        static void createfighter(int meshid, int faction);
-        static void createstaticobject(int type, float x, float y, float z);
+        static int *createfighter(int meshid, int faction);
+        static int *createstaticobject(int type, float x, float y, float z);
 };
 #endif

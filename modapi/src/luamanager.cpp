@@ -45,11 +45,11 @@ void LuaManager::bind_api()
     lua_state.new_usertype<MissionContext>("MissionContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),
-        "CreateFighter", [](MissionContext* self, int meshid, int faction) {
-            self->createfighter(meshid, faction);
+        "CreateFighter", [](MissionContext* self, int meshid, int faction) -> KIPlayer {
+            return KIPlayer(self->createfighter(meshid, faction));
         },
-        "CreateStaticObject", [](MissionContext* self, int type, float x, float y, float z) {
-            self->createstaticobject(type, x, y, z); // TODO: return kiplayer/playerstaticobject
+        "CreateStaticObject", [](MissionContext* self, int type, float x, float y, float z) -> KIPlayer {
+            return KIPlayer(self->createstaticobject(type, x, y, z));
         }
     );
 

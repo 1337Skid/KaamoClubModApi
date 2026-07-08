@@ -1015,88 +1015,45 @@ void __stdcall Hooks::level_update_hook(int a2, int a3, int a4)
     }
 }
 
-// TODO: bro wtf my function just looks so bad i'll def rewrite it lmao, same for createcampaignmission
 void __thiscall Hooks::level_createmission_hook(void *a1)
 {
     MissionContext ctx = EventManager::trigger_hook<MissionContext>("Level::createMission");
-    int* level = reinterpret_cast<int*>(a1);
-    uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
-    uintptr_t address_createstaticobject = Offset::LEVEL_CREATESTATICOBJECT;
-    uintptr_t address_setposition = Offset::PLAYERFIXEDOBJECT_SETPOSITION;
-    std::vector<int*> spawnednpcs;
-
-    for (const auto& fighter : Level::created_playerfighters) {
-        int shiptype = fighter.meshid;
-        int faction = fighter.faction;
-        int* plrfighterptr = nullptr;
-        __asm {
-            push 1
-            push 0
-            push shiptype
-            push 0
-            push faction
-            push level
-            call address_createship
-            mov plrfighterptr, eax
-        }
-        uintptr_t address_assignguns = Offset::LEVEL_ASSIGNGUNS;
-        __asm {
-            push level
-            call address_assignguns
-        }
-        spawnednpcs.push_back(plrfighterptr);
-    }
-    for (const auto& object : Level::created_staticobjects) {
-        int objtype = 0;
-        if (object.type == 0)
-            objtype = 14243; // pirate station
-        else if (object.type == 1)
-            objtype = 14363; // valkyrie turret
-        int* levelptr = level;
-        int* objectptr = nullptr;
-        __asm {
-            push objtype
-            push 0
-            push levelptr
-            call address_createstaticobject        
-            mov objectptr, eax
-        }
-        typedef void (__thiscall* SetPositionFn)(void* thisptr, float x, float y, float z);
-        float x = static_cast<float>(object.x); // even if it's already a float I still need to cast it to a float or else the game will crash
-        float y = static_cast<float>(object.y);
-        float z = static_cast<float>(object.z);
-        //uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(objectptr);
-        if (objtype == 14243) { // TODO: only pirate base support coordinate editing atm (game crash if it's the turret)
-            __asm {
-                push z
-                push y
-                push x
-                mov ecx, objectptr
-                call address_setposition
-            }
-        }
-        spawnednpcs.push_back(objectptr);
-    }
-    Level::created_playerfighters.clear(); // maybe use ctx for args instead of vectors?
-    Level::created_staticobjects.clear();
+    int *level = reinterpret_cast<int*>(a1);
+    
     if (ctx.call_original)
         old_levelcreatemission(a1);
-    if (!spawnednpcs.empty()) {
+    if (!Level::created_playerfighters.empty()) {
         AEArray<int*>* entitylist = reinterpret_cast<SingleLevel*>(a1)->m_pEntities;
+        if (!entitylist) { // if the real function isn't called then the entitylist will be null
+            entitylist = reinterpret_cast<AEArray<int*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<int*>)));
+            entitylist->size = 0;
+            entitylist->size2 = 0;
+            entitylist->data = nullptr;
+            reinterpret_cast<SingleLevel*>(a1)->m_pEntities = entitylist;
+        }
         if (entitylist) {
             int oldcount = entitylist->size;
-            int newcount = oldcount + static_cast<uint32_t>(spawnednpcs.size());
-            int** newdata = reinterpret_cast<int**>(AbyssEngine::memory_allocate(newcount * sizeof(int*)));
+            int newcount = oldcount + static_cast<uint32_t>(Level::created_playerfighters.size()) + static_cast<uint32_t>(Level::created_staticobjects.size());
+            int **newdata = reinterpret_cast<int**>(AbyssEngine::memory_allocate(newcount * sizeof(int*)));
             if (newdata) {
+                int currentn = 0;
                 if (entitylist->data && oldcount > 0)
                     memcpy(newdata, entitylist->data, oldcount * sizeof(int*));
-                for (int i = 0; i < static_cast<int>(spawnednpcs.size()); i++)
-                    newdata[oldcount + i] = spawnednpcs[i];
+                for (int i = 0; i < static_cast<int>(Level::created_playerfighters.size()); i++) {
+                    newdata[oldcount + i] = Level::created_playerfighters[i];
+                    currentn++;
+                }
+                for (int i = 0; i < static_cast<int>(Level::created_staticobjects.size()); i++) {
+                    newdata[oldcount + currentn] = Level::created_staticobjects[i];
+                    currentn++;
+                }
                 entitylist->data = newdata;
                 entitylist->size = newcount;
                 entitylist->size2 = newcount;
             }
         }
+        Level::created_playerfighters.clear();
+        Level::created_staticobjects.clear();
     }
 }
 
@@ -1108,65 +1065,10 @@ int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
     uintptr_t address_createstaticobject = Offset::LEVEL_CREATESTATICOBJECT;
     uintptr_t address_setposition = Offset::PLAYERFIXEDOBJECT_SETPOSITION;
     int result = 0;
-    std::vector<int*> spawnednpcs;
 
-    for (const auto& fighter : Level::created_playerfighters) {
-        int shiptype = fighter.meshid;
-        int faction = fighter.faction;
-        int* plrfighterptr = nullptr;
-        __asm {
-            push 1
-            push 0
-            push shiptype
-            push 0
-            push faction
-            push level
-            call address_createship
-            mov plrfighterptr, eax
-        }
-        uintptr_t address_assignguns = Offset::LEVEL_ASSIGNGUNS;
-        __asm {
-            push level
-            call address_assignguns
-        }
-        spawnednpcs.push_back(plrfighterptr);
-    }
-    for (const auto& object : Level::created_staticobjects) {
-        int objtype = 0;
-        if (object.type == 0)
-            objtype = 14243; // pirate station
-        else if (object.type == 1)
-            objtype = 14363; // valkyrie turret
-        int* levelptr = level;
-        int* objectptr = nullptr;
-        __asm {
-            push objtype
-            push 0
-            push levelptr
-            call address_createstaticobject        
-            mov objectptr, eax
-        }
-        typedef void (__thiscall* SetPositionFn)(void* thisptr, float x, float y, float z);
-        float x = static_cast<float>(object.x); // even if it's already a float I still need to cast it to a float or else the game will crash
-        float y = static_cast<float>(object.y);
-        float z = static_cast<float>(object.z);
-        //uintptr_t* vtable = *reinterpret_cast<uintptr_t**>(objectptr);
-        if (objtype == 14243) { // TODO: only pirate base support coordinate editing atm (game crash if it's the turret)
-            __asm {
-                push z
-                push y
-                push x
-                mov ecx, objectptr
-                call address_setposition
-            }
-        }
-        spawnednpcs.push_back(objectptr);
-    }
-    Level::created_playerfighters.clear(); // maybe use ctx for args instead of vectors?
-    Level::created_staticobjects.clear();
     if (ctx.call_original)
         result = old_levelcreatecampaignmission(a1);
-    if (!spawnednpcs.empty()) {
+    if (!Level::created_playerfighters.empty()) {
         AEArray<int*>* entitylist = reinterpret_cast<SingleLevel*>(a1)->m_pEntities;
         if (!entitylist) { // it's already null but just to make sure lmao
             entitylist = reinterpret_cast<AEArray<int*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<int*>)));
@@ -1179,18 +1081,27 @@ int __thiscall Hooks::level_createcampaignmission_hook(void *a1)
         }
         if (entitylist) {
             int oldcount = entitylist->size;
-            int newcount = oldcount + static_cast<uint32_t>(spawnednpcs.size());
-            int** newdata = reinterpret_cast<int**>(AbyssEngine::memory_allocate(newcount * sizeof(int*)));
+            int newcount = oldcount + static_cast<uint32_t>(Level::created_playerfighters.size()) + static_cast<uint32_t>(Level::created_staticobjects.size());
+            int **newdata = reinterpret_cast<int**>(AbyssEngine::memory_allocate(newcount * sizeof(int*)));
             if (newdata) {
+                int currentn = 0;
                 if (entitylist->data && oldcount > 0)
                     memcpy(newdata, entitylist->data, oldcount * sizeof(int*));
-                for (int i = 0; i < static_cast<int>(spawnednpcs.size()); i++)
-                    newdata[oldcount + i] = spawnednpcs[i];
+                for (int i = 0; i < static_cast<int>(Level::created_playerfighters.size()); i++) {
+                    newdata[oldcount + i] = Level::created_playerfighters[i];
+                    currentn++;
+                }
+                for (int i = 0; i < static_cast<int>(Level::created_staticobjects.size()); i++) {
+                    newdata[oldcount + currentn] = Level::created_staticobjects[i];
+                    currentn++;
+                }
                 entitylist->data = newdata;
                 entitylist->size = newcount;
                 entitylist->size2 = newcount;
             }
         }
+        Level::created_playerfighters.clear();
+        Level::created_staticobjects.clear();
     }
     return result;
 }

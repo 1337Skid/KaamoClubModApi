@@ -11,14 +11,14 @@
 #include <Game/touchbutton.h>
 #include <Game/choicewindow.h>
 
-void MissionContext::createfighter(int meshid, int faction)
+int *MissionContext::createfighter(int meshid, int faction)
 {
-    Level::createfighter(meshid, faction);
+    return Level::createfighter(meshid, faction);
 }
 
-void MissionContext::createstaticobject(int type, float x, float y, float z)
+int *MissionContext::createstaticobject(int type, float x, float y, float z)
 {
-    Level::createstaticobject(type, x, y, z);
+    return Level::createstaticobject(type, x, y, z);
 }
 
 int GlobalsInitContext::createship(const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2)

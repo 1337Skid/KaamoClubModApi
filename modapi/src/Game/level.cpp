@@ -249,18 +249,18 @@ sol::table Level::getentities(void)
 {
     sol::state_view lua(lstate);
     sol::table result = lua.create_table();
-    MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
-    SingleLevel* level = mgame->m_pLevel;
+    MGame *mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
+    SingleLevel *level = mgame->m_pLevel;
     
     if (!level) {
         std::cout << "[-] Cannot call level:GetEntities() because you aren't in a level!" << std::endl;
         return result;
     }
-    unsigned int* entities = *reinterpret_cast<unsigned int**>(reinterpret_cast<uintptr_t>(level) + 0xCC); // TODO: make Level struct...
+    unsigned int *entities = *reinterpret_cast<unsigned int**>(reinterpret_cast<uintptr_t>(level) + 0xCC); // TODO: make Level struct...
     if (!entities)
         return result;
     int entitysize = entities[0];
-    unsigned int* entitiesptr = reinterpret_cast<unsigned int*>(entities[1]);
+    unsigned int *entitiesptr = reinterpret_cast<unsigned int*>(entities[1]);
     for (int i = 0; i < entitysize; i++) {
         if (entitiesptr[i])
             result.add(KIPlayer(reinterpret_cast<int*>(entitiesptr[i])));
@@ -367,15 +367,79 @@ void Level::createasteroid(float x, float y, float z, float scale, int meshid)
     }
 }
 
-// TODO: hook playerfighter constructor for custom speed,hp etc...
-void Level::createfighter(int meshid, int faction)
+// TODO: hook playerfighter constructor for custom speed,hp etc..., nvm for the hook modders will need to call kiplayer:SetSpeed() etc.. if they want to change behavor of the fighter
+int *Level::createfighter(int meshid, int faction)
 {
-    Level::created_playerfighters.push_back({meshid, faction});
+    uintptr_t address_createship = Offset::LEVEL_CREATESHIP;
+    uintptr_t address_assignguns = Offset::LEVEL_ASSIGNGUNS;
+    int *plrfighterptr = nullptr;
+    MGame *mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
+    SingleLevel *level = nullptr;
+    if ((*globals_appmanager)->m_nCurrentModule == 2)
+        level = mgame->m_pLevel;
+    else
+        level = nullptr; // we don't need to create new fighters on the main menu
+    if (!level)
+        return nullptr;
+    __asm {
+        push 1
+        push 0
+        push meshid
+        push 0
+        push faction
+        push level
+        call address_createship
+        mov plrfighterptr, eax
+    }
+    __asm {
+        push level
+        call address_assignguns
+    }
+    Level::created_playerfighters.push_back(plrfighterptr);
+    return plrfighterptr;
 }
 
-void Level::createstaticobject(int type, float x, float y, float z)
+int *Level::createstaticobject(int type, float x, float y, float z)
 {
-    Level::created_staticobjects.push_back({type, x, y, z});
+    SingleLevel *level = nullptr;
+    MGame *mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
+    int objtype = 0;
+    uintptr_t address_createstaticobject = Offset::LEVEL_CREATESTATICOBJECT;
+    uintptr_t address_setposition = Offset::PLAYERFIXEDOBJECT_SETPOSITION;
+    
+    if ((*globals_appmanager)->m_nCurrentModule == 2)
+        level = mgame->m_pLevel;
+    else
+        level = nullptr; // we don't need to create new fighters on the main menu
+    if (!level)
+        return nullptr;
+    if (type == 0)
+        objtype = 14243; // pirate station
+    else if (type == 1)
+        objtype = 14363; // valkyrie turret
+    int *objectptr = nullptr;
+    __asm {
+        push objtype
+        push 0
+        push level
+        call address_createstaticobject        
+        mov objectptr, eax
+    }
+    typedef void (__thiscall* SetPositionFn)(void* thisptr, float x, float y, float z); // delete this slop holy shit yes i was lazy
+    float xnew = static_cast<float>(x); // even if it's already a float I still need to cast it to a float or else the game will crash
+    float ynew = static_cast<float>(y);
+    float znew = static_cast<float>(z);
+    if (objtype == 14243) { // TODO: only pirate base support coordinate editing atm (game crash if it's the turret)
+        __asm {
+            push znew
+            push ynew
+            push xnew
+            mov ecx, objectptr
+            call address_setposition
+        }
+    }
+    Level::created_staticobjects.push_back(objectptr);
+    return objectptr;
 }
 
 // just a quick reminder for me to look at rendering stuff for UIs etc..
