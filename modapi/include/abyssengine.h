@@ -2,6 +2,7 @@
 #define ABYSSENGINE_H
 
 #include <Game/structs.h>
+#include <cstdlib>
 
 class AbyssEngine {
     public:
@@ -53,6 +54,27 @@ class AbyssEngine {
             r.text = reinterpret_cast<wchar_t*>(memory_allocate(sizeof(wchar_t) * r.size));
             if (r.text != nullptr) {
                 wcscpy_s(r.text, r.size, str);
+            } else {
+                r.size = 0;
+            }
+            return r;
+        }
+        static AEString newstring(const char* str)
+        {
+            AEString r = { 0 };
+
+            if (!str)
+                return r;
+            unsigned int len = strlen(str);
+            r.size = static_cast<uint32_t>(len + 1);
+            r.text = reinterpret_cast<wchar_t*>(memory_allocate(sizeof(wchar_t) * r.size));
+            if (r.text != nullptr) {
+                unsigned int convertedchars = 0;
+                errno_t err = mbstowcs_s(&convertedchars, r.text, r.size, str, len);
+                if (err != 0) {
+                    r.size = 0;
+                    r.text = nullptr;
+                }
             } else {
                 r.size = 0;
             }

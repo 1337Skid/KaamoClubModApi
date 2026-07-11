@@ -7,56 +7,102 @@
 #include <Game/asset.h>
 #include "offset.h"
 
+Station::Station() : _ptr(nullptr) {}
+Station::Station(SingleStation *ptr) : _ptr(ptr) {};
+Station::~Station() {};
+
 void Station::init()
 {
     globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
 }
 
+SingleStation *Station::getstruct() const
+{
+    if (_ptr != nullptr)
+        return _ptr;
+    if (globals_status && *globals_status)
+        return (*globals_status)->m_pStationInfo;
+    return nullptr;
+}
+
 int Station::getid()
 {
-    if ((*globals_status)->m_pStationInfo == nullptr)
+    SingleStation *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pStationInfo->id;
+    return s->id;
 }
 
 void Station::setid(int value)
 {
-    if ((*globals_status)->m_pStationInfo == nullptr)
+    SingleStation *s = getstruct();
+    if (s == nullptr)
         return;
-    (*globals_status)->m_pStationInfo->id = value;
+    s->id = value;
 }
 
 std::string Station::getname()
 {
-    if ((*globals_status)->m_pStationInfo->name.text == nullptr)
+    SingleStation *s = getstruct();
+    if (s == nullptr)
         return "";
-    return MemoryUtils::ReadWideString(reinterpret_cast<uintptr_t>((*globals_status)->m_pStationInfo->name.text));
+    uintptr_t strptr = reinterpret_cast<uintptr_t>(s->name.text);
+    return MemoryUtils::ReadWideString(strptr);
 }
 
-void Station::setname(const std::string value)
+void Station::setname(std::string value)
 {
-    if ((*globals_status)->m_pStationInfo->name.text == nullptr)
+    if (_ptr == nullptr) {
+        std::erase_if(editqueue, [&](const StationEditQueue& s) {
+            return s.id == (*globals_status)->m_pStationInfo->id;
+        });
+        (*globals_status)->m_pStationInfo->name = AbyssEngine::newstring(value.c_str());
+        StationEditQueue station{};
+        station.id = (*globals_status)->m_pStationInfo->id;
+        station.name = value;
+        station.editname = true;
+        editqueue.push_back(station);
         return;
-    MemoryUtils::WriteWideString(reinterpret_cast<uintptr_t>((*globals_status)->m_pStationInfo->name.text), value);
+    }
+    std::erase_if(editqueue, [&](const StationEditQueue& s) {
+        return s.id == _ptr->id;
+    });
+    StationEditQueue station{};
+    station.id = _ptr->id;
+    station.name = value;
+    station.editname = true;
+    editqueue.push_back(station);
 }
 
 int Station::gettechlevel()
 {
-    if ((*globals_status)->m_pStationInfo == nullptr)
+    SingleStation *s = getstruct();
+    if (s == nullptr)
         return 0;
-    return (*globals_status)->m_pStationInfo->techlevel;
+    return s->techlevel;
 }
 
 void Station::settechlevel(int value)
 {
-    if ((*globals_status)->m_pStationInfo == nullptr)
+    if (_ptr == nullptr) {
+        (*globals_status)->m_pStationInfo->techlevel = value;
+        StationEditQueue station{};
+        station.id = (*globals_status)->m_pStationInfo->id;
+        station.techlevel = value;
+        station.edittechlevel = true;
+        editqueue.push_back(station);
         return;
-    (*globals_status)->m_pStationInfo->techlevel = value;
+    }
+    StationEditQueue station{};
+    station.id = _ptr->id;
+    station.techlevel = value;
+    station.edittechlevel = true;
+    editqueue.push_back(station);
 }
 
 bool Station::isvoid(void)
 {
-    if (getid() == -1)
+    if ((*globals_status)->m_pStationInfo->id == -1)
         return true;
     return false;
 }
@@ -74,11 +120,9 @@ bool Station::hasiteminhangar(int id)
     if ((*globals_status)->m_pStationInfo->m_pItemsInHangar == nullptr)
         return false;
     AEArray<SingleItem*>* array = (AEArray<SingleItem*>*)(*globals_status)->m_pStationInfo->m_pItemsInHangar;
-    for (uint32_t i = 0; i < array->size; i++) {
-        if (array->data[i] != nullptr && array->data[i]->m_nID == id) {
+    for (uint32_t i = 0; i < array->size; i++)
+        if (array->data[i] != nullptr && array->data[i]->m_nID == id)
             return true;
-        }
-    }
     return false;
 }
 
@@ -269,8 +313,8 @@ void Station::createagent(const std::string& name, int factiontype, int terranwo
     }
     uint32_t oldsize = (oldarray != nullptr) ? oldarray->size : 0;
     AEArray<SingleAgent*>* newarray = AbyssEngine::newarray<SingleAgent*>(oldsize + 1);
-
-    if (!newarray) return;
+    if (!newarray)
+        return;
     if (oldarray != nullptr && oldarray->data != nullptr) {
         for (uint32_t i = 0; i < oldsize; ++i)
             newarray->data[i] = oldarray->data[i];
@@ -353,4 +397,25 @@ void Station::createagent(const std::string& name, int factiontype, int terranwo
         newarray->data[oldsize] = pNewAgent;
     }
     station->m_pAgents = reinterpret_cast<AEArray<SingleAgent>*>(newarray);
+}
+
+SingleStation *Station::getstationbyid(int id)
+{
+    auto *galaxy = *reinterpret_cast<Galaxy**>(Offset::GLOBALS_GALAXY);
+    uintptr_t address_getstation = Offset::GALAXY_GETSTATION;
+    uint16_t id16 = static_cast<uint16_t>(id);
+
+    if (!galaxy)
+        return nullptr;
+    if (id < 0 || id > 108 + static_cast<int>(created_stations.size()))
+        return nullptr;
+    SingleStation *result = nullptr;
+    __asm {
+        push id16
+        call address_getstation
+        mov result, eax
+    }
+    if (!result)
+        return nullptr;
+    return result;
 }

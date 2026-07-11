@@ -233,6 +233,12 @@ void LuaManager::bind_api()
         },
         "AddHangarShip", [](Station&, int id) {
             Station::addhangarship(id);
+        },
+        "Get", [](Station& self, int id) -> sol::optional<Station> {
+            SingleStation *ptr = Station::getstationbyid(id);
+            if (ptr == nullptr)
+                return sol::nullopt;
+            return Station(ptr);
         }
     );
 

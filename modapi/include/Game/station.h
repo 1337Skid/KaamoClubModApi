@@ -4,15 +4,28 @@
 class Station {
     private:
         static inline Globals_status** globals_status = 0;
+        SingleStation *_ptr = nullptr;
+        struct StationEditQueue {
+            int id;
+            int techlevel;
+            std::string name;
+            bool edittechlevel;
+            bool editname;
+        };
     public:
+        Station();
+        Station(SingleStation *ptr);
+        ~Station();
+        
         static inline std::vector<SingleStation> created_stations;
+        static inline std::vector<StationEditQueue> editqueue;
         static void init(void);
-        static int getid(void);
-        static void setid(int value);
-        static std::string getname(void);
-        static void setname(const std::string value);
-        static int gettechlevel(void);
-        static void settechlevel(int value);
+        int getid(void);
+        void setid(int value);
+        std::string getname(void);
+        void setname(const std::string value);
+        int gettechlevel(void);
+        void settechlevel(int value);
         static int gethangaritemscount(void);
         static void sethangaritemscount(int value);
         static int gethangarshipscount(void);
@@ -28,5 +41,7 @@ class Station {
         static void removehangaritem(int id);
         static bool hasiteminhangar(int id);
         static void addhangarship(int id);
+        SingleStation *getstruct() const;
+        static SingleStation *getstationbyid(int id);
 };
 #endif

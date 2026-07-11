@@ -31,8 +31,8 @@ void KIPlayer::setroute(int *routeptr)
         std::cout << "KiPlayer or route is null" << std::endl;
         return;
     }
-    void* kiplayer = reinterpret_cast<void*>(_ptr);
-    void* route = reinterpret_cast<void*>(routeptr);
+    void *kiplayer = reinterpret_cast<void*>(_ptr);
+    void *route = reinterpret_cast<void*>(routeptr);
     __asm {
         mov edi, route
         mov esi, kiplayer

@@ -222,9 +222,10 @@ void System::setvisible(int systemid, bool visible)
 SingleSystem *System::getsystembyid(int id)
 {
     auto *galaxy = *reinterpret_cast<Galaxy**>(Offset::GLOBALS_GALAXY);
+    
     if (!galaxy || !galaxy->systems)
         return nullptr;
-    auto* systems = galaxy->systems;
+    auto *systems = galaxy->systems;
     if (id >= 0 && id < static_cast<int>(systems->size))
         return systems->data[id];
     return nullptr;

@@ -64,6 +64,13 @@ RegisterEvent("OnJoinGame", function()
 	--	system:Get(i).mapcoordinate_y = math.random(30,150)
 	--	system:Get(i).mapcoordinate_z = math.random(30,150)
 	--end
+	--wait(0.5)
+	--station.level = 99
+	--for i = 0, 105 do
+	--	station:Get(i).name = "hi " .. i
+	--end
+	--wait(1)
+	--station.name = "Hello world!!"
 end)
 
 RegisterEvent("OnAsteroidDestroyed", function(count)

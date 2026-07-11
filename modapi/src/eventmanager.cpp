@@ -82,8 +82,8 @@ void EventManager::mainmenu_event()
 
 void EventManager::stationchanged_event()
 {
-    static int old = Station::getid();
-    int current = Station::getid();
+    static int old = Station().getid();
+    int current = Station().getid();
 
     if (current != old) {
         Level::created_radiomessages.clear();
@@ -101,6 +101,12 @@ void EventManager::stationchanged_event()
                 m->m_nStationId = custom_mission.stationid;
                 break;
             }
+        }
+        for (int i = 0; i < Station::editqueue.size(); i++) {
+            if (Station::editqueue[i].editname && Station::editqueue[i].id == current)
+                Station().setname(Station::editqueue[i].name);
+            if (Station::editqueue[i].edittechlevel && Station::editqueue[i].id == current)
+                Station().settechlevel(Station::editqueue[i].techlevel);
         }
         trigger("OnStationChanged", current);
         old = current;

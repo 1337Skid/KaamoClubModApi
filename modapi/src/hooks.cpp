@@ -205,6 +205,21 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinary_hook(SingleSystem* system)
 {
     AEArray<SingleStation*>* old_array = reinterpret_cast<AEArray<SingleStation*>*>(old_filereadloadstationbinary(system));
 
+    if (system && old_array && old_array->data) {
+        for (int i = 0; i < old_array->size; i++) {
+            if (old_array->data[i]) {
+                for (int y = 0; y < Station::editqueue.size(); y++) {
+                    if (old_array->data[i]->id == Station::editqueue[y].id) {
+                        if (!Station::editqueue[y]. name.empty() && Station::editqueue[y].editname) {
+                            old_array->data[i]->name = AbyssEngine::newstring(Station::editqueue[y].name.c_str());
+                        }
+                        if (Station::editqueue[y].edittechlevel)
+                            old_array->data[i]->techlevel = Station::editqueue[y].techlevel;
+                    }
+                }
+            }
+        }
+    }
     if (system) {
         std::vector<const SingleStation*> matchlist;
 
