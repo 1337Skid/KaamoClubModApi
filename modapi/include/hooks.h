@@ -25,9 +25,9 @@ class Hooks {
         inline static abyssengine_paintcanvas_setcolor old_abyssenginepaintcanvassetcolor = nullptr;
         static void __fastcall abyssengine_paintcanvas_setcolor_hook(uintptr_t paintcanvas);
 
-        using gametext_gettext = AEString* (__fastcall*)(void);
+        using gametext_gettext = AEString* (__stdcall*)(void);
         inline static gametext_gettext old_gametextgettext = nullptr;
-        static AEString* __fastcall gametext_gettext_hook(void);
+        static AEString* __stdcall gametext_gettext_hook(void);
 
         using recordhandler_recordstorewrite = int (__stdcall*)(uintptr_t, int);
         inline static recordhandler_recordstorewrite old_recordhandlerrecordstorewrite = nullptr;

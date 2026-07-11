@@ -52,26 +52,28 @@ std::string Station::getname()
 
 void Station::setname(std::string value)
 {
+    int id = 0;
+
     if (_ptr == nullptr) {
-        std::erase_if(editqueue, [&](const StationEditQueue& s) {
-            return s.id == (*globals_status)->m_pStationInfo->id;
-        });
+        id = (*globals_status)->m_pStationInfo->id;
         (*globals_status)->m_pStationInfo->name = AbyssEngine::newstring(value.c_str());
+    } else {
+        id = _ptr->id;
+        _ptr->name = AbyssEngine::newstring(value.c_str());
+    }
+    auto s = std::find_if(editqueue.begin(), editqueue.end(), [id](const StationEditQueue &s) {
+        return s.id == id;
+    });
+    if (s != editqueue.end()) {
+        s->name = value;
+        s->editname = true;
+    } else {
         StationEditQueue station{};
-        station.id = (*globals_status)->m_pStationInfo->id;
+        station.id = id;
         station.name = value;
         station.editname = true;
         editqueue.push_back(station);
-        return;
     }
-    std::erase_if(editqueue, [&](const StationEditQueue& s) {
-        return s.id == _ptr->id;
-    });
-    StationEditQueue station{};
-    station.id = _ptr->id;
-    station.name = value;
-    station.editname = true;
-    editqueue.push_back(station);
 }
 
 int Station::gettechlevel()
@@ -84,20 +86,28 @@ int Station::gettechlevel()
 
 void Station::settechlevel(int value)
 {
+    int id = 0;
+
     if (_ptr == nullptr) {
+        id = (*globals_status)->m_pStationInfo->id;
         (*globals_status)->m_pStationInfo->techlevel = value;
+    } else {
+        id = _ptr->id;
+        _ptr->techlevel = value;
+    }
+    auto s = std::find_if(editqueue.begin(), editqueue.end(), [id](const StationEditQueue &s) {
+        return s.id == id;
+    });
+    if (s != editqueue.end()) {
+        s->techlevel = value;
+        s->edittechlevel = true;
+    } else {
         StationEditQueue station{};
-        station.id = (*globals_status)->m_pStationInfo->id;
+        station.id = id;
         station.techlevel = value;
         station.edittechlevel = true;
         editqueue.push_back(station);
-        return;
     }
-    StationEditQueue station{};
-    station.id = _ptr->id;
-    station.techlevel = value;
-    station.edittechlevel = true;
-    editqueue.push_back(station);
 }
 
 bool Station::isvoid(void)

@@ -70,13 +70,19 @@ class EventManager {
         static void clearlisteners();
         
         template<typename TContext>
-        static TContext trigger_hook(const std::string& hookname)
+        static TContext trigger_hook(const std::string &hookname)
         {
             TContext ctx;
-            
+            trigger_hook<TContext>(hookname, ctx);
+            return ctx;
+        }
+
+        template<typename TContext>
+        static void trigger_hook(const std::string &hookname, TContext &ctx)
+        {
             ctx.call_original = true;
             if (hooks.find(hookname) == hooks.end())
-                return ctx;
+                return;
             ctx.call_original = false;
             for (auto& hook : hooks[hookname]) {
                 sol::state_view lua(lua_manager->getluastate());
@@ -87,7 +93,6 @@ class EventManager {
                 auto result = cor(sol::as_args(stored_args));
                 lua_manager->handle_coroutine(std::move(thread), std::move(cor), result, nullptr, std::move(stored_args));
             }
-            return ctx;
         }
 };
 #endif

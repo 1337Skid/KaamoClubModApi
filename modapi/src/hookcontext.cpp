@@ -10,6 +10,7 @@
 #include <Game/ship.h>
 #include <Game/touchbutton.h>
 #include <Game/choicewindow.h>
+#include <windows.h>
 
 int *MissionContext::createfighter(int meshid, int faction)
 {
@@ -46,4 +47,9 @@ void Render2DContext::drawimage2d(unsigned int id, int x, int y, int r, int g, i
 ChoiceWindow GlobalsInitContext::createchoicewindow(const std::string &title, const std::string &description, bool show_buttons, sol::main_protected_function onclick_yes, sol::main_protected_function onclick_no)
 {
     return ChoiceWindow(title, description, show_buttons, onclick_yes, onclick_no);
+}
+
+void GetTextContext::overridetext(const std::string &text)
+{
+    overridden = true;
 }

@@ -53,6 +53,16 @@ void LuaManager::bind_api()
         }
     );
 
+    lua_state.new_usertype<GetTextContext>("GetTextContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<HookContext>(),
+        "returnaddr", sol::readonly(&GetTextContext::returnaddr),
+        "id", sol::readonly(&GetTextContext::id),
+        "OverrideText", [](GetTextContext *self, const std::string &text) {
+            self->overridetext(text);
+        }
+    );
+
     lua_state.new_usertype<GlobalsInitContext>("GlobalsInitContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),

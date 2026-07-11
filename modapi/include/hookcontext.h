@@ -30,4 +30,14 @@ class Render2DContext : public HookContext {
         void drawimage2d(unsigned int id, int x, int y, int r, int g, int b, int a);
 };
 
+class GetTextContext : public HookContext {
+    public:
+        uintptr_t returnaddr = 0;
+        int id = 0;
+        bool overridden = false;
+        const wchar_t *overriddentext = nullptr;
+        
+        void overridetext(const std::string &text);
+};
+
 #endif

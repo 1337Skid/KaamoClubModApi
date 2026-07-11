@@ -324,17 +324,21 @@ void __fastcall Hooks::abyssengine_paintcanvas_setcolor_hook(uintptr_t paintcanv
     }
 }
 
-AEString* __fastcall Hooks::gametext_gettext_hook()
+AEString* __stdcall Hooks::gametext_gettext_hook()
 {
-    void* returnaddr = nullptr;
     int id;
+    void* returnaddr = nullptr;
     AEString* result = nullptr;
-
     __asm {
         mov id, eax
         mov edx, [ebp + 4]
         mov returnaddr, edx
     }
+    GetTextContext ctx;
+    ctx.returnaddr = reinterpret_cast<uintptr_t>(returnaddr);
+    ctx.id = id;
+    //EventManager::trigger_hook<GetTextContext>("GameText::getText", ctx);
+    //std::cout << ctx.id << std::endl;
     // Custom radio messages texts
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4bcc59 && !Level::created_radiomessages.empty()) {
         static AEString customstring;
