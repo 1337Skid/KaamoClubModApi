@@ -51,13 +51,13 @@ std::string ChoiceWindow::tostring(void)
     return oss.str();
 }
 
-// TODO: it does the popup sound only one time... bcz of the set being called one time
 void ChoiceWindow::show()
 {
     CustomChoiceWindow *entry = nullptr;
     HangarWindow *hangarwindow = nullptr;
     MGame *mgame = nullptr;
     MenuTouchWindow *menutouchwindow = nullptr;
+    int *modstation = nullptr;
 
     for (auto& c : ChoiceWindow::created_choicewindow) {
         if (c.ptr == _ptr) {
@@ -79,20 +79,21 @@ void ChoiceWindow::show()
         menutouchwindow = reinterpret_cast<MenuTouchWindow*>(ChoiceWindow::active_menutouchwindow);
         if (!menutouchwindow || !MemoryUtils::IsValidPointer(menutouchwindow))
             return;
+    } else if (ChoiceWindow::last_active_window == ChoiceWindow::MODSTATION_WINDOW) {
+        modstation = reinterpret_cast<int*>(ChoiceWindow::active_modstationwindow);
+        if (!modstation || !MemoryUtils::IsValidPointer(modstation))
+            return;
     }
-    if (!entry->initialized) {
-        AEString title_str = AbyssEngine::newstring(entry->title.c_str());
-        AEString description_str = AbyssEngine::newstring(entry->description.c_str());
-        // TODO: put localized strings
-        AEString yes_str = AbyssEngine::newstring(L"Yes");
-        AEString no_str = AbyssEngine::newstring(L"No");
-        AEString ok_str = AbyssEngine::newstring(L"OK");
-        // no __asm here because it's not a custom namecall!!
-        typedef void* (__stdcall* choicewindowset_t)(SingleChoiceWindow*, AEString*, AEString*, char, AEString*, AEString*, AEString*);
-        choicewindowset_t choicewindowset = reinterpret_cast<choicewindowset_t>(Offset::CHOICEWINDOW_SET);
-        choicewindowset(_ptr, &title_str, &description_str, entry->show_buttons ? 1 : 0, &yes_str, &no_str, &ok_str);
-        entry->initialized = true;
-    }
+    AEString title_str = AbyssEngine::newstring(entry->title.c_str());
+    AEString description_str = AbyssEngine::newstring(entry->description.c_str());
+    AEString yes_str = AbyssEngine::newstring(L"Yes");
+    AEString no_str = AbyssEngine::newstring(L"No");
+    AEString ok_str = AbyssEngine::newstring(L"OK");
+    // yeah....
+    typedef void* (__stdcall* choicewindowset_t)(SingleChoiceWindow*, AEString*, AEString*, char, AEString*, AEString*, AEString*);
+    choicewindowset_t choicewindowset = reinterpret_cast<choicewindowset_t>(Offset::CHOICEWINDOW_SET);
+    choicewindowset(_ptr, &title_str, &description_str, entry->show_buttons ? 1 : 0, &yes_str, &no_str, &ok_str);
+    entry->initialized = true;
     SingleTouchButton *ref = nullptr;
     bool hangarsprites = (ChoiceWindow::last_active_window == ChoiceWindow::HANGAR_WINDOW) || (ChoiceWindow::last_active_window == ChoiceWindow::MGAME_WINDOW);
     SingleChoiceWindow *orig_window = nullptr;
@@ -102,6 +103,10 @@ void ChoiceWindow::show()
         orig_window = mgame->m_pChoiceWindow;
     else if (menutouchwindow)
         orig_window = menutouchwindow->m_pChoiceWindow;
+    else if (modstation) {
+        char* modstation_bytes = reinterpret_cast<char*>(modstation);
+        orig_window = *reinterpret_cast<SingleChoiceWindow**>(modstation_bytes + 132);
+    }
     if (!hangarsprites && menutouchwindow) {
         AEArray<SingleTouchButton*>* m_pButtons = menutouchwindow->m_pButtons;
         if (MemoryUtils::IsValidPointer(m_pButtons)) {
@@ -138,6 +143,13 @@ void ChoiceWindow::show()
                 }
             }
         }
+    } else if (modstation) {
+        AEArray<SingleTouchButton*>* buttons = *reinterpret_cast<AEArray<SingleTouchButton*>**>(reinterpret_cast<char*>(modstation) + 136);
+        if (MemoryUtils::IsValidPointer(buttons)) {
+            if (buttons->size > 0 && MemoryUtils::IsValidPointer(buttons->data) && buttons->data[0] && MemoryUtils::IsValidPointer(buttons->data[0])) {
+                ref = buttons->data[0];
+            }
+        }
     }
     // TODO: sometimes broken on MGame....
     auto hackyfix = [](SingleTouchButton* btn, SingleTouchButton* ref, int windowtype) {
@@ -167,6 +179,28 @@ void ChoiceWindow::show()
             } else {
                 btn->m_nSpriteNormal = 171;
                 btn->m_nSpritePressed = 172;
+                btn->m_nSpriteHighlighted = 67;
+                btn->m_nSpriteMidNormal = 34;
+                btn->m_nSpriteRightNormal = 35;
+                btn->m_nSpriteMidPressed = 37;
+                btn->m_nSpriteRightPressed = 38;
+                btn->m_nSpriteMidHighlighted = 37;
+                btn->m_nSpriteRightHighlighted = 38;
+            }
+        } else if (windowtype == ChoiceWindow::MODSTATION_WINDOW) {
+            if (ref) {
+                btn->m_nSpriteNormal = ref->m_nSpriteNormal;
+                btn->m_nSpritePressed = ref->m_nSpritePressed;
+                btn->m_nSpriteHighlighted = ref->m_nSpriteHighlighted;
+                btn->m_nSpriteMidNormal = ref->m_nSpriteMidNormal;
+                btn->m_nSpriteRightNormal = ref->m_nSpriteRightNormal;
+                btn->m_nSpriteMidPressed = ref->m_nSpriteMidPressed;
+                btn->m_nSpriteRightPressed = ref->m_nSpriteRightPressed;
+                btn->m_nSpriteMidHighlighted = ref->m_nSpriteMidHighlighted;
+                btn->m_nSpriteRightHighlighted = ref->m_nSpriteRightHighlighted;
+            } else {
+                btn->m_nSpriteNormal = 64;
+                btn->m_nSpritePressed = 65;
                 btn->m_nSpriteHighlighted = 67;
                 btn->m_nSpriteMidNormal = 34;
                 btn->m_nSpriteRightNormal = 35;
@@ -227,6 +261,14 @@ void ChoiceWindow::show()
         entry->prev_active = menutouchwindow->m_bChoiceWindowActive;
         menutouchwindow->m_pChoiceWindow = _ptr;
         menutouchwindow->m_bChoiceWindowActive = true;
+    } else if (modstation) {
+        char *modstation_bytes = reinterpret_cast<char*>(modstation);
+        SingleChoiceWindow** modstation_choice_window_ptr = reinterpret_cast<SingleChoiceWindow**>(modstation_bytes + 132);
+        bool *modstationchoicewindowactive = reinterpret_cast<bool*>(modstation_bytes + 102);
+
+        entry->prev_active = *modstationchoicewindowactive;
+        *modstation_choice_window_ptr = _ptr;
+        *modstationchoicewindowactive = true;
     }
     _ptr->m_bShowButtons = true;
 }
@@ -315,6 +357,29 @@ void ChoiceWindow::restore_state(SingleChoiceWindow *customchoicewindow)
             }
             //menutouchwindow->field_16E = false;
             //menutouchwindow->field_16F = false;
+        }
+    } else if (ChoiceWindow::last_active_window == ChoiceWindow::MODSTATION_WINDOW) {
+        if (!ChoiceWindow::active_modstationwindow)
+            return;
+        int *modstation = reinterpret_cast<int*>(ChoiceWindow::active_modstationwindow);
+        char *onrender2dmodstationbytes = reinterpret_cast<char*>(modstation);
+        SingleChoiceWindow **modstationchoicewindow_ptr = reinterpret_cast<SingleChoiceWindow**>(onrender2dmodstationbytes + 132);
+        bool *modstationchoicewindowactive_ptr = reinterpret_cast<bool*>(onrender2dmodstationbytes + 102);
+        if (*modstationchoicewindow_ptr == customchoicewindow) {
+            CustomChoiceWindow* entry = nullptr;
+            for (auto &custom : created_choicewindow) {
+                if (custom.ptr == customchoicewindow) {
+                    entry = &custom;
+                    break;
+                }
+            }
+            if (entry) {
+                *modstationchoicewindow_ptr = entry->previousrealchoicewindow_ptr;
+                *modstationchoicewindowactive_ptr = entry->prev_active;
+            } else {
+                *modstationchoicewindow_ptr = nullptr;
+                *modstationchoicewindowactive_ptr = false;
+            }
         }
     }
     customchoicewindow->m_bShowButtons = false;

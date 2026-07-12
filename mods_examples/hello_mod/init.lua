@@ -7,6 +7,7 @@ local mybutton = 0
 local mybutton2 = 0
 local mybutton3 = 0
 local mychoicewindow = 0
+local mychoicewindow2 = 0
 
 function get_every_assets_filepath()
 	local filepath
@@ -37,6 +38,16 @@ HookFunction("Globals::init", function(ctx)
 	mysprite = asset:CreateSprite(mytextureid, 0)
 	print("SPRITE ID INJECTED : " .. mysprite)
     	mychoicewindow = ctx:CreateChoiceWindow("Hello world", "Cool choice window", true, 
+        	function()
+            		print("ok")
+			wait(2)
+			print("choice window async")
+        	end, 
+        	function()
+            		print("bye")
+        	end
+	)
+    	mychoicewindow2 = ctx:CreateChoiceWindow("Yo", "Hey another one!", true, 
         	function()
             		print("ok")
 			wait(2)
@@ -152,6 +163,8 @@ end)
 
 RegisterEvent("OnStationDocked", function()
 	print("Docked on this station: " .. station.name)
+	wait(5)
+	mychoicewindow2:Show()
 	--local shipinfo = {
 	--	id = 40,
 	--	price = 10

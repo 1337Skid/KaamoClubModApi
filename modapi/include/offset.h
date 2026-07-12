@@ -162,6 +162,7 @@ class Offset {
 
         static constexpr uintptr_t MODSTATION_LEAVESTATION = 0x4A0367;
         static constexpr uintptr_t MODSTATION_ONUPDATE = 0x49E1BD;
+        static constexpr uintptr_t MODSTATION_ONRENDER2D = 0x49F2C1;
 
         static constexpr uintptr_t LISTITEMWINDOW_UPDATE = 0x4837A3;
 

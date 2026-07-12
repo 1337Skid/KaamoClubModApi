@@ -263,6 +263,10 @@ class Hooks {
         inline static mgame_ontouchbegin old_mgameontouchbegin = nullptr;
         static void __thiscall mgame_ontouchbegin_hook(int *a1, unsigned int a2, unsigned int a3, int a4);
 
+        using modstation_onrender2d = int* (__thiscall*)(int*);
+        inline static modstation_onrender2d old_modstationonrender2d = nullptr;
+        static int* __thiscall modstation_onrender2d_hook(int *a1);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

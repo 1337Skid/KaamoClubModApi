@@ -1846,6 +1846,14 @@ char __thiscall Hooks::mgame_ontouchend_hook(int a1, int a2, int a3, void *a4)
     return old_mgameontouchend(a1, a2, a3, a4);
 }
 
+int* __thiscall Hooks::modstation_onrender2d_hook(int *a1)
+{
+    ChoiceWindow::active_modstationwindow = reinterpret_cast<uintptr_t>(a1);
+    ChoiceWindow::last_active_window = ChoiceWindow::MODSTATION_WINDOW;
+
+    return old_modstationonrender2d(a1);
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1913,6 +1921,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::CHOICEWINDOW_ONTOUCHEND, (LPVOID)&choicewindow_ontouchend_hook, (LPVOID*)&old_choicewindowontouchend);
     //MH_CreateHook((LPVOID)Offset::MGAME_ONTOUCHBEGIN, (LPVOID)&mgame_ontouchbegin_hook, (LPVOID*)&old_mgameontouchbegin);
     //MH_CreateHook((LPVOID)Offset::MGAME_ONTOUCHEND, (LPVOID)&mgame_ontouchend_hook, (LPVOID*)&old_mgameontouchend);
+    MH_CreateHook((LPVOID)Offset::MODSTATION_ONRENDER2D, (LPVOID)&modstation_onrender2d_hook, (LPVOID*)&old_modstationonrender2d);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

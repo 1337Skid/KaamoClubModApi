@@ -24,12 +24,14 @@ class ChoiceWindow {
             NONE,
             MENU_TOUCH_WINDOW,
             HANGAR_WINDOW,
-            MGAME_WINDOW
+            MGAME_WINDOW,
+            MODSTATION_WINDOW
         };
         static inline std::vector<CustomChoiceWindow> created_choicewindow;
         static inline uintptr_t active_menutouchwindow = 0;
         static inline uintptr_t active_hangarwindow = 0;
         static inline uintptr_t active_mgamewindow = 0;
+        static inline uintptr_t active_modstationwindow = 0;
         static inline ActiveWindowType last_active_window = NONE;
         ChoiceWindow(const std::string &title, const std::string &description, bool show_buttons, sol::main_protected_function onclick_yes, sol::main_protected_function onclick_no);
         ~ChoiceWindow();
