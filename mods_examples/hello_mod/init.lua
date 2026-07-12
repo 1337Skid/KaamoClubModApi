@@ -284,6 +284,22 @@ HookFunction("ModMainMenu::OnRender2D", function(ctx)
 	ctx:call()
 end)
 
+HookFunction("StatusWindow::draw", function(ctx)
+    	ctx:DrawString("statuswindow hi custom string", 200, 200, 170, 0, 255, 255)
+	-- the memory patches are removing some stuff in the status window
+	--memoryutils:PatchByte(0x004D9CE8, 0xE9)
+    	--memoryutils:PatchByte(0x004D9CE9, 0x87)
+    	--memoryutils:PatchByte(0x004D9CEA, 0x0F)
+    	--memoryutils:PatchByte(0x004D9CEB, 0x00)
+    	--memoryutils:PatchByte(0x004D9CEC, 0x00)
+	--ctx:call()
+end)
+
+HookFunction("ModStation::OnRender2D", function(ctx)
+	ctx:DrawString("Hello mod station !!", 200, 200, 170, 0, 255, 255)
+	ctx:call()
+end)
+
 local full_text = "Hello MGame!!! yes you can animate your string !"
 local current_length = 0
 local frame_counter = 0

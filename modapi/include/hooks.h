@@ -267,6 +267,14 @@ class Hooks {
         inline static modstation_onrender2d old_modstationonrender2d = nullptr;
         static int* __thiscall modstation_onrender2d_hook(int *a1);
 
+        using statuswindow_draw = void (__stdcall*)(int);
+        inline static statuswindow_draw old_statuswindowdraw = nullptr;
+        static void __stdcall statuswindow_draw_hook(int a1);
+
+        using imagefactory_drawship = void (__stdcall*)(int);
+        inline static imagefactory_drawship old_imagefactorydrawship = nullptr;
+        static void __stdcall imagefactory_drawship_hook(int a3);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

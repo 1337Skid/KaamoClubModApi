@@ -685,7 +685,6 @@ int __stdcall Hooks::imagefactory_loadchar_hook(int *a1)
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x04bca3c) {
         if (Level::created_radiomessages.empty())
             return old_imagefactoryloadchar(a1);
-
         int index = Level::created_radiomessages.size() == 1 ? 0 : Level::created_radiomessages.size() - 1;
         int* newimage = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * 5));
         newimage[0] = Level::created_radiomessages[index].race;
@@ -1559,6 +1558,29 @@ void __stdcall Hooks::imagefactory_drawitem_hook(int a3, unsigned int a4)
     }
 }
 
+void __stdcall Hooks::imagefactory_drawship_hook(int a3)
+{
+    int a1;
+    int a2;
+
+    __asm {
+        mov a1, ebx
+        mov a2, edi
+    }
+    if (a3 >= 44) {
+        for (const auto& ship : Ship::created_ships) {
+            if (a3 == ship.id)
+                a3 = ship.spriteicon - 2417; // 2417 bcz the game decided
+        }
+    }
+    __asm {
+        push a3
+        mov ebx, a1
+        mov edi, a2
+        call old_imagefactorydrawship
+    }
+}
+
 int __stdcall Hooks::menutouchwindow_draw_hook(int a1)
 {
     // TODO: one day i'll edit every a1, a2 etc.. to the correct thing lmao
@@ -1850,8 +1872,21 @@ int* __thiscall Hooks::modstation_onrender2d_hook(int *a1)
 {
     ChoiceWindow::active_modstationwindow = reinterpret_cast<uintptr_t>(a1);
     ChoiceWindow::last_active_window = ChoiceWindow::MODSTATION_WINDOW;
+    Render2DContext ctx = EventManager::trigger_hook<Render2DContext>("ModStation::OnRender2D");
+    int *returned = nullptr;
 
-    return old_modstationonrender2d(a1);
+    if (ctx.call_original)
+        returned = old_modstationonrender2d(a1);
+    return returned;
+}
+
+void __stdcall Hooks::statuswindow_draw_hook(int a1)
+{
+    // make a ModStationWindowContext?
+    old_statuswindowdraw(a1);
+    Render2DContext ctx;
+    ctx.call_original = false;
+    EventManager::trigger_hook<Render2DContext>("StatusWindow::draw", ctx);
 }
 
 void Hooks::init()
@@ -1922,6 +1957,8 @@ void Hooks::init()
     //MH_CreateHook((LPVOID)Offset::MGAME_ONTOUCHBEGIN, (LPVOID)&mgame_ontouchbegin_hook, (LPVOID*)&old_mgameontouchbegin);
     //MH_CreateHook((LPVOID)Offset::MGAME_ONTOUCHEND, (LPVOID)&mgame_ontouchend_hook, (LPVOID*)&old_mgameontouchend);
     MH_CreateHook((LPVOID)Offset::MODSTATION_ONRENDER2D, (LPVOID)&modstation_onrender2d_hook, (LPVOID*)&old_modstationonrender2d);
+    MH_CreateHook((LPVOID)Offset::STATUSWINDOW_DRAW, (LPVOID)&statuswindow_draw_hook, (LPVOID*)&old_statuswindowdraw);
+    MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWSHIP, (LPVOID)&imagefactory_drawship_hook, (LPVOID*)&old_imagefactorydrawship);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

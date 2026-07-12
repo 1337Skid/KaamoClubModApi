@@ -367,6 +367,18 @@ void LuaManager::bind_api()
         sol::no_constructor,
         "PatchByte", [](MemoryUtils& self, unsigned int address, uint8_t value) {
             MemoryUtils::PatchByte(address, value);
+        },
+        "ReadInt", [](MemoryUtils& self, unsigned int address) -> int {
+            return MemoryUtils::ReadInt(address);
+        },
+        "WriteInt", [](MemoryUtils& self, unsigned int address, int value) {
+            MemoryUtils::WriteInt(address, value);
+        },
+        "ReadFloat", [](MemoryUtils& self, unsigned int address) -> float {
+            return MemoryUtils::ReadFloat(address);
+        },
+        "WriteFloat", [](MemoryUtils& self, unsigned int address, float value) {
+            MemoryUtils::WriteFloat(address, value);
         }
     );
 

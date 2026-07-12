@@ -30,6 +30,7 @@ int Ship::create(const std::string& name, const std::string& description, sol::t
     cs.turretslots = shipinfo["turretslots"] ? shipinfo["turretslots"] : 1;
     cs.equipmentslots = shipinfo["equipmentslots"] ? shipinfo["equipmentslots"] : 1;
     cs.hangar_y = shipinfo["hangar_y"] ? shipinfo["hangar_y"] : 1;
+    cs.spriteicon = shipinfo["spriteicon"] ? shipinfo["spriteicon"] : 0;
     sol::table primary = shipinfo["primary_positions"];
     if (primary.valid()) {
         for (int i = 1; i <= primary.size(); i++) {

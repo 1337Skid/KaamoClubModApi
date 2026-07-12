@@ -25,7 +25,7 @@ class GlobalsInitContext : public HookContext {
 };
 
 class Render2DContext : public HookContext {
-    public:
+    public:        
         void drawstring(const std::string& text, int x, int y, int r, int g, int b, int a);
         void drawimage2d(unsigned int id, int x, int y, int r, int g, int b, int a);
 };

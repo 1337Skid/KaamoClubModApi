@@ -68,6 +68,7 @@ class Offset {
         static constexpr uintptr_t IMAGEFACTORY_DRAWCHAR = 0x45F4C5;
         static constexpr uintptr_t IMAGEFACTORY_LOADCHAR = 0x45F31A;
         static constexpr uintptr_t IMAGEFACTORY_DRAWITEM = 0x45F555;
+        static constexpr uintptr_t IMAGEFACTORY_DRAWSHIP = 0x45F5C2;
 
         static constexpr uintptr_t IMAGEPART_DRAW = 0x4E8990;
 
@@ -189,5 +190,7 @@ class Offset {
         static constexpr uintptr_t CHOICEWINDOW_DRAW = 0x404624;
         static constexpr uintptr_t CHOICEWINDOW_SET = 0x404000;
         static constexpr uintptr_t CHOICEWINDOW_CHOICEWINDOW = 0x403E89;
+
+        static constexpr uintptr_t STATUSWINDOW_DRAW = 0x4D94BB;
 };
 #endif

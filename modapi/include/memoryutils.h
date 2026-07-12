@@ -89,5 +89,10 @@ class MemoryUtils {
         {
             return WriteProcessMemory(GetCurrentProcess(), (LPVOID)address, &value, sizeof(T), NULL);
         }
+
+        static int ReadInt(uintptr_t address) { return Read<int>(address); }
+        static float ReadFloat(uintptr_t address) { return Read<float>(address); }
+        static void WriteInt(uintptr_t address, int value) { Write<int>(address, value); }
+        static void WriteFloat(uintptr_t address, float value) { Write<float>(address, value); }
 };
 #endif
