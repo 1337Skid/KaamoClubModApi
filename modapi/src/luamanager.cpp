@@ -53,6 +53,13 @@ void LuaManager::bind_api()
         }
     );
 
+    lua_state.new_usertype<SetColorContext>("SetColorContext",
+        sol::base_classes, sol::bases<HookContext>(),
+        "returnaddr", sol::readonly(&SetColorContext::returnaddr),
+        "hexcolor", sol::readonly(&SetColorContext::hexcolor),
+        "OverrideColor", &SetColorContext::overridecolor
+    );
+
     lua_state.new_usertype<GetTextContext>("GetTextContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),

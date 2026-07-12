@@ -65,3 +65,16 @@ void GetTextContext::overridetext(const std::string &text)
     MultiByteToWideChar(CP_UTF8, 0, text.c_str(), text.size(), &overriddentext[0], wlen);
     overridden = true;
 }
+
+void SetColorContext::overridecolor(int r, int g, int b, int a)
+{
+    auto clamp = [](int v) -> unsigned int {
+        if (v < 0)
+            v = 0;
+        if (v > 255)
+            v = 255;
+        return static_cast<unsigned int>(v);
+    };
+    hexcolor = (clamp(r) << 24) | (clamp(g) << 16) | (clamp(b) << 8) | clamp(a);
+    overridden = true;
+}

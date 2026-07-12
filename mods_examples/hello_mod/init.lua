@@ -25,6 +25,13 @@ HookFunction("GameText::getText", function(ctx)
 	ctx:call() -- ctx:call() isn't required because gametext::gettext always needs to be called or else the game crash
 end)
 
+HookFunction("AbyssEngine::PaintCanvas::SetColor", function(ctx)
+	--print(string.format("0x%X", ctx.returnaddr))
+	--print(string.format("0x%X", ctx.hexcolor))
+	--ctx:OverrideColor(0, 0, 255, 255) -- r,g,b,a
+	ctx:call() -- ctx:call() isn't required
+end)
+
 HookFunction("Globals::init", function(ctx)
 	mytextureid = asset:CreateTexture("mods/hello_mod/my_assets/Trollface.aei")
 	mysprite = asset:CreateSprite(mytextureid, 0)

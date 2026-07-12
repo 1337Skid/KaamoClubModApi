@@ -308,23 +308,43 @@ bool __fastcall Hooks::standing_isenemy_hook(uintptr_t standing, int race)
     return true;
 }
 
-void __fastcall Hooks::abyssengine_paintcanvas_setcolor_hook(uintptr_t paintcanvas)
+// same thing here we specify __declspec so we don't generate any prologues and no __chkstk that is messing up with our registers
+static uintptr_t setcolorpaintcanvasptr;
+static unsigned int setcolorhexcolor;
+static uintptr_t setcolorsretaddr;
+__declspec(naked) void __fastcall Hooks::abyssengine_paintcanvas_setcolor_hook(uintptr_t paintcanvas)
 {
-    unsigned int hexcolor;
-
-    // the game puts the color in eax......
     __asm {
-        mov hexcolor, eax
+        mov setcolorhexcolor, eax
+        mov setcolorpaintcanvasptr, ecx
+        mov edx, [esp]
+        mov setcolorsretaddr, edx
+        call abyssengine_paintcanvas_setcolor_hook_impl
+        mov ecx, setcolorpaintcanvasptr
+        mov eax, setcolorhexcolor
+        call old_abyssenginepaintcanvassetcolor
+        ret
     }
+}
+
+void __fastcall Hooks::abyssengine_paintcanvas_setcolor_hook_impl()
+{
+    SetColorContext ctx;
+    ctx.returnaddr = setcolorsretaddr;
+    ctx.hexcolor = setcolorhexcolor;
+
+    EventManager::trigger_hook<SetColorContext>("AbyssEngine::PaintCanvas::SetColor", ctx);
+    if (ctx.overridden)
+        setcolorhexcolor = ctx.hexcolor;
     //hexcolor = 0x00ff00ff; // r,g,b,a | ff = 255
     __asm {
-        mov ecx, paintcanvas
-        mov eax, hexcolor
+        mov ecx, setcolorpaintcanvasptr
+        mov eax, setcolorhexcolor
         call old_abyssenginepaintcanvassetcolor
     }
 }
 
-// __declspec(naked) needed or else stack corruption thanks msvc
+// __declspec(naked) needed or else stack corruption thanks msvc and __chkstk
 static int gettextid;
 static uintptr_t gettextretaddr;
 __declspec(naked) AEString* __stdcall Hooks::gametext_gettext_hook()
@@ -1833,7 +1853,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBINARYFROMID, &fileread_loadstationbinaryfromid_hook, (LPVOID*)&old_filereadloadstationbinaryfromid);
     MH_CreateHook((LPVOID)Offset::FILEREAD_LOADSTATIONBIRARY, &fileread_loadstationbinary_hook, (LPVOID*)&old_filereadloadstationbinary);
     //MH_CreateHook((LPVOID)Offset::STANDING_ISENEMY, &standing_isenemy_hook, (LPVOID*)&old_standingisenemy);
-    //MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
+    MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_SETCOLOR, &abyssengine_paintcanvas_setcolor_hook, (LPVOID*)&old_abyssenginepaintcanvassetcolor);
     MH_CreateHook((LPVOID)Offset::GAMETEXT_GETTEXT, &gametext_gettext_hook, (LPVOID*)&old_gametextgettext);
     MH_CreateHook((LPVOID)Offset::RECORDHANDLER_RECORDSTOREWRITE, &recordhandler_recordstorewrite_hook, (LPVOID*)&old_recordhandlerrecordstorewrite);
     MH_CreateHook((LPVOID)Offset::LEVEL_CREATEGUN, &level_creategun_hook, (LPVOID*)&old_levelcreategun);

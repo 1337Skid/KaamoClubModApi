@@ -40,4 +40,13 @@ class GetTextContext : public HookContext {
         void overridetext(const std::string &text);
 };
 
+class SetColorContext : public HookContext {
+    public:
+        uintptr_t returnaddr = 0;
+        unsigned int hexcolor = 0;
+        bool overridden = false;
+
+        void overridecolor(int r, int g, int b, int a);
+};
+
 #endif

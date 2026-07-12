@@ -24,6 +24,7 @@ class Hooks {
         using abyssengine_paintcanvas_setcolor = void (__fastcall*)(uintptr_t);
         inline static abyssengine_paintcanvas_setcolor old_abyssenginepaintcanvassetcolor = nullptr;
         static void __fastcall abyssengine_paintcanvas_setcolor_hook(uintptr_t paintcanvas);
+        static void __fastcall abyssengine_paintcanvas_setcolor_hook_impl(void);
 
         using gametext_gettext = AEString* (__stdcall*)(void);
         inline static gametext_gettext old_gametextgettext = nullptr;
