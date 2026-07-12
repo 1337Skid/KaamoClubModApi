@@ -18,6 +18,7 @@
 #include <Game/mission.h>
 #include <Game/asset.h>
 #include <Game/level.h>
+#include <Game/kiplayer.h>
 #include "offset.h"
 
 std::map<std::string, std::vector<sol::protected_function>> EventManager::listeners;
@@ -184,6 +185,21 @@ void EventManager::stationdocked_event()
         isdocked = false;
 }
 
+void EventManager::radarscan_event()
+{
+    MGame *mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
+    Radar *radar = (mgame) ? mgame->m_pRadar : nullptr;
+    int* current = (radar) ? (radar->m_pLockedNpc ? radar->m_pLockedNpc : radar->m_pLockedAsteroid) : nullptr;
+    static int* old = current;
+
+    if (current != old) {
+        if (current == 0)
+            return;
+        trigger("OnRadarScan", KIPlayer(current));
+        old = current;
+    }
+}
+
 void EventManager::update_event()
 {
     trigger("OnUpdate");
@@ -201,6 +217,7 @@ void EventManager::trigger_events()
         enemiekilled_event();
         cargochanged_event();
         asteroiddestroyed_event();
+        radarscan_event();
     }
     joingame_event();
     mainmenu_event();

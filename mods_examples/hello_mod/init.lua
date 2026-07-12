@@ -82,6 +82,10 @@ RegisterEvent("IsInGame", function()
 	-- is in game ticks
 end)
 
+RegisterEvent("OnRadarScan", function(kiplayer)
+	print(kiplayer)
+end)
+
 RegisterEvent("OnJoinGame", function()
 	print("joined game")
 	--for i = 0, 20 do

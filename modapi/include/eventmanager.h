@@ -60,6 +60,7 @@ class EventManager {
         static void cargochanged_event();
         static void asteroiddestroyed_event();
         static void joingame_event();
+        static void radarscan_event();
     public:
         static inline bool isearlyinit_finished = false;
         static LuaManager* lua_manager;
