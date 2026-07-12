@@ -324,21 +324,37 @@ void __fastcall Hooks::abyssengine_paintcanvas_setcolor_hook(uintptr_t paintcanv
     }
 }
 
-AEString* __stdcall Hooks::gametext_gettext_hook()
+// __declspec(naked) needed or else stack corruption thanks msvc
+static int gettextid;
+static uintptr_t gettextretaddr;
+__declspec(naked) AEString* __stdcall Hooks::gametext_gettext_hook()
 {
-    int id;
-    void* returnaddr = nullptr;
-    AEString* result = nullptr;
     __asm {
-        mov id, eax
-        mov edx, [ebp + 4]
-        mov returnaddr, edx
+        mov gettextid, eax
+        mov edx, [esp]
+        mov gettextretaddr, edx
+        call gametext_gettext_hook_impl
+        ret
     }
+}
+
+AEString* __stdcall Hooks::gametext_gettext_hook_impl()
+{
+    int id = gettextid;
+    void* returnaddr = reinterpret_cast<void*>(gettextretaddr);
+    AEString* result = nullptr;
     GetTextContext ctx;
     ctx.returnaddr = reinterpret_cast<uintptr_t>(returnaddr);
     ctx.id = id;
-    //EventManager::trigger_hook<GetTextContext>("GameText::getText", ctx);
-    //std::cout << ctx.id << std::endl;
+    EventManager::trigger_hook<GetTextContext>("GameText::getText", ctx);
+    if (ctx.overridden) {
+        static AEString customstring;
+        static std::wstring overriddentext;
+        overriddentext = ctx.overriddentext;
+        customstring.text = const_cast<wchar_t*>(overriddentext.c_str());
+        customstring.size = static_cast<uint32_t>(overriddentext.length());
+        return &customstring;
+    }
     // Custom radio messages texts
     if (reinterpret_cast<uintptr_t>(returnaddr) == 0x4bcc59 && !Level::created_radiomessages.empty()) {
         static AEString customstring;

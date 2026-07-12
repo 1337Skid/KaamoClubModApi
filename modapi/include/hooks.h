@@ -28,6 +28,7 @@ class Hooks {
         using gametext_gettext = AEString* (__stdcall*)(void);
         inline static gametext_gettext old_gametextgettext = nullptr;
         static AEString* __stdcall gametext_gettext_hook(void);
+        static AEString* __stdcall gametext_gettext_hook_impl(void);
 
         using recordhandler_recordstorewrite = int (__stdcall*)(uintptr_t, int);
         inline static recordhandler_recordstorewrite old_recordhandlerrecordstorewrite = nullptr;

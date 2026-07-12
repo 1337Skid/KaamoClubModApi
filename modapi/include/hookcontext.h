@@ -35,7 +35,7 @@ class GetTextContext : public HookContext {
         uintptr_t returnaddr = 0;
         int id = 0;
         bool overridden = false;
-        const wchar_t *overriddentext = nullptr;
+        std::wstring overriddentext;
         
         void overridetext(const std::string &text);
 };

@@ -18,6 +18,13 @@ function get_every_assets_filepath()
 	end
 end
 
+HookFunction("GameText::getText", function(ctx)
+	--print(string.format("0x%X", ctx.returnaddr))
+	--ctx:OverrideText("Hello from lua")
+	--print(ctx.id)
+	ctx:call() -- ctx:call() isn't required because gametext::gettext always needs to be called or else the game crash
+end)
+
 HookFunction("Globals::init", function(ctx)
 	mytextureid = asset:CreateTexture("mods/hello_mod/my_assets/Trollface.aei")
 	mysprite = asset:CreateSprite(mytextureid, 0)

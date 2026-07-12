@@ -51,5 +51,17 @@ ChoiceWindow GlobalsInitContext::createchoicewindow(const std::string &title, co
 
 void GetTextContext::overridetext(const std::string &text)
 {
+    if (text.empty()) {
+        overriddentext.clear();
+        overridden = true;
+        return;
+    }
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, text.c_str(), text.size(), nullptr, 0);
+    if (wlen <= 0) {
+        overridden = false;
+        return;
+    }
+    overriddentext.resize(wlen);
+    MultiByteToWideChar(CP_UTF8, 0, text.c_str(), text.size(), &overriddentext[0], wlen);
     overridden = true;
 }
