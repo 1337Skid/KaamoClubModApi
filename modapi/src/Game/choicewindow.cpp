@@ -86,10 +86,12 @@ void ChoiceWindow::show()
     }
     AEString title_str = AbyssEngine::newstring(entry->title.c_str());
     AEString description_str = AbyssEngine::newstring(entry->description.c_str());
+    // TODO: put localized strings
     AEString yes_str = AbyssEngine::newstring(L"Yes");
     AEString no_str = AbyssEngine::newstring(L"No");
     AEString ok_str = AbyssEngine::newstring(L"OK");
     // yeah....
+    // no __asm here because it's not a custom namecall!!
     typedef void* (__stdcall* choicewindowset_t)(SingleChoiceWindow*, AEString*, AEString*, char, AEString*, AEString*, AEString*);
     choicewindowset_t choicewindowset = reinterpret_cast<choicewindowset_t>(Offset::CHOICEWINDOW_SET);
     choicewindowset(_ptr, &title_str, &description_str, entry->show_buttons ? 1 : 0, &yes_str, &no_str, &ok_str);
@@ -104,8 +106,8 @@ void ChoiceWindow::show()
     else if (menutouchwindow)
         orig_window = menutouchwindow->m_pChoiceWindow;
     else if (modstation) {
-        char* modstation_bytes = reinterpret_cast<char*>(modstation);
-        orig_window = *reinterpret_cast<SingleChoiceWindow**>(modstation_bytes + 132);
+        char *onrender2dmodstationbytes = reinterpret_cast<char*>(modstation);
+        orig_window = *reinterpret_cast<SingleChoiceWindow**>(onrender2dmodstationbytes + 132);
     }
     if (!hangarsprites && menutouchwindow) {
         AEArray<SingleTouchButton*>* m_pButtons = menutouchwindow->m_pButtons;
@@ -146,9 +148,8 @@ void ChoiceWindow::show()
     } else if (modstation) {
         AEArray<SingleTouchButton*>* buttons = *reinterpret_cast<AEArray<SingleTouchButton*>**>(reinterpret_cast<char*>(modstation) + 136);
         if (MemoryUtils::IsValidPointer(buttons)) {
-            if (buttons->size > 0 && MemoryUtils::IsValidPointer(buttons->data) && buttons->data[0] && MemoryUtils::IsValidPointer(buttons->data[0])) {
+            if (buttons->size > 0 && MemoryUtils::IsValidPointer(buttons->data) && buttons->data[0] && MemoryUtils::IsValidPointer(buttons->data[0]))
                 ref = buttons->data[0];
-            }
         }
     }
     // TODO: sometimes broken on MGame....

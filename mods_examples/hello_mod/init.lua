@@ -163,8 +163,8 @@ end)
 
 RegisterEvent("OnStationDocked", function()
 	print("Docked on this station: " .. station.name)
-	wait(5)
-	mychoicewindow2:Show()
+	--wait(5)
+	--mychoicewindow2:Show()
 	--local shipinfo = {
 	--	id = 40,
 	--	price = 10
