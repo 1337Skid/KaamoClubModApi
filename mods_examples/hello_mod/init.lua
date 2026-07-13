@@ -19,6 +19,10 @@ function get_every_assets_filepath()
 	end
 end
 
+HookFunction("HangarWindow::render", function(ctx)
+	ctx:DrawString("Hello hangar window !!", 30, 30, 255, 255, 255, 255)
+end)
+
 HookFunction("GameText::getText", function(ctx)
 	--print(string.format("0x%X", ctx.returnaddr))
 	--ctx:OverrideText("Hello from lua")
@@ -245,7 +249,6 @@ RegisterEvent("OnSystemChanged", function(id)
 	if not system:IsVisible(26) then
 		print("Shima system is not visible")
 	end
-
 	print("GOF2 Interface AEI : " .. asset:GetAssetFilePath(2050)) -- 2050 is the id of the interface
 end)
 

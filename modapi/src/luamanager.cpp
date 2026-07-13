@@ -129,6 +129,11 @@ void LuaManager::bind_api()
             self->drawimage2d(id, x, y, r, g, b, a);
         }
     );
+
+    lua_state.new_usertype<ModStationWindowContext>("ModStationWindowContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<Render2DContext>()
+    );
  
     lua_state.new_usertype<Player>("Player",
         sol::no_constructor,

@@ -1719,6 +1719,7 @@ int __thiscall Hooks::hangarwindow_render_hook(unsigned int *a1)
     ChoiceWindow::active_hangarwindow = reinterpret_cast<uintptr_t>(a1);
     ChoiceWindow::last_active_window = ChoiceWindow::HANGAR_WINDOW;
     int result = old_hangarwindowrender(a1);
+    ModStationWindowContext ctx = EventManager::trigger_hook<ModStationWindowContext>("HangarWindow::render");
     int *hangarlist = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 20);
     int *btnarray = *reinterpret_cast<int**>(reinterpret_cast<char*>(a1) + 36);
     TouchButton::refreshbtnsprites(btnarray);
@@ -1886,11 +1887,8 @@ int* __thiscall Hooks::modstation_onrender2d_hook(int *a1)
 
 void __stdcall Hooks::statuswindow_draw_hook(int a1)
 {
-    // make a ModStationWindowContext?
     old_statuswindowdraw(a1);
-    Render2DContext ctx;
-    ctx.call_original = false;
-    EventManager::trigger_hook<Render2DContext>("StatusWindow::draw", ctx);
+    ModStationWindowContext ctx = EventManager::trigger_hook<ModStationWindowContext>("StatusWindow::draw");
 }
 
 void Hooks::init()

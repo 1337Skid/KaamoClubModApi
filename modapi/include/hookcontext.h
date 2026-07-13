@@ -30,6 +30,11 @@ class Render2DContext : public HookContext {
         void drawimage2d(unsigned int id, int x, int y, int r, int g, int b, int a);
 };
 
+class ModStationWindowContext : public Render2DContext {
+    // TODO: maybe we give to the user a window_ptr and this window_ptr could be useful to edit the whole UI?
+    // I made this context because the window hooks are special they are called after the real function being called
+};
+
 class GetTextContext : public HookContext {
     public:
         uintptr_t returnaddr = 0;
