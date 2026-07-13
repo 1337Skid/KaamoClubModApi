@@ -130,13 +130,7 @@ void Hooks::injectships()
     *reinterpret_cast<DWORD*>(0x00481085) = reinterpret_cast<DWORD>(ui_meshes_2);
     VirtualProtect(reinterpret_cast<LPVOID>(0x004810A5), 4, PAGE_EXECUTE_READWRITE, &oldp);
     *reinterpret_cast<DWORD*>(0x004810A5) = reinterpret_cast<DWORD>(ui_meshes_2);
-    // if ( v16 < 0x2C ) is now  if ( v16 >= 0 ) | required to draw the ship spriteicon on previews
-    VirtualProtect(reinterpret_cast<LPVOID>(0x00481059), 4, PAGE_EXECUTE_READWRITE, &oldp);
-    *reinterpret_cast<DWORD*>(0x00481059) = reinterpret_cast<DWORD>(ui_meshes_1);
-    VirtualProtect(reinterpret_cast<LPVOID>(0x00481085), 4, PAGE_EXECUTE_READWRITE, &oldp);
-    *reinterpret_cast<DWORD*>(0x00481085) = reinterpret_cast<DWORD>(ui_meshes_2);
-    VirtualProtect(reinterpret_cast<LPVOID>(0x004810A5), 4, PAGE_EXECUTE_READWRITE, &oldp);
-    *reinterpret_cast<DWORD*>(0x004810A5) = reinterpret_cast<DWORD>(ui_meshes_2);
+    // if ( shipid < 44 ) is nopped now | required to draw the ship spriteicon on previews
     VirtualProtect(reinterpret_cast<LPVOID>(0x00487D3A), 5, PAGE_EXECUTE_READWRITE, &oldp);
     std::memset(reinterpret_cast<void*>(0x00487D3A), 0x90, 5);
     VirtualProtect(reinterpret_cast<LPVOID>(0x00487D3A), 5, oldp, &oldp);
