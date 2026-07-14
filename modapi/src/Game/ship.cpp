@@ -1,6 +1,6 @@
 #include <Game/ship.h>
 
-int Ship::create(const std::string& name, const std::string& description, sol::table shipinfo, int tex_diffuse, int tex_normal, int material, int lod0, int lod1, int lod2)
+int Ship::create(const std::string& name, const std::string& description, sol::table shipinfo, int tex_diffuse, int tex_normal, int material, int lod0, int lod1, int lod2, int mesh_lights, int mesh_lights2)
 {
     if (!shipinfo) {
         std::cout << "[-] shipinfo can't be null!" << std::endl;
@@ -20,6 +20,8 @@ int Ship::create(const std::string& name, const std::string& description, sol::t
     cs.lod0 = lod0;
     cs.lod1 = lod1;
     cs.lod2 = lod2;
+    cs.mesh_lights = mesh_lights;
+    cs.mesh_lights2 = mesh_lights2;
     cs.maxhealth = shipinfo["maxhealth"] ? shipinfo["maxhealth"] : 1;
     cs.baseprice = shipinfo["baseprice"] ? shipinfo["baseprice"] : 1;
     cs.maxcargo = shipinfo["maxcargo"] ? shipinfo["maxcargo"] : 1;
