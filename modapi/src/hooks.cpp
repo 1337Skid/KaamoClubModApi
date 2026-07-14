@@ -1891,38 +1891,30 @@ void __stdcall Hooks::statuswindow_draw_hook(int a1)
     ModStationWindowContext ctx = EventManager::trigger_hook<ModStationWindowContext>("StatusWindow::draw");
 }
 
-int __stdcall Hooks::ship_hasjumpdriveintegrated_hook_impl(int *a1)
+bool __cdecl Hooks::ship_hasjumpdriveintegrated_hook_impl(int* a1)
 {
     if (!a1 || a1 == reinterpret_cast<int*>(-1))
-        return 0;
+        return false;
     int shipid = *a1;
     if (shipid == -1)
-        return 0;
-    Globals_status **globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
-    if (globals_status && *globals_status && (*globals_status)->m_pShipInfo) {
-        for (int i = 0; i < Ship::created_ships.size(); i++) {
-            if (Ship::created_ships[i].id == shipid && Ship::created_ships[i].hasjumpdrive)
-                return 1;
-            return -1;
-        }
-    }
-    return -1;
+        return false;
+    for (int i = 0; i < Ship::created_ships.size(); i++)
+        if (Ship::created_ships[i].id == shipid) 
+            return Ship::created_ships[i].hasjumpdrive;
+    return (shipid == 37 || shipid == 38 || shipid == 40);
 }
 // wrote god damn assembly for this insane function that has an arg in eax and return the value in eax wtffff
-__declspec(naked) bool __cdecl Hooks::ship_hasjumpdriveintegrated_hook()
+__declspec(naked) void Hooks::ship_hasjumpdriveintegrated_hook()
 {
-    __asm {
-        push ebx
-        mov ebx, eax
+    __asm {        
+        push ecx
+        push edx
         push eax
         call ship_hasjumpdriveintegrated_hook_impl
-        cmp eax, -1
-        jne done
-        mov eax, ebx
-        mov edx, old_shiphasjumpdriveintegrated
-        call edx
-    done:
-        pop ebx
+        // __cdecl requires 4 bytes stack clean and we have one arg so it makes sense
+        add esp, 4
+        pop edx
+        pop ecx
         ret
     }
 }
