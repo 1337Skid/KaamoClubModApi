@@ -1885,6 +1885,7 @@ int* __thiscall Hooks::modstation_onrender2d_hook(int *a1)
 
 void __stdcall Hooks::statuswindow_draw_hook(int a1)
 {
+    old_statuswindowdraw(a1);
     ModStationWindowContext ctx = EventManager::trigger_hook<ModStationWindowContext>("StatusWindow::draw");
 }
 
@@ -1908,6 +1909,7 @@ __declspec(naked) void Hooks::ship_hasjumpdriveintegrated_hook()
         push edx
         push eax
         call ship_hasjumpdriveintegrated_hook_impl
+        // __cdecl requires 4 bytes stack clean and we have one arg so it makes sense
         add esp, 4
         pop edx
         pop ecx
