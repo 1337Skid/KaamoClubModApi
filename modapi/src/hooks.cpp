@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <iomanip>
 
 void Hooks::injectitems()
 {
@@ -44,8 +45,8 @@ void Hooks::injectships()
     auto* newhangaroffsets_one = reinterpret_cast<DWORD*>(AbyssEngine::memory_allocate(sizeof(DWORD) * total));
     auto* newhangaroffsets_two = reinterpret_cast<DWORD*>(AbyssEngine::memory_allocate(sizeof(DWORD) * total));
     auto* meshes = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
-    auto* nolights = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
-    auto* addlights = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* lights = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* lights2 = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
     auto* lods = reinterpret_cast<uint8_t*>(AbyssEngine::memory_allocate(12 * total));
     auto* lightlods = reinterpret_cast<uint8_t*>(AbyssEngine::memory_allocate(12 * total));
     auto* ui_meshes_1 = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
@@ -53,8 +54,8 @@ void Hooks::injectships()
     std::memcpy(newhangaroffsets_one, reinterpret_cast<void*>(Offset::SHIP_HANGAR_OFFSETS), sizeof(DWORD) * old);
     std::memcpy(newhangaroffsets_two, reinterpret_cast<void*>(Offset::SHIP_HANGAR_OFFSETS2), sizeof(DWORD) * old);
     std::memcpy(meshes, reinterpret_cast<void*>(Offset::SHIP_MESHES), sizeof(WORD) * old);
-    std::memcpy(nolights, reinterpret_cast<void*>(Offset::SHIP_MESHES_NO_LIGHT), sizeof(WORD) * old);
-    std::memcpy(addlights, reinterpret_cast<void*>(Offset::SHIP_MESHES_ADD_LIGHTS), sizeof(WORD) * old);
+    std::memcpy(lights, reinterpret_cast<void*>(Offset::SHIP_MESHES_NO_LIGHT), sizeof(WORD) * old);
+    std::memcpy(lights2, reinterpret_cast<void*>(Offset::SHIP_MESHES_ADD_LIGHTS), sizeof(WORD) * old);
     std::memcpy(lods, reinterpret_cast<void*>(Offset::SHIP_LODS), 12 * old);
     std::memcpy(lightlods, reinterpret_cast<void*>(Offset::SHIP_LIGHT_LODS), 12 * old);
     std::memcpy(ui_meshes_1, reinterpret_cast<void*>(0x0052F288), sizeof(WORD) * old);
@@ -81,21 +82,18 @@ void Hooks::injectships()
         newhangaroffsets_one[shipid] = Ship::created_ships[i].hangar_y;
         newhangaroffsets_two[shipid] = Ship::created_ships[i].hangar_y;
         ui_meshes_1[shipid] = Ship::created_ships[i].lod0;
-        ui_meshes_2[shipid] = Ship::created_ships[i].lod0;
+        ui_meshes_2[shipid] = Ship::created_ships[i].mesh_lights;
         meshes[shipid] = Ship::created_ships[i].lod0;
-        nolights[shipid] = -1;
-        addlights[shipid] = -1;
+        lights[shipid] = Ship::created_ships[i].mesh_lights;
+        lights2[shipid] = Ship::created_ships[i].mesh_lights2;
         auto* current_lod = lods + (shipid * 12);
         *reinterpret_cast<DWORD*>(current_lod + 0) = Ship::created_ships[i].lod0;
         *reinterpret_cast<DWORD*>(current_lod + 4) = Ship::created_ships[i].lod1;
         *reinterpret_cast<DWORD*>(current_lod + 8) = Ship::created_ships[i].lod2;
         auto* current_lightlods = lightlods + (shipid * 12);
-        *reinterpret_cast<WORD*>(current_lightlods + 0) = -1;
-        *reinterpret_cast<WORD*>(current_lightlods + 2) = 0;
-        *reinterpret_cast<WORD*>(current_lightlods + 4) = -1;
-        *reinterpret_cast<WORD*>(current_lightlods + 6) = 0;
-        *reinterpret_cast<WORD*>(current_lightlods + 8) = -1;
-        *reinterpret_cast<WORD*>(current_lightlods + 10) = 0;
+        *reinterpret_cast<DWORD*>(current_lightlods + 0) = 65535;
+        *reinterpret_cast<DWORD*>(current_lightlods + 4) = 65535;
+        *reinterpret_cast<DWORD*>(current_lightlods + 8) = 65535;
     }
     ships.data = newship_data;
     ships.size = total;
@@ -113,11 +111,11 @@ void Hooks::injectships()
     VirtualProtect(reinterpret_cast<LPVOID>(0x0044D58F), 4, PAGE_EXECUTE_READWRITE, &oldp);
     *reinterpret_cast<DWORD*>(0x0044D58F) = reinterpret_cast<DWORD>(meshes);
     VirtualProtect(reinterpret_cast<LPVOID>(0x0044D5BD), 4, PAGE_EXECUTE_READWRITE, &oldp);
-    *reinterpret_cast<DWORD*>(0x0044D5BD) = reinterpret_cast<DWORD>(nolights);
+    *reinterpret_cast<DWORD*>(0x0044D5BD) = reinterpret_cast<DWORD>(lights);
     VirtualProtect(reinterpret_cast<LPVOID>(0x0044D64E), 4, PAGE_EXECUTE_READWRITE, &oldp);
-    *reinterpret_cast<DWORD*>(0x0044D64E) = reinterpret_cast<DWORD>(addlights);
+    *reinterpret_cast<DWORD*>(0x0044D64E) = reinterpret_cast<DWORD>(lights2);
     VirtualProtect(reinterpret_cast<LPVOID>(0x0044D674), 4, PAGE_EXECUTE_READWRITE, &oldp);
-    *reinterpret_cast<DWORD*>(0x0044D674) = reinterpret_cast<DWORD>(addlights);
+    *reinterpret_cast<DWORD*>(0x0044D674) = reinterpret_cast<DWORD>(lights2);
     // available lods array
     VirtualProtect(reinterpret_cast<LPVOID>(0x0044D701), 4, PAGE_EXECUTE_READWRITE, &oldp);
     *reinterpret_cast<DWORD*>(0x0044D701) = reinterpret_cast<DWORD>(lods);

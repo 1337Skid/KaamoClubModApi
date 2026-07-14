@@ -22,9 +22,9 @@ int *MissionContext::createstaticobject(int type, float x, float y, float z)
     return Level::createstaticobject(type, x, y, z);
 }
 
-int GlobalsInitContext::createship(const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2)
+int GlobalsInitContext::createship(const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2, int mesh_lights, int mesh_lights2)
 {
-    return Ship::create(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
+    return Ship::create(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2, mesh_lights, mesh_lights2);
 }
 
 TouchButton GlobalsInitContext::createtouchbutton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick)

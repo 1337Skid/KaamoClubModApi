@@ -40,6 +40,8 @@ class Ship {
             int lod0;
             int lod1;
             int lod2;
+            int mesh_lights;
+            int mesh_lights2;
             int maxhealth;
             int baseprice;
             int maxcargo;
@@ -60,6 +62,6 @@ class Ship {
             std::wstring description;
         };
         static inline std::vector<CustomShip> created_ships;
-        static int create(const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2);
+        static int create(const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2, int mesh_lights, int mesh_lights2);
 };
 #endif

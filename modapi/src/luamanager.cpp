@@ -73,8 +73,10 @@ void LuaManager::bind_api()
     lua_state.new_usertype<GlobalsInitContext>("GlobalsInitContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),
-        "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2) -> int {
-            return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2);
+        "CreateShip", [](GlobalsInitContext* self, const std::string& name, const std::string& description, sol::table shipinfo, int diffuse, int normal, int material, int lod0, int lod1, int lod2, sol::object mesh_lights_obj, sol::object mesh_lights2_obj) -> int {
+            int mesh_lights = mesh_lights_obj.is<int>() ? mesh_lights_obj.as<int>() : -1;
+            int mesh_lights2 = mesh_lights2_obj.is<int>() ? mesh_lights2_obj.as<int>() : -1;
+            return self->createship(name, description, shipinfo, diffuse, normal, material, lod0, lod1, lod2, mesh_lights, mesh_lights2);
         },
         "CreateTouchButton", [](GlobalsInitContext *self, const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick, sol::this_state s) -> TouchButton {
             sol::state_view lua(s);
