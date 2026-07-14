@@ -275,6 +275,11 @@ class Hooks {
         inline static imagefactory_drawship old_imagefactorydrawship = nullptr;
         static void __stdcall imagefactory_drawship_hook(int a3);
 
+        using ship_hasjumpdriveintegrated = bool (__cdecl*)();
+        inline static ship_hasjumpdriveintegrated old_shiphasjumpdriveintegrated = nullptr;
+        static bool __cdecl ship_hasjumpdriveintegrated_hook();
+        static int __stdcall ship_hasjumpdriveintegrated_hook_impl(int *a1);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

@@ -21,6 +21,7 @@ end
 
 HookFunction("HangarWindow::render", function(ctx)
 	ctx:DrawString("Hello hangar window !!", 30, 30, 255, 255, 255, 255)
+	--ctx:call() ctx call isn't needed because this hook is called after the real function is called, why? because your custom strings/images won't be drawn
 end)
 
 HookFunction("GameText::getText", function(ctx)
@@ -299,7 +300,7 @@ HookFunction("StatusWindow::draw", function(ctx)
     	--memoryutils:PatchByte(0x004D9CEA, 0x0F)
     	--memoryutils:PatchByte(0x004D9CEB, 0x00)
     	--memoryutils:PatchByte(0x004D9CEC, 0x00)
-	--ctx:call()
+	--ctx:call() ctx call isn't needed because this hook is called after the real function is called, why? because your custom strings/images won't be drawn
 end)
 
 HookFunction("ModStation::OnRender2D", function(ctx)

@@ -1891,6 +1891,42 @@ void __stdcall Hooks::statuswindow_draw_hook(int a1)
     ModStationWindowContext ctx = EventManager::trigger_hook<ModStationWindowContext>("StatusWindow::draw");
 }
 
+int __stdcall Hooks::ship_hasjumpdriveintegrated_hook_impl(int *a1)
+{
+    if (!a1 || a1 == reinterpret_cast<int*>(-1))
+        return 0;
+    int shipid = *a1;
+    if (shipid == -1)
+        return 0;
+    Globals_status **globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+    if (globals_status && *globals_status && (*globals_status)->m_pShipInfo) {
+        for (int i = 0; i < Ship::created_ships.size(); i++) {
+            if (Ship::created_ships[i].id == shipid && Ship::created_ships[i].hasjumpdrive)
+                return 1;
+            return -1;
+        }
+    }
+    return -1;
+}
+// wrote god damn assembly for this insane function that has an arg in eax and return the value in eax wtffff
+__declspec(naked) bool __cdecl Hooks::ship_hasjumpdriveintegrated_hook()
+{
+    __asm {
+        push ebx
+        mov ebx, eax
+        push eax
+        call ship_hasjumpdriveintegrated_hook_impl
+        cmp eax, -1
+        jne done
+        mov eax, ebx
+        mov edx, old_shiphasjumpdriveintegrated
+        call edx
+    done:
+        pop ebx
+        ret
+    }
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -1961,6 +1997,7 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::MODSTATION_ONRENDER2D, (LPVOID)&modstation_onrender2d_hook, (LPVOID*)&old_modstationonrender2d);
     MH_CreateHook((LPVOID)Offset::STATUSWINDOW_DRAW, (LPVOID)&statuswindow_draw_hook, (LPVOID*)&old_statuswindowdraw);
     MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWSHIP, (LPVOID)&imagefactory_drawship_hook, (LPVOID*)&old_imagefactorydrawship);
+    MH_CreateHook((LPVOID)Offset::SHIP_HASJUMPDRIVEINTEGRATED, (LPVOID)&ship_hasjumpdriveintegrated_hook, (LPVOID*)&old_shiphasjumpdriveintegrated);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

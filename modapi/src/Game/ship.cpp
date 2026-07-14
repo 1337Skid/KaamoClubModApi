@@ -31,6 +31,13 @@ int Ship::create(const std::string& name, const std::string& description, sol::t
     cs.equipmentslots = shipinfo["equipmentslots"] ? shipinfo["equipmentslots"] : 1;
     cs.hangar_y = shipinfo["hangar_y"] ? shipinfo["hangar_y"] : 1;
     cs.spriteicon = shipinfo["spriteicon"] ? shipinfo["spriteicon"] : 0;
+    sol::object hasjumpdriveobj = shipinfo["hasjumpdrive"]; // accept 1/0 true/false
+    bool hasjumpdrive = false;
+    if (hasjumpdriveobj.is<bool>())
+        hasjumpdrive = hasjumpdriveobj.as<bool>();
+    else if (hasjumpdriveobj.is<int>())
+        hasjumpdrive = (hasjumpdriveobj.as<int>() != 0);
+    cs.hasjumpdrive = hasjumpdrive ? 1 : 0;
     sol::table primary = shipinfo["primary_positions"];
     if (primary.valid()) {
         for (int i = 1; i <= primary.size(); i++) {
