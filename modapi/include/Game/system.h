@@ -33,7 +33,7 @@ class System {
         std::string getname(void);
         void setname(std::string value);
 
-        static int create(const std::string& str, int x, int y, int z, int faction, int risk, int textureid, int linkedsystemid);
+        static int create(const std::string& str, int x, int y, int z, int faction, int risk, int textureid, const std::vector<int>& linkedids, int jumpgatestationid);
         static bool isvisible(int systemid);
         static void setvisible(int systemid, bool visible);
         static SingleSystem *getsystembyid(int id);

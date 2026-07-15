@@ -65,19 +65,16 @@ class AbyssEngine {
 
             if (!str)
                 return r;
-            unsigned int len = strlen(str);
-            r.size = static_cast<uint32_t>(len + 1);
+            int len = MultiByteToWideChar(CP_UTF8, 0, str, -1, nullptr, 0);
+            if (len <= 0)
+                return r;
+            r.size = static_cast<uint32_t>(len);
             r.text = reinterpret_cast<wchar_t*>(memory_allocate(sizeof(wchar_t) * r.size));
-            if (r.text != nullptr) {
-                unsigned int convertedchars = 0;
-                errno_t err = mbstowcs_s(&convertedchars, r.text, r.size, str, len);
-                if (err != 0) {
-                    r.size = 0;
-                    r.text = nullptr;
-                }
-            } else {
+            if (!r.text) {
                 r.size = 0;
+                return r;
             }
+            MultiByteToWideChar(CP_UTF8, 0, str, -1, r.text, len);
             return r;
         }
         template<typename T>
