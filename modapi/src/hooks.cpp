@@ -255,9 +255,7 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinaryfromid_hook(const uint16_t*
 {
     if (!id)
         return old_filereadloadstationbinaryfromid(id);
-        
     uint32_t requested_id = static_cast<uint32_t>(*id);
-
     for (const auto& st : Station::created_stations) {
         if (st.id == requested_id) {
             auto* new_array = reinterpret_cast<AEArray<SingleStation*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<SingleStation*>)));

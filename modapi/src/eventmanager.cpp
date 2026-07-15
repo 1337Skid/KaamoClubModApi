@@ -200,6 +200,16 @@ void EventManager::radarscan_event()
     }
 }
 
+void EventManager::onstationundocked_event()
+{
+    static int old = -1;
+    int current = (*globals_appmanager)->m_nCurrentModule;
+
+    if (old == 5 && current == 2)
+        trigger("OnStationUndocked");
+    old = current;
+}
+
 void EventManager::update_event()
 {
     trigger("OnUpdate");
@@ -218,6 +228,7 @@ void EventManager::trigger_events()
         cargochanged_event();
         asteroiddestroyed_event();
         radarscan_event();
+        onstationundocked_event();
     }
     joingame_event();
     mainmenu_event();

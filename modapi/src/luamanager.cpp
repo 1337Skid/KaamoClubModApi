@@ -175,8 +175,14 @@ void LuaManager::bind_api()
         "SetEquipment", [](Player& self, int slot, int itemid) {
             Player::setequipment(slot, itemid);
         },
-        "AddEquipment", [](Player& self, int itemid) {
-            Player::addequipment(itemid);
+        "AddEquipmentSlot", [](Player& self, int itemid) {
+            Player::addequipmentslot(itemid);
+        },
+        "RemoveEquipmentSlot", [](Player& self, int itemid) {
+            Player::removeequipmentslot(itemid);
+        },
+        "HasEquipment", [](Player& self, int itemid) -> bool {
+            return Player::hasequipment(itemid);
         }
     );
 

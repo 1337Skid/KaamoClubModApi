@@ -114,6 +114,7 @@ class Offset {
         static constexpr uintptr_t SHIP_REFRESHVALUE = 0x4C33AD;
         static constexpr uintptr_t SHIP_HASJUMPDRIVEINTEGRATED = 0x4C2F27;
         static constexpr uintptr_t SHIP_SETEQUIPMENT = 0x4C335B;
+        static constexpr uintptr_t SHIP_HASEQUIPMENT = 0x4C2FE0;
 
         static constexpr uintptr_t ITEM_GETATTRIBTUTE = 0x45F69A;
         static constexpr uintptr_t ITEM_MAKEITEM = 0x45FD34;
