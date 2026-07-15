@@ -197,8 +197,17 @@ void LuaManager::bind_api()
         "mapcoordinate_y", sol::property(&System::getmapcoordinatey, &System::setmapcoordinatey),
         "mapcoordinate_z", sol::property(&System::getmapcoordinatez, &System::setmapcoordinatez),
         "textureid", sol::property(&System::gettextureid, &System::settextureid),
-        "Create", [](System& self, const std::string& str, int x, int y, int z, int faction, int risk, int textureid, int linkedsystemid) {
-            return System::create(str, x, y, z, faction, risk, textureid, linkedsystemid);
+        "Create", [](System& self, const std::string& str, int x, int y, int z, int faction, int risk, int textureid, sol::object linkedids_obj, int jumpgatestationid) -> int {
+            std::vector<int> linkedids;
+            if (linkedids_obj.is<sol::table>()) {
+                sol::table t = linkedids_obj.as<sol::table>();
+                for (auto& kv : t) 
+                    linkedids.push_back(kv.second.as<int>());
+            } else if (linkedids_obj.is<int>()) {
+                int id = linkedids_obj.as<int>();
+                if (id != -1) linkedids.push_back(id);
+            }
+            return System::create(str, x, y, z, faction, risk, textureid, linkedids, jumpgatestationid);
         },
         "IsVisible", [](System& self, int systemid) {
             return System::isvisible(systemid);

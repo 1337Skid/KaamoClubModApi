@@ -174,27 +174,35 @@ void Hooks::injectsystemsandstations()
             for (size_t j = 0; j < matching_ids.size(); ++j)
                 newsys->station_ids->data[j] = matching_ids[j];
             if (src.linked_system_ids != nullptr)
-                newsys->jumpgate_station_id = matching_ids[0];
+                if (src.jumpgate_station_id != 0) {
+                    newsys->jumpgate_station_id = src.jumpgate_station_id;
+                } else if (!matching_ids.empty()) {
+                    newsys->jumpgate_station_id = matching_ids[0];
+                }
         }
-        uint32_t target_link_id = 0; 
         bool has_link = false;
         if (src.linked_system_ids != nullptr && src.linked_system_ids->size > 0) {
-            newsys->linked_system_ids = AbyssEngine::newarray<uint32_t>(1);
-            target_link_id = src.linked_system_ids->data[0];
-            newsys->linked_system_ids->data[0] = target_link_id;
+            uint32_t link_count = src.linked_system_ids->size;
+            newsys->linked_system_ids = AbyssEngine::newarray<uint32_t>(link_count);
+            for (uint32_t j = 0; j < link_count; ++j)
+                newsys->linked_system_ids->data[j] = src.linked_system_ids->data[j];
             has_link = true;
         }
         new_sys_array->data[sysid] = newsys;
-        if (has_link && target_link_id < new_sys_count) {
-            SingleSystem* target_sys = new_sys_array->data[target_link_id];
-            if (target_sys) {
-                uint32_t old_link_count = (target_sys->linked_system_ids) ? target_sys->linked_system_ids->size : 0;
-                uint32_t new_link_count = old_link_count + 1;
-                auto* new_links = AbyssEngine::newarray<uint32_t>(new_link_count);
-                if (old_link_count > 0)
-                    memcpy(new_links->data, target_sys->linked_system_ids->data, sizeof(uint32_t) * old_link_count);
-                new_links->data[old_link_count] = sysid;
-                target_sys->linked_system_ids = new_links;
+        if (has_link) {
+            for (uint32_t j = 0; j < newsys->linked_system_ids->size; ++j) {
+                uint32_t link_id = newsys->linked_system_ids->data[j];
+                if (link_id < new_sys_count) {
+                    SingleSystem* target_sys = new_sys_array->data[link_id];
+                    if (target_sys) {
+                        uint32_t old_count = target_sys->linked_system_ids ? target_sys->linked_system_ids->size : 0;
+                        auto* new_links = AbyssEngine::newarray<uint32_t>(old_count + 1);
+                        if (old_count > 0)
+                            memcpy(new_links->data, target_sys->linked_system_ids->data, sizeof(uint32_t) * old_count);
+                        new_links->data[old_count] = sysid;
+                        target_sys->linked_system_ids = new_links;
+                    }
+                }
             }
         }
     }
