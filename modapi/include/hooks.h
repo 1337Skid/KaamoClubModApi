@@ -280,6 +280,15 @@ class Hooks {
         static void __cdecl ship_hasjumpdriveintegrated_hook();
         static bool __cdecl ship_hasjumpdriveintegrated_hook_impl(int *a1);
 
+        using item_makeitem = int (__stdcall*)();
+        inline static item_makeitem old_itemmakeitem = nullptr;
+        static int __stdcall item_makeitem_hook();
+        static int __stdcall item_makeitem_impl();
+
+        using ship_setequipment = unsigned int (__cdecl*)();
+        inline static ship_setequipment old_shipsetequipment = nullptr;
+        static unsigned int __cdecl ship_setequipment_hook();
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

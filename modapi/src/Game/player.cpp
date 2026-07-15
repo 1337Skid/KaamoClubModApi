@@ -207,3 +207,68 @@ void Player::setstation(int id)
         call setstation_address
     }
 }
+
+void Player::setequipment(int slot, int itemid)
+{
+    uintptr_t itemmakeitem_address = Offset::ITEM_MAKEITEM;
+    uintptr_t shipsetequipment_address = Offset::SHIP_SETEQUIPMENT;
+    Items *itemsarray = reinterpret_cast<Items*>(Offset::GLOBALS_ITEMS);
+    int *itemaddrtmp = nullptr;
+    ShipInfo *ship = (*globals_status)->m_pShipInfo;
+
+    if (!itemsarray || !ship)
+        return;
+    int *itemaddr = reinterpret_cast<int*>(itemsarray->items->data[itemid]);
+    __asm {
+        mov eax, itemaddr
+        call itemmakeitem_address
+        mov itemaddrtmp, eax
+    }
+    if (!itemaddrtmp)
+        return;
+    __asm {
+        mov eax, slot
+        mov ecx, ship
+        mov ebx, itemaddrtmp
+        call shipsetequipment_address
+    }
+}
+
+// TODO: maybe add support for turrets, primary/secondary weapons but it will crash if no weapons point so it's annoying to make that feature
+// note to me : if it does weird things maybe add ship::refreshvalue
+void Player::addequipment(int itemid)
+{
+    Items *itemsarray = reinterpret_cast<Items*>(Offset::GLOBALS_ITEMS);
+
+    if (!globals_status || *globals_status == nullptr)
+        return;
+    if (!itemsarray)
+        return;
+    SingleItem *item = itemsarray->items->data[itemid];
+    if (item->m_nType != 3) {
+        std::cout << "[-] The itemid you specified isn't an equipment but probably a primary/secondary weapon which isn't supported" << std::endl;
+        return;
+    }
+    ShipInfo *ship = (*globals_status)->m_pShipInfo;
+    if (!ship || !ship->m_pShipSlots || !ship->m_pShipEquipment)
+        return;
+    int oldequipments = ship->m_pShipSlots->m_nEquipments;
+    int newequipments = oldequipments + 1;
+    int totalslots = ship->m_pShipSlots->m_nPrimaryWeapons + ship->m_pShipSlots->m_nSecondaryWeapons + ship->m_pShipSlots->m_nTurrets + oldequipments;
+    int newslots = totalslots + 1;
+    auto *equipmentarray = reinterpret_cast<AEArray<SingleItem*>*>(ship->m_pShipEquipment);
+    SingleItem **olddata = equipmentarray->data;
+    int oldsize = equipmentarray->size;
+    SingleItem **newdata = reinterpret_cast<SingleItem**>(AbyssEngine::memory_allocate(newslots * sizeof(SingleItem*)));
+    memset(newdata, 0, newslots * sizeof(SingleItem*));
+    if (olddata && oldsize > 0) {
+        int copysize = (oldsize < newslots) ? oldsize : newslots;
+        memcpy(newdata, olddata, copysize * sizeof(SingleItem*));        
+        AbyssEngine::memory_free(olddata);
+    }
+    equipmentarray->data = newdata;
+    equipmentarray->size = newslots;
+    equipmentarray->size2 = newslots;
+    ship->m_pShipSlots->m_nEquipments = newequipments;
+    setequipment(oldequipments, itemid);
+}

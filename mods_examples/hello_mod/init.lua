@@ -251,6 +251,9 @@ RegisterEvent("OnSystemChanged", function(id)
 		print("Shima system is not visible")
 	end
 	print("GOF2 Interface AEI : " .. asset:GetAssetFilePath(2050)) -- 2050 is the id of the interface
+	--player:SetEquipment(0, 95) -- set u'tool to the slot 0
+	player:AddEquipment(95) -- add u'tool
+	--player:AddEquipment(1) -- it can't work because it's a weapon and weapons needs points on ship so you'll crash if you were able to add weapons
 end)
 
 RegisterEvent("OnUpdate", function()

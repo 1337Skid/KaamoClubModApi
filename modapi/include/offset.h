@@ -113,8 +113,10 @@ class Offset {
         static constexpr uintptr_t SHIP_SHIP = 0x4C2E2;
         static constexpr uintptr_t SHIP_REFRESHVALUE = 0x4C33AD;
         static constexpr uintptr_t SHIP_HASJUMPDRIVEINTEGRATED = 0x4C2F27;
+        static constexpr uintptr_t SHIP_SETEQUIPMENT = 0x4C335B;
 
         static constexpr uintptr_t ITEM_GETATTRIBTUTE = 0x45F69A;
+        static constexpr uintptr_t ITEM_MAKEITEM = 0x45FD34;
 
         static constexpr uintptr_t PLAYEREGO_SETPOSITION = 0x4AC590;
         static constexpr uintptr_t PLAYEREGO_TOGGLECLOAKING = 0x004ABA3B;
