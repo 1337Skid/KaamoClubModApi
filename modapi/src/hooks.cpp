@@ -232,7 +232,6 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinary_hook(SingleSystem* system)
     }
     if (system) {
         std::vector<const SingleStation*> matchlist;
-
         for (const auto& st : Station::created_stations) {
             if (st.systemid == system->id) {
                 matchlist.push_back(&st);
@@ -245,9 +244,8 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinary_hook(SingleSystem* system)
                 new_array->data = reinterpret_cast<SingleStation**>(AbyssEngine::memory_allocate(sizeof(SingleStation*) * count));
                 new_array->size = count; 
                 new_array->size2 = count;
-
-                for (size_t i = 0; i < matchlist.size(); ++i) {
-                    auto* cloned = reinterpret_cast<SingleStation*>(AbyssEngine::memory_allocate(sizeof(SingleStation)));
+                for (int i = 0; i < matchlist.size(); ++i) {
+                    auto *cloned = reinterpret_cast<SingleStation*>(AbyssEngine::memory_allocate(sizeof(SingleStation)));
                     if (cloned) {
                         memcpy(cloned, matchlist[i], sizeof(SingleStation));
                         cloned->name = AbyssEngine::newstring(matchlist[i]->name.text);
@@ -266,7 +264,6 @@ uintptr_t __stdcall Hooks::fileread_loadstationbinaryfromid_hook(const uint16_t*
     if (!id)
         return old_filereadloadstationbinaryfromid(id);
     uint32_t requested_id = static_cast<uint32_t>(*id);
-
     for (const auto& st : Station::created_stations) {
         if (st.id == requested_id) {
             auto* new_array = reinterpret_cast<AEArray<SingleStation*>*>(AbyssEngine::memory_allocate(sizeof(AEArray<SingleStation*>)));
@@ -1912,7 +1909,7 @@ bool __cdecl Hooks::ship_hasjumpdriveintegrated_hook_impl(int* a1)
             return Ship::created_ships[i].hasjumpdrive;
     return (shipid == 37 || shipid == 38 || shipid == 40);
 }
-// wrote god damn assembly for this insane function that has an arg in eax and return the value in eax wtffff
+// wrote god damn assembly for this insane function that has an arg in eax and return the value in eax so ofc it's always the most annoying func to hook like gametext
 __declspec(naked) void Hooks::ship_hasjumpdriveintegrated_hook()
 {
     __asm {        
@@ -1926,6 +1923,61 @@ __declspec(naked) void Hooks::ship_hasjumpdriveintegrated_hook()
         pop ecx
         ret
     }
+}
+
+static int *makeitemid;
+__declspec(naked) int __stdcall Hooks::item_makeitem_hook()
+{
+    __asm {
+        mov makeitemid, eax
+        call item_makeitem_impl
+        ret
+    }
+}
+
+int __stdcall Hooks::item_makeitem_impl()
+{
+    int *id = makeitemid;
+    int result;
+
+    if (reinterpret_cast<SingleItem*>(id)->m_nID == 2) {
+        Items *itemsarray = reinterpret_cast<Items*>(Offset::GLOBALS_ITEMS);
+        id = reinterpret_cast<int*>(itemsarray->items->data[3]);
+    }
+    std::cout << id << std::endl;
+    __asm {
+        mov eax, id
+        call old_itemmakeitem
+        mov result, eax
+    }
+    return result;
+}
+
+unsigned int __cdecl Hooks::ship_setequipment_hook()
+{
+    unsigned int a1;
+    int *a2;
+    int *a3;
+    unsigned int result;
+
+    __asm {
+        mov a1, eax
+        mov a2, ecx
+        mov a3, ebx
+    }
+    std::cout << "set equipment" << std::endl;
+    std::cout << "slot id: " << a1 << std::endl;
+    std::cout << "ship:" << a2 << std::endl;
+    std::cout << "item: " << a3 << std::endl;
+    a1 = 999;
+    __asm {
+        mov eax, a1
+        mov ecx, a2
+        mov ebx, a3
+        call old_shipsetequipment
+        mov result, eax
+    }
+    return result;
 }
 
 void Hooks::init()
@@ -1999,6 +2051,8 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::STATUSWINDOW_DRAW, (LPVOID)&statuswindow_draw_hook, (LPVOID*)&old_statuswindowdraw);
     MH_CreateHook((LPVOID)Offset::IMAGEFACTORY_DRAWSHIP, (LPVOID)&imagefactory_drawship_hook, (LPVOID*)&old_imagefactorydrawship);
     MH_CreateHook((LPVOID)Offset::SHIP_HASJUMPDRIVEINTEGRATED, (LPVOID)&ship_hasjumpdriveintegrated_hook, (LPVOID*)&old_shiphasjumpdriveintegrated);
+    //MH_CreateHook((LPVOID)Offset::ITEM_MAKEITEM, (LPVOID)&item_makeitem_hook, (LPVOID*)&old_itemmakeitem);
+    //MH_CreateHook((LPVOID)Offset::SHIP_SETEQUIPMENT, (LPVOID)&ship_setequipment_hook, (LPVOID*)&old_shipsetequipment);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

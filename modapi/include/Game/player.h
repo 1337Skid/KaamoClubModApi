@@ -33,5 +33,9 @@ class Player {
         static void setposition(float x, float y, float z);
         static void resetgame(void);
         static void setstation(int id);
+        static void setequipment(int slot, int itemid);
+        static void addequipmentslot(int itemid);
+        static void removeequipmentslot(int itemid);
+        static bool hasequipment(int itemid);
 };
 #endif

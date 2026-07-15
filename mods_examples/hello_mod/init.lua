@@ -227,6 +227,7 @@ RegisterEvent("OnSystemChanged", function(id)
 		print("Station agent #" .. i .. " name: " .. station:GetAgentName(i) .. " | faction: " .. station:GetAgentFaction(i))
 	end
 	print("Player money : " .. player.money)
+	print("Player Ship id : " .. player:GetShipInfo()["id"])
 	print("Player Ship cargo : " .. player:GetShipInfo()["cargo"])
 	print("Player Ship maxcargo : " .. player:GetShipInfo()["maxcargo"])
 	print("Player Ship armor : " .. player:GetShipInfo()["armor"])
@@ -251,6 +252,23 @@ RegisterEvent("OnSystemChanged", function(id)
 		print("Shima system is not visible")
 	end
 	print("GOF2 Interface AEI : " .. asset:GetAssetFilePath(2050)) -- 2050 is the id of the interface
+	--player:AddEquipmentSlot(0, 95) -- set u'tool to the slot 0
+	--player:AddEquipmentSlot(95) -- add u'tool
+	--if player:HasEquipment(95) then
+	--	print("Player has u'tool yay")
+	--else
+	--	player:AddEquipmentSlot(95)
+	--	print("Gave u'tool to the player")
+	--end
+	--wait(5)
+	--for i = 0, 300 do
+	--	player:RemoveEquipmentSlot(i) -- remove everything lol
+	--end
+	--player:AddEquipmentSlot(1) -- it can't work because it's a weapon and weapons needs points on ship so you'll crash if you were able to add weapons
+end)
+
+RegisterEvent("OnStationUndocked", function()
+	print("go go flyyy")
 end)
 
 RegisterEvent("OnUpdate", function()
