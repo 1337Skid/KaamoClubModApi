@@ -51,6 +51,7 @@ void Hooks::injectships()
     auto* lightlods = reinterpret_cast<uint8_t*>(AbyssEngine::memory_allocate(12 * total));
     auto* ui_meshes_1 = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
     auto* ui_meshes_2 = reinterpret_cast<WORD*>(AbyssEngine::memory_allocate(sizeof(WORD) * total));
+    auto* new_races = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * total));
     std::memcpy(newhangaroffsets_one, reinterpret_cast<void*>(Offset::SHIP_HANGAR_OFFSETS), sizeof(DWORD) * old);
     std::memcpy(newhangaroffsets_two, reinterpret_cast<void*>(Offset::SHIP_HANGAR_OFFSETS2), sizeof(DWORD) * old);
     std::memcpy(meshes, reinterpret_cast<void*>(Offset::SHIP_MESHES), sizeof(WORD) * old);
@@ -60,6 +61,7 @@ void Hooks::injectships()
     std::memcpy(lightlods, reinterpret_cast<void*>(Offset::SHIP_LIGHT_LODS), 12 * old);
     std::memcpy(ui_meshes_1, reinterpret_cast<void*>(0x0052F288), sizeof(WORD) * old);
     std::memcpy(ui_meshes_2, reinterpret_cast<void*>(0x0052F2E0), sizeof(WORD) * old);
+    std::memcpy(new_races, reinterpret_cast<void*>(Offset::SHIP_RACES), sizeof(int) * old);
     auto* copyship_example = reinterpret_cast<ShipInfo*>(ships.data[0]); // we copy the first ship for a good example (we'll edit the stats etc...)
     for (int i = 0; i < Ship::created_ships.size(); i++) {
         int shipid = old + static_cast<int>(i);
@@ -86,6 +88,7 @@ void Hooks::injectships()
         meshes[shipid] = Ship::created_ships[i].lod0;
         lights[shipid] = Ship::created_ships[i].mesh_lights;
         lights2[shipid] = Ship::created_ships[i].mesh_lights2;
+        new_races[shipid] = Ship::created_ships[i].enginecolor;
         auto* current_lod = lods + (shipid * 12);
         *reinterpret_cast<DWORD*>(current_lod + 0) = Ship::created_ships[i].lod0;
         *reinterpret_cast<DWORD*>(current_lod + 4) = Ship::created_ships[i].lod1;
@@ -99,7 +102,11 @@ void Hooks::injectships()
     ships.size = total;
     ships.size2 = total;
     DWORD oldp;
-    // we are going to use our own array in the getshipgroup function instead of the rdata arrays
+    // we are going to use our own array in the diff functions instead of the rdata arrays
+    // ship races (engine colors)
+    VirtualProtect(reinterpret_cast<LPVOID>(0x00467912), 4, PAGE_EXECUTE_READWRITE, &oldp);
+    *reinterpret_cast<DWORD*>(0x00467912) = reinterpret_cast<DWORD>(new_races);
+    VirtualProtect(reinterpret_cast<LPVOID>(0x00467912), 4, oldp, &oldp);
     // hangar offset
     VirtualProtect(reinterpret_cast<LPVOID>(0x0040512E), 4, PAGE_EXECUTE_READWRITE, &oldp);
     *reinterpret_cast<DWORD*>(0x0040512E) = reinterpret_cast<DWORD>(newhangaroffsets_one);
@@ -174,11 +181,10 @@ void Hooks::injectsystemsandstations()
             for (size_t j = 0; j < matching_ids.size(); ++j)
                 newsys->station_ids->data[j] = matching_ids[j];
             if (src.linked_system_ids != nullptr)
-                if (src.jumpgate_station_id != 0) {
-                    newsys->jumpgate_station_id = src.jumpgate_station_id;
-                } else if (!matching_ids.empty()) {
+                if (src.jumpgate_station_id != 0)
+                    newsys->jumpgate_station_id = src.jumpgate_station_id; // TODO: make a system:SetJumpgateStation(id)
+                else if (!matching_ids.empty())
                     newsys->jumpgate_station_id = matching_ids[0];
-                }
         }
         bool has_link = false;
         if (src.linked_system_ids != nullptr && src.linked_system_ids->size > 0) {

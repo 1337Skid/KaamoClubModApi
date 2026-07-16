@@ -41,6 +41,7 @@ int Ship::create(const std::string& name, const std::string& description, sol::t
         hasjumpdrive = (hasjumpdriveobj.as<int>() != 0);
     cs.hasjumpdrive = hasjumpdrive ? 1 : 0;
     sol::table primary = shipinfo["primary_positions"];
+    cs.enginecolor = shipinfo["enginecolor"] ? shipinfo["enginecolor"] : 4;
     if (primary.valid()) {
         for (int i = 1; i <= primary.size(); i++) {
             sol::table p = primary[i];

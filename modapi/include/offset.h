@@ -11,6 +11,7 @@ class Offset {
         static constexpr uintptr_t SHIP_MESHES_ADD_LIGHTS = 0x530B50;
         static constexpr uintptr_t SHIP_LODS = 0x530BA8;
         static constexpr uintptr_t SHIP_LIGHT_LODS = 0x530DB8;
+        static constexpr uintptr_t SHIP_RACES = 0x52F440;
 
         static constexpr uintptr_t GLOBALS_STATUS = 0x60AD6C;
         static constexpr uintptr_t GLOBALS_APPMANAGER = 0x60AEFC;

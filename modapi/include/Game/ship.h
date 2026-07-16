@@ -54,6 +54,7 @@ class Ship {
             int hangar_y;
             int spriteicon;
             int hasjumpdrive;
+            int enginecolor;
             std::vector<Vector> primary_positions;
             std::vector<Vector> secondary_positions;
             std::vector<Vector> turret_positions;

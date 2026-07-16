@@ -205,7 +205,8 @@ void LuaManager::bind_api()
                     linkedids.push_back(kv.second.as<int>());
             } else if (linkedids_obj.is<int>()) {
                 int id = linkedids_obj.as<int>();
-                if (id != -1) linkedids.push_back(id);
+                if (id != -1)
+                    linkedids.push_back(id);
             }
             return System::create(str, x, y, z, faction, risk, textureid, linkedids, jumpgatestationid);
         },
