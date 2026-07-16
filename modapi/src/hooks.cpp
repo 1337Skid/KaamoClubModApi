@@ -462,7 +462,9 @@ AEString* __stdcall Hooks::gametext_gettext_hook_impl()
         }
     }
     // custom ships texts
-    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x45565e || reinterpret_cast<uintptr_t>(returnaddr) == 0x483296 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4d99f8) {
+    if (reinterpret_cast<uintptr_t>(returnaddr) != 0x454C4E && reinterpret_cast<uintptr_t>(returnaddr) != 0x481bb8 && reinterpret_cast<uintptr_t>(returnaddr) != 0x45565e && reinterpret_cast<uintptr_t>(returnaddr) != 0x483296 && reinterpret_cast<uintptr_t>(returnaddr) != 0x4d99f8)
+        std::cout << std::hex << returnaddr << std::endl;
+    if (reinterpret_cast<uintptr_t>(returnaddr) == 0x45565e || reinterpret_cast<uintptr_t>(returnaddr) == 0x483296 || reinterpret_cast<uintptr_t>(returnaddr) == 0x4d99f8 || reinterpret_cast<uintptr_t>(returnaddr) == 0x457225 ) {
         for (const auto& ship : Ship::created_ships) {
             if (id == ship.id + 892) { // + 892 bcz the game decided
                 static AEString customstring;
