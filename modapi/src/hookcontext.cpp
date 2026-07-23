@@ -44,6 +44,12 @@ void Render2DContext::drawimage2d(unsigned int id, int x, int y, int r, int g, i
     Asset::drawimage2d(id, x, y);
 }
 
+void Render2DContext::drawtouchbutton(TouchButton& btn)
+{
+    if (btn.getptr() && btn.getptr()->m_bIsVisible)
+        TouchButton::draw(btn.getptr());
+}
+
 ChoiceWindow GlobalsInitContext::createchoicewindow(const std::string &title, const std::string &description, bool show_buttons, sol::main_protected_function onclick_yes, sol::main_protected_function onclick_no)
 {
     return ChoiceWindow(title, description, show_buttons, onclick_yes, onclick_no);
@@ -76,5 +82,15 @@ void SetColorContext::overridecolor(int r, int g, int b, int a)
         return static_cast<unsigned int>(v);
     };
     hexcolor = (clamp(r) << 24) | (clamp(g) << 16) | (clamp(b) << 8) | clamp(a);
+    overridden = true;
+}
+
+void LoadCharContext::overrideimage(int race, int hair, int eyes, int mouth, int armor)
+{
+    _race = race;
+    _hair = hair;
+    _eyes = eyes;
+    _mouth = mouth;
+    _armor = armor;
     overridden = true;
 }

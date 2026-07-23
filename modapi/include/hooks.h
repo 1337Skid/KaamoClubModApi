@@ -289,6 +289,26 @@ class Hooks {
         inline static ship_setequipment old_shipsetequipment = nullptr;
         static unsigned int __cdecl ship_setequipment_hook();
 
+        using level_renderbg = char (__stdcall*)(int);
+        inline static level_renderbg old_levelrenderbg = nullptr;
+        static char __stdcall level_renderbg_hook(int a1);
+
+        using starsystem_render = unsigned int (__stdcall*)(int);
+        inline static starsystem_render old_starsystemrender = nullptr;
+        static unsigned int __stdcall starsystem_render_hook(int a1);
+
+        using mgame_oninitialize = int (__thiscall*)(void*);
+        inline static mgame_oninitialize old_mgameoninitialize = nullptr;
+        static int __thiscall mgame_oninitialize_hook(void *a1);
+
+        using abyssengine_paintcanvas_texturecreate = int (__stdcall*)(int*, int*);
+        inline static abyssengine_paintcanvas_texturecreate old_abyssenginepaintcanvastexturecreate = nullptr;
+        static int __stdcall abyssengine_paintcanvas_texturecreate_hook(int *a3, int *a4);
+
+        using aegeometry_aegeometry = int (__stdcall*)(unsigned short, char);
+        inline static aegeometry_aegeometry old_aegeometryaegeometry = nullptr;
+        static int __stdcall aegeometry_aegeometry_hook(unsigned short a2, char a3);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

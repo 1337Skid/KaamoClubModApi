@@ -264,3 +264,24 @@ void Asset::fmodsound_play(int attachsound, unsigned int a3)
         call address
     }
 }
+
+int Asset::gamecreatetexture(uint16_t id, float a4)
+{
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+    
+    if (canvas == 0)
+        return -1;
+    int slot = -1;
+    int *pslot = &slot;
+    uintptr_t addr_texturecreate = Offset::ABYSSENGINE_PAINTCANVAS_TEXTURECREATE;
+    __asm {
+        push a4
+        push pslot
+        mov ecx, canvas
+        xor eax, eax
+        mov ax, id
+        mov edx, addr_texturecreate
+        call edx
+    }
+    return slot;
+}

@@ -70,6 +70,22 @@ void LuaManager::bind_api()
         }
     );
 
+    lua_state.new_usertype<LoadCharContext>("LoadCharContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<HookContext>(),
+        "returnaddr", sol::readonly(&LoadCharContext::returnaddr),
+        "OverrideImage", [](LoadCharContext *self, int race, int hair, int eyes, int mouth, int armor) {
+            self->overrideimage(race, hair, eyes, mouth, armor);
+        }
+    );
+
+    lua_state.new_usertype<TouchEndContext>("TouchEndContext",
+        sol::no_constructor,
+        sol::base_classes, sol::bases<HookContext>(),
+        "x", sol::readonly(&TouchEndContext::x),
+        "y", sol::readonly(&TouchEndContext::y)
+    );
+
     lua_state.new_usertype<GlobalsInitContext>("GlobalsInitContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),
@@ -124,11 +140,14 @@ void LuaManager::bind_api()
     lua_state.new_usertype<Render2DContext>("Render2DContext",
         sol::no_constructor,
         sol::base_classes, sol::bases<HookContext>(),
-        "DrawString", [](Render2DContext* self, const std::string& text, int x, int y, int r, int g, int b, int a) {
+        "DrawString", [](Render2DContext *self, const std::string& text, int x, int y, int r, int g, int b, int a) {
             self->drawstring(text, x, y, r, g, b, a);
         },
-        "DrawImage2D", [](Render2DContext* self, unsigned int id, int x, int y, int r, int g, int b, int a) {
+        "DrawImage2D", [](Render2DContext *self, unsigned int id, int x, int y, int r, int g, int b, int a) {
             self->drawimage2d(id, x, y, r, g, b, a);
+        },
+        "DrawTouchButton", [](Render2DContext *self, TouchButton& button) {
+            self->drawtouchbutton(button);
         }
     );
 
@@ -388,6 +407,12 @@ void LuaManager::bind_api()
         sol::no_constructor,
         "SetText", [](TouchButton& self, const std::string &text) {
             self.settext(text);
+        },
+        "Show", [](TouchButton& self) {
+            self.show();
+        },
+        "Hide", [](TouchButton& self) {
+            self.hide();
         },
         sol::meta_function::to_string, &TouchButton::tostring
     );

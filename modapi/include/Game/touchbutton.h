@@ -18,7 +18,10 @@ class TouchButton {
         TouchButton(const std::string &text, const std::string &subtext, int x, int y, int textcolor, int state, sol::main_protected_function onclick);
         ~TouchButton();
         std::string tostring(void);
+        SingleTouchButton* getptr() const { return _ptr; }
         void settext(const std::string &text);
+        void show(void);
+        void hide(void);
         static void draw(SingleTouchButton *btn);
         static void refreshbtnsprites(int* btnContainer);
 };

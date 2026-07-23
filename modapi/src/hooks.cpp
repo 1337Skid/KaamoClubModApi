@@ -718,6 +718,7 @@ int __stdcall Hooks::imagefactory_loadchar_hook(int *a1)
         MGame* mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
         ModStation* mstation = reinterpret_cast<ModStation*>((*globals_appmanager)->m_pCurrentModule);
         mstation->m_pDialogueWindow->m_bFlipImage = 0;
+        mgame->m_pDialogueWindow->m_bFlipImage = 0;
         if (mgame->m_pLevel != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
             mgame->m_pDialogueWindow->m_bFlipImage = 1;
         else if (mstation->m_pDialogueWindow != nullptr && Level::created_dialoguemessages[Level::current_dialogue_id].isplayer)
@@ -728,6 +729,20 @@ int __stdcall Hooks::imagefactory_loadchar_hook(int *a1)
         newimage[2] = Level::created_dialoguemessages[Level::current_dialogue_id].eyes;
         newimage[3] = Level::created_dialoguemessages[Level::current_dialogue_id].mouth;
         newimage[4] = Level::created_dialoguemessages[Level::current_dialogue_id].armor;
+        int result = old_imagefactoryloadchar(newimage);
+        AbyssEngine::memory_free(newimage);
+        return result;
+    }
+    LoadCharContext ctx;
+    ctx.returnaddr = reinterpret_cast<uintptr_t>(returnaddr);
+    EventManager::trigger_hook<LoadCharContext>("ImageFactory::loadChar", ctx);
+    if (ctx.overridden) {
+        int* newimage = reinterpret_cast<int*>(AbyssEngine::memory_allocate(sizeof(int) * 5));
+        newimage[0] = ctx._race;
+        newimage[1] = ctx._hair;
+        newimage[2] = ctx._eyes;
+        newimage[3] = ctx._mouth;
+        newimage[4] = ctx._armor;
         int result = old_imagefactoryloadchar(newimage);
         AbyssEngine::memory_free(newimage);
         return result;
@@ -1615,7 +1630,7 @@ int __stdcall Hooks::menutouchwindow_draw_hook(int a1)
     for (auto& custom : TouchButton::created_buttons) {
         if (custom.state != -1 && custom.state != state)
             continue;
-        if (custom.ptr)
+        if (custom.ptr && custom.ptr->m_bIsVisible)
             TouchButton::draw(custom.ptr);
     }
     return returnvalue;
@@ -1663,6 +1678,8 @@ char __thiscall Hooks::menutouchwindow_ontouchend_hook(void *a1, unsigned int a2
     for (auto& custom : TouchButton::created_buttons) {
         if (!custom.ptr)
             continue;
+        if (!custom.ptr->m_bIsVisible)
+            continue;
         if (custom.state != -1 && custom.state != state)
             continue;
         SingleTouchButton *btn = custom.ptr;
@@ -1673,7 +1690,13 @@ char __thiscall Hooks::menutouchwindow_ontouchend_hook(void *a1, unsigned int a2
                 custom.onclick();
         }
     }
-    return old_menutouchwindowontouchend(a1, a2, a3, a4);
+    TouchEndContext ctx;
+    ctx.x = a3;
+    ctx.y = a4;
+    EventManager::trigger_hook<TouchEndContext>("MenuTouchWindow::OnTouchEnd", ctx);
+    if (ctx.call_original)
+        return old_menutouchwindowontouchend(a1, a2, a3, a4);
+    return 0;
 }
 
 char __stdcall Hooks::menutouchwindow_ontouchbegin_hook(int a2, int a3, int a4)
@@ -1687,6 +1710,8 @@ char __stdcall Hooks::menutouchwindow_ontouchbegin_hook(int a2, int a3, int a4)
     int state = *reinterpret_cast<int*>(a2 + 0x164);
     for (auto& custom : TouchButton::created_buttons) {
         if (!custom.ptr)
+            continue;
+        if (!custom.ptr->m_bIsVisible)
             continue;
         if (custom.state != -1 && custom.state != state)
             continue;
@@ -1986,6 +2011,83 @@ unsigned int __cdecl Hooks::ship_setequipment_hook()
     return result;
 }
 
+char __stdcall Hooks::level_renderbg_hook(int a1)
+{
+    return old_levelrenderbg(a1);
+}
+
+unsigned int __stdcall Hooks::starsystem_render_hook(int a1)
+{
+    int texturelist = *(int*)(a1 + 12);
+    if (texturelist != 0) {
+        int *textureArray = *(int**)(texturelist + 4);
+        if (textureArray != nullptr) {
+            //int f = Asset::createtexture("Trollface.aei");
+            //int truc = Asset::gamecreatetexture(f);
+            //textureArray[1] = truc;
+        }
+    }
+    return old_starsystemrender(a1);
+}
+
+int __thiscall Hooks::mgame_oninitialize_hook(void *a1)
+{
+    return old_mgameoninitialize(a1);
+}
+
+int __stdcall Hooks::abyssengine_paintcanvas_texturecreate_hook(int *a3, int *a4)
+{
+    uint16_t a1;
+    int *a2;
+    int result;
+
+    __asm {
+        mov a1, ax
+        mov a2, ecx
+    }
+    // check systemid for planets/big planets texture and for suns on starmap idk put a big id and look at which id the game is trying to load maybe
+    std::cout << "texture create : " << a1 << std::endl;
+    if (a1 >= 10003 && a1 <= 10030) // vanilla little planets (no valkyrie) (missing some planets)
+        a1 = 333701; 
+    if (a1 >= 10040 && a1 <= 10059) // vanilla big planets (no valkyrie) (missing some planets)
+        a1 = 333701;
+    if (a1 > 10030 && a1 <= 10040) // suns
+        a1 = 333701;
+    __asm {
+        push a4
+        push a3
+        mov ax, a1
+        mov ecx, a2
+        call old_abyssenginepaintcanvastexturecreate
+        mov result, eax
+    }
+    return result;
+}
+
+int __stdcall Hooks::aegeometry_aegeometry_hook(unsigned short a2, char a3)
+{
+    int result;
+    int a1;
+
+    __asm {
+        mov a1, edi
+    }
+    std::cout << a2 << std::endl;
+    if (a2 >= 18180 && a2 <= 18196) { // starmap planets
+        a2 = 133701;
+    }
+    __asm {
+        movzx eax, a3
+        push eax
+        //push a3
+        push a2
+        mov edi, a1
+        call old_aegeometryaegeometry
+        mov result, eax
+    }
+    return result;
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -2059,6 +2161,11 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::SHIP_HASJUMPDRIVEINTEGRATED, (LPVOID)&ship_hasjumpdriveintegrated_hook, (LPVOID*)&old_shiphasjumpdriveintegrated);
     //MH_CreateHook((LPVOID)Offset::ITEM_MAKEITEM, (LPVOID)&item_makeitem_hook, (LPVOID*)&old_itemmakeitem);
     //MH_CreateHook((LPVOID)Offset::SHIP_SETEQUIPMENT, (LPVOID)&ship_setequipment_hook, (LPVOID*)&old_shipsetequipment);
+    MH_CreateHook((LPVOID)Offset::LEVEL_RENDERBG, (LPVOID)&level_renderbg_hook, (LPVOID*)&old_levelrenderbg);
+    MH_CreateHook((LPVOID)Offset::STARSYSTEM_RENDER, (LPVOID)&starsystem_render_hook, (LPVOID*)&old_starsystemrender);
+    //MH_CreateHook((LPVOID)Offset::MGAME_ONINITIALIZE, (LPVOID)&mgame_oninitialize_hook, (LPVOID*)&old_mgameoninitialize);
+    //MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_TEXTURECREATE, (LPVOID)&abyssengine_paintcanvas_texturecreate_hook, (LPVOID*)&old_abyssenginepaintcanvastexturecreate);
+    //MH_CreateHook((LPVOID)Offset::AEGEOMETRY_AEGEOMETRY, (LPVOID)&aegeometry_aegeometry_hook, (LPVOID*)&old_aegeometryaegeometry);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

@@ -29,5 +29,6 @@ class Asset {
         static int image2dcreate(uint16_t id);
         static int createsprite(int textureid, int regionid);
         static void fmodsound_play(int attachsound, unsigned int a3);
+        static int gamecreatetexture(uint16_t id, float a4 = 0.0f);
 };
 #endif

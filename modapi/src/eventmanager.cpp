@@ -187,6 +187,8 @@ void EventManager::stationdocked_event()
 
 void EventManager::radarscan_event()
 {
+    if ((*globals_appmanager)->m_nCurrentModule == 5)
+        return;
     MGame *mgame = reinterpret_cast<MGame*>((*globals_appmanager)->m_pCurrentModule);
     Radar *radar = (mgame) ? mgame->m_pRadar : nullptr;
     int* current = (radar) ? (radar->m_pLockedNpc ? radar->m_pLockedNpc : radar->m_pLockedAsteroid) : nullptr;

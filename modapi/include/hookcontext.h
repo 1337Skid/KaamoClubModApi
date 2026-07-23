@@ -28,6 +28,7 @@ class Render2DContext : public HookContext {
     public:
         void drawstring(const std::string& text, int x, int y, int r, int g, int b, int a);
         void drawimage2d(unsigned int id, int x, int y, int r, int g, int b, int a);
+        void drawtouchbutton(TouchButton& btn);
 };
 
 class ModStationWindowContext : public Render2DContext {
@@ -52,6 +53,25 @@ class SetColorContext : public HookContext {
         bool overridden = false;
 
         void overridecolor(int r, int g, int b, int a);
+};
+
+class TouchEndContext : public HookContext {
+    public:
+        int x = 0;
+        int y = 0;
+};
+
+class LoadCharContext : public HookContext {
+    public:
+        bool overridden = false;
+        uintptr_t returnaddr = 0;
+        int _race;
+        int _hair;
+        int _eyes;
+        int _mouth;
+        int _armor;
+
+        void overrideimage(int race, int hair, int eyes, int mouth, int armor);
 };
 
 #endif

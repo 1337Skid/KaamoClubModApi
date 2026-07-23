@@ -145,3 +145,15 @@ void TouchButton::refreshbtnsprites(int *btnarray)
         }
     }
 }
+
+void TouchButton::show()
+{
+    if (_ptr)
+        _ptr->m_bIsVisible = true;
+}
+
+void TouchButton::hide()
+{
+    if (_ptr)
+        _ptr->m_bIsVisible = false;
+}

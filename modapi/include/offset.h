@@ -46,6 +46,7 @@ class Offset {
         static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_IMAGE2DCREATE = 0x4E9600;
         static constexpr uintptr_t ABYSSENGINE_ENGINE_ENGINE = 0x4E77B0;
         static constexpr uintptr_t ABYSSENGINE_APPLICATIONMANAGER_SETCURRENTAPPLICATIONMODULE = 0x4F4510;
+        static constexpr uintptr_t ABYSSENGINE_PAINTCANVAS_TEXTURECREATE = 0x4E9340;
         
         static constexpr uintptr_t GAMETEXT_GETTEXT = 0x4F38B0;
         
@@ -65,6 +66,7 @@ class Offset {
         static constexpr uintptr_t LEVEL_CREATERADIOMESSAGE = 0x479678;
         static constexpr uintptr_t LEVEL_CREATEPLAYER = 0x468F99;
         static constexpr uintptr_t LEVEL_CREATESCENE = 0x472B96;
+        static constexpr uintptr_t LEVEL_RENDERBG = 0x47873F;
         
         static constexpr uintptr_t IMAGEFACTORY_DRAWCHAR = 0x45F4C5;
         static constexpr uintptr_t IMAGEFACTORY_LOADCHAR = 0x45F31A;
@@ -86,6 +88,7 @@ class Offset {
         static constexpr uintptr_t MGAME_ONTOUCHEND = 0x491248;
         static constexpr uintptr_t MGAME_ONTOUCHBEGIN = 0x4905C5;
         static constexpr uintptr_t MGAME_PAUSESOUNDS = 0x49054C;
+        static constexpr uintptr_t MGAME_ONINITIALIZE = 0x48F341;
 
         static constexpr uintptr_t CUTSCENE_CUTSCENE = 0x404971;
         static constexpr uintptr_t CUTSCENE_RENDER3D = 0x405CDC;
@@ -197,5 +200,7 @@ class Offset {
         static constexpr uintptr_t CHOICEWINDOW_CHOICEWINDOW = 0x403E89;
 
         static constexpr uintptr_t STATUSWINDOW_DRAW = 0x4D94BB;
+
+        static constexpr uintptr_t STARSYSTEM_RENDER = 0x4D4CFD;
 };
 #endif
