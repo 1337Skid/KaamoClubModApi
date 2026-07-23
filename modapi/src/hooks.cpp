@@ -2018,15 +2018,6 @@ char __stdcall Hooks::level_renderbg_hook(int a1)
 
 unsigned int __stdcall Hooks::starsystem_render_hook(int a1)
 {
-    int texturelist = *(int*)(a1 + 12);
-    if (texturelist != 0) {
-        int *textureArray = *(int**)(texturelist + 4);
-        if (textureArray != nullptr) {
-            //int f = Asset::createtexture("Trollface.aei");
-            //int truc = Asset::gamecreatetexture(f);
-            //textureArray[1] = truc;
-        }
-    }
     return old_starsystemrender(a1);
 }
 
@@ -2161,8 +2152,8 @@ void Hooks::init()
     MH_CreateHook((LPVOID)Offset::SHIP_HASJUMPDRIVEINTEGRATED, (LPVOID)&ship_hasjumpdriveintegrated_hook, (LPVOID*)&old_shiphasjumpdriveintegrated);
     //MH_CreateHook((LPVOID)Offset::ITEM_MAKEITEM, (LPVOID)&item_makeitem_hook, (LPVOID*)&old_itemmakeitem);
     //MH_CreateHook((LPVOID)Offset::SHIP_SETEQUIPMENT, (LPVOID)&ship_setequipment_hook, (LPVOID*)&old_shipsetequipment);
-    MH_CreateHook((LPVOID)Offset::LEVEL_RENDERBG, (LPVOID)&level_renderbg_hook, (LPVOID*)&old_levelrenderbg);
-    MH_CreateHook((LPVOID)Offset::STARSYSTEM_RENDER, (LPVOID)&starsystem_render_hook, (LPVOID*)&old_starsystemrender);
+    //MH_CreateHook((LPVOID)Offset::LEVEL_RENDERBG, (LPVOID)&level_renderbg_hook, (LPVOID*)&old_levelrenderbg);
+    //MH_CreateHook((LPVOID)Offset::STARSYSTEM_RENDER, (LPVOID)&starsystem_render_hook, (LPVOID*)&old_starsystemrender);
     //MH_CreateHook((LPVOID)Offset::MGAME_ONINITIALIZE, (LPVOID)&mgame_oninitialize_hook, (LPVOID*)&old_mgameoninitialize);
     //MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_TEXTURECREATE, (LPVOID)&abyssengine_paintcanvas_texturecreate_hook, (LPVOID*)&old_abyssenginepaintcanvastexturecreate);
     //MH_CreateHook((LPVOID)Offset::AEGEOMETRY_AEGEOMETRY, (LPVOID)&aegeometry_aegeometry_hook, (LPVOID*)&old_aegeometryaegeometry);
