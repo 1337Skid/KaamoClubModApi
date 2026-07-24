@@ -80,7 +80,10 @@ class Offset {
         static constexpr uintptr_t DIALOGUEWINDOW_DIALOGUEWINDOW = 0x405E2D;
         static constexpr uintptr_t DIALOGUEWINDOW_LOADCONTENT = 0x40645E;
         static constexpr uintptr_t DIALOGUEWINDOW_SET = 0x406095;
+        static constexpr uintptr_t DIALOGUEWINDOW_INIT = 0x4060EA;
         static constexpr uintptr_t DIALOGUEWINDOW_DTOR = 0x490D7C;
+        static constexpr uintptr_t DIALOGUEWINDOW_DRAW = 0x40764A;
+        static constexpr uintptr_t DIALOGUEWINDOW_UPDATE = 0x406368;
 
         static constexpr uintptr_t MGAME_TOGGLEPAUSE = 0x497564;
         static constexpr uintptr_t MGAME_ONUPDATE = 0x492BB4;

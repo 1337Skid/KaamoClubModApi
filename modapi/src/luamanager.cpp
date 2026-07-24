@@ -247,8 +247,11 @@ void LuaManager::bind_api()
         sol::no_constructor,
         "id", sol::property(&Mission::getid, &Mission::setid),
         "completedsidemissions", sol::property(&Mission::getcompletedsidemissions, &Mission::setcompletedsidemissions),
-        "EnableValkyrie", [](Mission& self) {
+        "EnableValkyrie", [](Mission& self) { // deprecate and switch to memoryutils:patchbyte ?
             Mission::enablevalkyrie();
+        },
+        "DisableValkyrie", [](Mission& self) {
+            Mission::disablevalkyrie();
         },
         "NextCampaignMission", [](Mission& self) {
             Mission::nextcampaignmission();

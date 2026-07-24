@@ -25,6 +25,7 @@ class Mission {
         static void disable(int custom_missionid);
         
         static void enablevalkyrie(void);
+        static void disablevalkyrie(void);
         static void nextcampaignmission();
 };
 #endif

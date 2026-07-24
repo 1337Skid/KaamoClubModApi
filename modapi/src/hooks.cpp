@@ -2079,6 +2079,32 @@ int __stdcall Hooks::aegeometry_aegeometry_hook(unsigned short a2, char a3)
     return result;
 }
 
+int* __cdecl Hooks::dialoguewindow_init_hook()
+{
+    int a1;
+    int *returnvalue;
+
+    __asm {
+        mov a1, esi
+    }
+    __asm {
+        mov esi, a1
+        call old_dialoguewindowinit
+        mov returnvalue, eax
+    }
+    return returnvalue;
+}
+
+unsigned int __stdcall Hooks::dialoguewindow_draw_hook(int a1)
+{
+    return old_dialoguewindowdraw(a1);
+}
+
+int* __stdcall Hooks::dialoguewindow_update_hook(int a2)
+{
+    return nullptr;
+}
+
 void Hooks::init()
 {
     MH_Initialize();
@@ -2157,6 +2183,9 @@ void Hooks::init()
     //MH_CreateHook((LPVOID)Offset::MGAME_ONINITIALIZE, (LPVOID)&mgame_oninitialize_hook, (LPVOID*)&old_mgameoninitialize);
     //MH_CreateHook((LPVOID)Offset::ABYSSENGINE_PAINTCANVAS_TEXTURECREATE, (LPVOID)&abyssengine_paintcanvas_texturecreate_hook, (LPVOID*)&old_abyssenginepaintcanvastexturecreate);
     //MH_CreateHook((LPVOID)Offset::AEGEOMETRY_AEGEOMETRY, (LPVOID)&aegeometry_aegeometry_hook, (LPVOID*)&old_aegeometryaegeometry);
+    //MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_INIT, (LPVOID)&dialoguewindow_init_hook, (LPVOID*)&old_dialoguewindowinit);
+    //MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_DRAW, (LPVOID)&dialoguewindow_draw_hook, (LPVOID*)&old_dialoguewindowdraw);
+    //MH_CreateHook((LPVOID)Offset::DIALOGUEWINDOW_UPDATE, (LPVOID)&dialoguewindow_update_hook, (LPVOID*)&old_dialoguewindowupdate);
     MH_EnableHook(MH_ALL_HOOKS);
 }
 

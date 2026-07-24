@@ -34,7 +34,12 @@ void Mission::setcompletedsidemissions(int value)
 
 void Mission::enablevalkyrie()
 {
-    Patches::patchvalkyrie();
+    Patches::patchvalkyrieenable();
+}
+
+void Mission::disablevalkyrie()
+{
+    Patches::patchvalkyriedisable();
 }
 
 void Mission::nextcampaignmission()

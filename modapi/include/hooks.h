@@ -309,6 +309,18 @@ class Hooks {
         inline static aegeometry_aegeometry old_aegeometryaegeometry = nullptr;
         static int __stdcall aegeometry_aegeometry_hook(unsigned short a2, char a3);
 
+        using dialoguewindow_init = int* (__cdecl*)();
+        inline static dialoguewindow_init old_dialoguewindowinit = nullptr;
+        static int* __cdecl dialoguewindow_init_hook();
+
+        using dialoguewindow_draw = unsigned int (__stdcall*)(int);
+        inline static dialoguewindow_draw old_dialoguewindowdraw = nullptr;
+        static unsigned int __stdcall dialoguewindow_draw_hook(int a1);
+
+        using dialoguewindow_update = int* (__stdcall*)(int);
+        inline static dialoguewindow_update old_dialoguewindowupdate = nullptr;
+        static int* __stdcall dialoguewindow_update_hook(int a2);
+
         static void injectsystemsandstations(void);
         static void injectitems(void);
         static void injectships(void);

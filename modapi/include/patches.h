@@ -28,7 +28,8 @@ class Patches {
         static void patchstarmap(uint8_t new_limit);
         static void patchloadstations(uint8_t new_limit);
         static void patchmissions(uint8_t new_limit);
-        static void patchvalkyrie(void);
+        static void patchvalkyrieenable(void);
+        static void patchvalkyriedisable(void);
 };
 
 #endif

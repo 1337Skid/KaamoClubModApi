@@ -57,7 +57,7 @@ void Patches::patchmissions(uint8_t new_value)
     VirtualProtect((LPVOID)addr, 1, old, &old);
 }
 
-void Patches::patchvalkyrie()
+void Patches::patchvalkyrieenable()
 {
     DWORD old;
     uintptr_t addrs[] = { 0x0049E1FD, 0x0049E205 };
@@ -70,4 +70,19 @@ void Patches::patchvalkyrie()
     }
     MemoryUtils::Write<int>(MemoryUtils::GetModuleBase("GOF2.exe") + 0x20AD4D, 1); // is valkyrie
     MemoryUtils::Write<int>(MemoryUtils::GetModuleBase("GOF2.exe") + 0x20AD4F, 1); // is valkyrie
+}
+
+void Patches::patchvalkyriedisable()
+{
+    DWORD old;
+    uintptr_t addrs[] = { 0x0049E1FD, 0x0049E205 };
+
+    for (size_t i = 0; i < 2; i++) {
+        uintptr_t addr = addrs[i];
+        VirtualProtect((LPVOID)addr, 1, PAGE_EXECUTE_READWRITE, &old);
+        *reinterpret_cast<uint8_t*>(addr) = 0x75; // jnz
+        VirtualProtect((LPVOID)addr, 1, old, &old);
+    }
+    MemoryUtils::Write<int>(MemoryUtils::GetModuleBase("GOF2.exe") + 0x20AD4D, 0); // is valkyrie
+    MemoryUtils::Write<int>(MemoryUtils::GetModuleBase("GOF2.exe") + 0x20AD4F, 0); // is valkyrie
 }

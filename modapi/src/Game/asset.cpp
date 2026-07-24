@@ -267,12 +267,12 @@ void Asset::fmodsound_play(int attachsound, unsigned int a3)
 
 int Asset::gamecreatetexture(uint16_t id, float a4)
 {
-    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
-    
-    if (canvas == 0)
-        return -1;
     int slot = -1;
     int *pslot = &slot;
+    int canvas = *reinterpret_cast<int*>(Offset::GLOBALS_CANVAS);
+
+    if (canvas == 0)
+        return -1;
     uintptr_t addr_texturecreate = Offset::ABYSSENGINE_PAINTCANVAS_TEXTURECREATE;
     __asm {
         push a4
