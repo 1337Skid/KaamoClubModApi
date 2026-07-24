@@ -141,7 +141,6 @@ void Level::createdialoguewindow(sol::table dialogueinfo)
     });
     (*globals_status)->m_nCurrentCampaignMission = 1;
     mission->field_50 = 1; // if mission->field_50 = 0 then we'll never have our custom dialogue and it will put a buggy freelance success mission dialogue window mmhh
-    std::cout << std::hex << mission << std::endl;
     if (VirtualProtect(&pagearraylength[1], sizeof(int), PAGE_EXECUTE_READWRITE, &old)) {
         pagearraylength[1] = pages * 2; // * 2 because the game divides by 2 why? idk and I don't want to know
         VirtualProtect(&pagearraylength[1], sizeof(int), old, &old);
