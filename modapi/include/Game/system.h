@@ -5,6 +5,7 @@
 class System {
     private:
         static inline Globals_status **globals_status = 0;
+        static inline lua_State* lstate = nullptr;
         SingleSystem *_ptr = nullptr;
     public:
         System();
@@ -13,7 +14,7 @@ class System {
 
         static inline std::vector<SingleSystem> created_systems;
         SingleSystem *getstruct(void) const;
-        static void init(void);
+        static void init(lua_State *lua_state);
         int getid(void);
         void setid(int value);
         int getrisklevel(void);
@@ -37,6 +38,7 @@ class System {
         static bool isvisible(int systemid);
         static void setvisible(int systemid, bool visible);
         static SingleSystem *getsystembyid(int id);
+        sol::table getstationsid();
 };
 
 #endif

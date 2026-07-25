@@ -58,7 +58,7 @@ LONG WINAPI ModApiUtils::crashhandler(EXCEPTION_POINTERS* ep)
     std::ostringstream log;
     log << "========================================\n";
     log << "  KaamoClubModAPI - crash\n";
-    log << "  Version: 1.0.4\n";
+    log << "  Version: 1.0.5\n";
     log << "========================================\n\n";
     DWORD code = ep->ExceptionRecord->ExceptionCode;
     log << "[Exception]\n";

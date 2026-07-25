@@ -28,7 +28,7 @@
 
 void LuaManager::init()
 {
-    lua_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::os, sol::lib::io, sol::lib::coroutine);
+    lua_state.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::os, sol::lib::io, sol::lib::coroutine, sol::lib::table);
 }
 
 void LuaManager::bind_api()
@@ -240,6 +240,9 @@ void LuaManager::bind_api()
             if (ptr == nullptr)
                 return sol::nullopt;
             return System(ptr);
+        },
+        "GetStationsId", [](System& self) -> sol::table {
+            return self.getstationsid();
         }
     );
 

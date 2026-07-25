@@ -11,9 +11,10 @@ System::System() : _ptr(nullptr) {}
 System::System(SingleSystem *ptr) : _ptr(ptr) {};
 System::~System() {};
 
-void System::init()
+void System::init(lua_State *lua_state)
 {
     globals_status = reinterpret_cast<Globals_status**>(Offset::GLOBALS_STATUS);
+    lstate = lua_state;
 }
 
 SingleSystem *System::getstruct() const
@@ -28,6 +29,7 @@ SingleSystem *System::getstruct() const
 int System::getid()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->id;
@@ -36,6 +38,7 @@ int System::getid()
 void System::setid(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->id = value;
@@ -44,6 +47,7 @@ void System::setid(int value)
 int System::getrisklevel()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->risk;
@@ -52,6 +56,7 @@ int System::getrisklevel()
 void System::setrisklevel(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->risk = value;
@@ -60,6 +65,7 @@ void System::setrisklevel(int value)
 int System::getfaction()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->faction;
@@ -68,6 +74,7 @@ int System::getfaction()
 void System::setfaction(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->faction = value;
@@ -76,6 +83,7 @@ void System::setfaction(int value)
 int System::getjumpgatestationid()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->jumpgate_station_id;
@@ -84,6 +92,7 @@ int System::getjumpgatestationid()
 void System::setjumpgatestationid(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->jumpgate_station_id = value;
@@ -92,6 +101,7 @@ void System::setjumpgatestationid(int value)
 int System::getmapcoordinatex()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->pos.x;
@@ -100,6 +110,7 @@ int System::getmapcoordinatex()
 void System::setmapcoordinatex(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->pos.x = value;
@@ -108,6 +119,7 @@ void System::setmapcoordinatex(int value)
 int System::getmapcoordinatey()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->pos.y;
@@ -116,6 +128,7 @@ int System::getmapcoordinatey()
 void System::setmapcoordinatey(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->pos.y = value;
@@ -124,6 +137,7 @@ void System::setmapcoordinatey(int value)
 int System::getmapcoordinatez()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->pos.z;
@@ -132,6 +146,7 @@ int System::getmapcoordinatez()
 void System::setmapcoordinatez(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->pos.z = value;
@@ -140,6 +155,7 @@ void System::setmapcoordinatez(int value)
 int System::gettextureid()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return 0;
     return s->texture_id;
@@ -148,6 +164,7 @@ int System::gettextureid()
 void System::settextureid(int value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     s->texture_id = value;
@@ -156,6 +173,7 @@ void System::settextureid(int value)
 std::string System::getname()
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return "";
     uintptr_t strptr = reinterpret_cast<uintptr_t>(s->name.text);
@@ -165,6 +183,7 @@ std::string System::getname()
 void System::setname(std::string value)
 {
     SingleSystem *s = getstruct();
+
     if (s == nullptr)
         return;
     uintptr_t strptr = reinterpret_cast<uintptr_t>(s->name.text);
@@ -177,14 +196,11 @@ int System::create(const std::string& str, int x, int y, int z, int faction, int
         std::cout << "[-] Failed to call system:Create(), you can only call it in the EarlyInit event" << std::endl;
         return -1;
     }
-
     SingleSystem s;
-
     // utf8 to utf16 bruh I hate this game (sol2 can't pass a wchar directly -_-)
     int len = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
     std::wstring out(len, L'\0');
     MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, out.data(), len);
-
     s.name = AbyssEngine::newstring(out.c_str());
     s.pos  = { x, y, z };
     s.id = 0;
@@ -231,4 +247,17 @@ SingleSystem *System::getsystembyid(int id)
     if (id >= 0 && id < static_cast<int>(systems->size))
         return systems->data[id];
     return nullptr;
+}
+
+sol::table System::getstationsid()
+{
+    sol::state_view lua(lstate);
+    sol::table stations_table = lua.create_table();
+    SingleSystem *s = getstruct();
+    
+    if (s == nullptr || s->station_ids == nullptr || s->station_ids->data == nullptr)
+        return stations_table;
+    for (uint32_t i = 0; i < s->station_ids->size; ++i)
+        stations_table[i + 1] = s->station_ids->data[i];
+    return stations_table;
 }
